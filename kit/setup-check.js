@@ -16,7 +16,7 @@
     form: 'type cls lang kicker title cta note preset steps summary fields allowDup collapse',
     contact: 'type cls lang kicker title big rows hours note buttons buttonsWithSummary summary compact allowDup',
     chips: 'type cls lang max items own carriedBy',
-    carousel: 'type cls lang allowDup items filter kicker title titles lead note reply links max',
+    carousel: 'type cls lang allowDup items source filter kicker title titles lead note reply links max',
     calc: 'type cls lang kicker title cta state controls tables compute money result send notes links allowDup collapse',
     stats: 'type cls lang allowDup items item reply links',
     people: 'type cls lang kicker title note allowDup items filter reply',
@@ -29,7 +29,7 @@
   };
   var ITEM = { cards: 'kicker title who line points pointsCls pointsTitle rows note noteCls link'.split(' '), stats: 'kicker title stats source'.split(' '), people: 'name role img note'.split(' '),
     slide: 'id img badge kicker name sub price save status desc reply link gallery until'.split(' '), compare: 'name values reply link'.split(' ') };
-  var NEED = { cards: [], form: ['steps', 'summary', 'cta'], contact: ['title'], chips: ['items'], carousel: ['items'], calc: ['state', 'controls', 'result', 'send', 'cta'],
+  var NEED = { cards: [], form: ['steps', 'summary', 'cta'], contact: ['title'], chips: ['items'], carousel: [], calc: ['state', 'controls', 'result', 'send', 'cta'],
     stats: [], people: ['items'], consent: ['title', 'yes', 'no'], slots: ['cta', 'say'], confirm: ['form', 'title'], review: ['state', 'lines', 'send', 'cta'], chart: ['title', 'x', 'series'], compare: ['items', 'rows'] };
   // check every language's copy; a problem that every language has is reported once, the others with their language
   function check(cfg) {
@@ -180,6 +180,40 @@
         if (w.type === 'carousel') {
           var n = list(w.items, 'items', function (it, at) { if (!isObj(it) || !isStr(it.name)) { err(at + ' has no "name"'); return; } only(it, ITEM.slide.concat(isObj(w.filter) && isStr(w.filter.by) ? [w.filter.by] : []), at); strs(it, ['kicker', 'sub', 'desc', 'badge', 'save'], at); url(it.link, at + '.link'); if (it.until != null && LBW.day.read(it.until) == null) err(at + '.until is a date, D/M/YYYY'); if (it.until != null && !isStr(cfg.timeZone)) err(at + '.until needs "timeZone" in the config (the day ends where the client is, not where the visitor is)'); if (it.img != null && !(isObj(it.img) && linkOK(it.img.src))) err(at + '.img.src is not under any entry of "links"'); rep(it.reply, at + '.reply'); }).length;
           if (isArr(w.items) && !n) err('"items" is empty');
+          if (w.items == null && w.source == null) err('missing "items" (or a "source" to read them live)');
+          if (w.source != null) {
+            var sc = w.source, slideKeys = ITEM.slide.concat(isObj(w.filter) && isStr(w.filter.by) ? [w.filter.by] : []);
+            if (!isObj(sc)) err('"source" is { "csv" | "json": an https URL, "id": the id column, "map": { "name": "{column}", … } }');
+            else {
+              only(sc, ['csv', 'json', 'path', 'id', 'map', 'max', 'maxAge', 'prefetch'], 'source');
+              if ((sc.csv == null) === (sc.json == null)) err('source needs one of "csv" or "json"');
+              ['csv', 'json'].forEach(function (k) { if (sc[k] != null && (!isStr(sc[k]) || !/^https:\/\/[^\s"'<>]+$/.test(sc[k]))) err('source.' + k + ' must be an https URL'); });
+              if (sc.path != null && (sc.json == null || !isStr(sc.path))) err('source.path is the dotted key of the list inside a "json" answer');
+              if (sc.id != null && !isStr(sc.id)) err('source.id is the name of the id column');
+              if (sc.max != null && !(typeof sc.max === 'number' && sc.max % 1 === 0 && sc.max >= 1 && sc.max <= 5000)) err('source.max is how many rows are read: a whole number from 1 to 5000');
+              if (sc.maxAge != null && !(typeof sc.maxAge === 'number' && sc.maxAge >= 10000)) err('source.maxAge is in milliseconds, 10000 at least (60000 by default)');
+              var cols = [], lowOnly = sc.csv != null, col = function (x, at) {   // every "{column}" in the map, and its shape
+                if (isStr(x)) { (x.match(/\{[^{}]*\}/g) || []).forEach(function (m) { var c = m.slice(1, -1); cols.push(c);
+                  if (!/^[A-Za-z0-9_]+$/.test(c)) err(at + ': "' + m + '" is not a column name (letters, digits, _)');
+                  else if (lowOnly && c !== c.toLowerCase()) err(at + ': "' + m + '" must be lower-case (a CSV\'s headers are read lower-cased)'); }); return true; }
+                return false; };
+              if (isStr(sc.id) && lowOnly && sc.id !== sc.id.toLowerCase()) err('source.id "' + sc.id + '" must be lower-case (a CSV\'s headers are read lower-cased)');
+              if (!isObj(sc.map)) err('source.map is missing: { "name": "{column}", … }');
+              else {
+                var mp = sc.map, fkey = isObj(w.filter) && isStr(w.filter.by) ? w.filter.by : null, TEXT = ['name', 'kicker', 'sub', 'desc', 'badge', 'save', 'until'].concat(fkey ? [fkey] : []);
+                only(mp, TEXT.concat(['price', 'img', 'link']), 'source.map');
+                if (own(mp, 'reply')) err('source.map can\'t fill "reply": a cell would become a sentence the visitor sends');
+                TEXT.forEach(function (k) { if (mp[k] != null && !col(mp[k], 'source.map.' + k)) err('source.map.' + k + ' must be text, as "{column}"'); });
+                if (!isStr(mp.name) || !/\{[A-Za-z0-9_]+\}/.test(mp.name)) err('source.map.name must name a column, as "{name}"');
+                if (fkey && !(isStr(mp[fkey]) && /\{[A-Za-z0-9_]+\}/.test(mp[fkey]))) err('source.map.' + fkey + ' is missing: the filter reads it from a column, as "{' + fkey + '}"');
+                if (mp.until != null && !isStr(cfg.timeZone)) err('source.map.until needs "timeZone" in the config (the day ends where the client is)');
+                if (mp.link != null) { if (!isPair(mp.link)) err('source.map.link is [label, "{column}"]'); else { col(mp.link[0], 'source.map.link'); col(mp.link[1], 'source.map.link'); } }
+                if (mp.img != null) { if (!(isObj(mp.img) && isStr(mp.img.src))) err('source.map.img is { "src": "{column}", "alt": text }'); else { only(mp.img, ['src', 'alt', 'width', 'height'], 'source.map.img'); col(mp.img.src, 'source.map.img.src'); if (mp.img.alt != null && !col(mp.img.alt, 'source.map.img.alt')) err('source.map.img.alt must be text'); } }
+                if (mp.price != null) { if (!(isObj(mp.price) && isStr(mp.price.now))) err('source.map.price is { "now": "{column}", "unit": text, "list": text }'); else { only(mp.price, ['now', 'unit', 'list'], 'source.map.price'); ['now', 'unit', 'list'].forEach(function (k) { if (mp.price[k] != null && !col(mp.price[k], 'source.map.price.' + k)) err('source.map.price.' + k + ' must be text'); }); } }
+              }
+              if (isObj(w.filter) && isStr(w.filter.by) && !(isArr(w.filter.values) && w.filter.values.length && w.filter.values.every(isStr))) err('with a "source", filter.values lists the values the tag may carry (the rows aren\'t known yet)');
+            }
+          }
           if (w.filter != null) { if (!isObj(w.filter) || !isStr(w.filter.by)) err('filter is { "by": a key of the items, "param": the tag key }'); else param(w.filter.param || w.filter.by, 'filter.param'); }
           if (w.titles != null && !isObj(w.titles)) err('"titles" must be an object');
         }

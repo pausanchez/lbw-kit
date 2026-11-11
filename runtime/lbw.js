@@ -1,4 +1,4 @@
-/* lbw.js · Landbot AI Widgets runtime · v0.7.5
+/* lbw.js · Landbot AI Widgets runtime · v0.7.6
    Turns tags that an AI agent (or a flow message) writes at the end of a bot message, e.g. [[shop:card id=boots lang=en]],
    into interactive widgets inside the Landbot v4 web chat. Distilled from four production experiments (retos 16-19).
    You write: your data, your labels and one function per widget. The runtime does the rest:
@@ -392,7 +392,11 @@
   function cached(kind, url, o, read) {
     var key = kind + ' ' + url, c = csvCache[key], age = (o && o.maxAge) || 60000;
     if (c && (c.busy || Date.now() - c.t < age)) return c.p;
-    var p = fetch(url, { cache: 'no-store', credentials: 'omit' }).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+    var p = new Promise(function (res, rej) {   // a fetch that never settles would leave a skeleton forever: give up after 8 s
+      var t = setTimeout(function () { rej(new Error('timeout')); }, (o && o.timeout) || 8000);
+      fetch(url, { cache: 'no-store', credentials: 'omit' }).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+        .then(function (x) { clearTimeout(t); res(x); }, function (e) { clearTimeout(t); rej(e); });
+    })
       .then(function (t) { csvCache[key].busy = false; return read(t); })
       .catch(function (e) { drop(kind + ' failed: ' + url + ' (' + e.message + ')'); if (c && c.ok) { csvCache[key] = c; return c.p; } delete csvCache[key]; throw e; });
     csvCache[key] = { t: Date.now(), p: p, busy: true };
@@ -400,6 +404,8 @@
     return p;
   }
   function csv(url, o) { return cached('csv', url, o, parseCSV); }
+  // LBW.json(url, { maxAge }) → Promise of the parsed JSON, cached like csv. The endpoint must answer CORS.
+  function json(url, o) { return cached('json', url, o, function (t) { return JSON.parse(t); }); }
   // LBW.page(url, { maxAge }) → Promise of a parsed, INERT Document (DOMParser: no script runs, no image loads) for reading
   // a client's own page that answers CORS (check: curl -sI -H 'Origin: https://landbot.online' URL). The URL must be in links.
   // Read it with querySelector and textContent only; never move its nodes into the chat. Pages over 1 MB are cut.
@@ -456,7 +462,7 @@
   }
 
   root.LBW = {
-    version: '0.7.5',
+    version: '0.7.6',
     // LBW.init({ prefix, langs, defaultLang, labels: {en:{…}}, links: ['https://shop.example/', 'tel:', 'mailto:', 'https://calendar.google.com/'], maxPerMessage, quietMs, timeZone: 'Europe/Madrid' })
     init: function (o) { for (var k in o) cfg[k] = o[k]; start(); return root.LBW; },
     // LBW.on('render', function (e) { e.widget, e.tag, e.lang, e.el, e.message }) · 'say' → { text, fields } · 'drop' → the reason
@@ -467,6 +473,6 @@
     day: { num: dayNum, parts: dayParts, read: dayRead, today: dayToday, format: dayFormat, str: dayStr, easter: dayEaster, nth: dayNth, next: dayNext, on: dayOn },
     time: { now: timeNow, read: timeRead, format: timeFmt, state: timeState, nextOpen: timeNextOpen },
     cal: { google: gcal, ics: icsText },
-    later: later, csv: csv, page: page, parseCSV: parseCSV, say: say, store: store, drop: drop, missing: missing, parse: parse, scan: scan
+    later: later, csv: csv, json: json, page: page, parseCSV: parseCSV, say: say, store: store, drop: drop, missing: missing, parse: parse, scan: scan
   };
 })(window);

@@ -1,4 +1,4 @@
-/* AI Widgets kit v0.7.5 · on lbw.js v0.7.5 · the widgets every url-to-demo build rewrote, written once with options. Load it after lbw.js and before the
+/* AI Widgets kit v0.7.6 · on lbw.js v0.7.6 · the widgets every url-to-demo build rewrote, written once with options. Load it after lbw.js and before the
    client's widgets.js: custom_js = <script>lbw.js</script><script>kit.js</script><script>widgets.js</script>.
 
    Each maker registers a widget under the name you give it, from data you pass. Nothing here holds client facts.
@@ -344,17 +344,30 @@
     checkCfg('carousel', name, cfg, ['select', 'slide']); register('carousel', name, 'select()', null);
     LBW.widget(name, function (p, ctx) {
       if (!cfg.allowDup && dup(ctx, cls)) return null;
-      var sel = cfg.select(p, ctx); if (!sel || !sel.items || !sel.items.length) return null;
-      var o = U.card(langOf(cfg, ctx), 'kit-carousel ' + cls), st = el('div', 'lbw-strip'); st.tabIndex = 0; st.setAttribute('role', 'list');
-      sel.items.forEach(function (x, i) { var s = cfg.slide(x, ctx), wh = "carousel('" + name + "') slide " + i;
-        if (!s || !s.name) { warn(wh, 'no name: the slide was left out'); return; }
-        budget(wh, 'title', s.name); budget(wh, 'line', s.desc); st.appendChild(slideEl(s)); });
-      if (!st.children.length) return null;
-      U.head(o.box, sel.kicker || '', sel.title || '');
-      note(o.box, sel.lead); o.box.appendChild(st); note(o.box, sel.note);
-      var acts = []; if (sel.reply) { var g = U.once('kit-actions'); g.appendChild(U.reply(sel.reply[0], sel.reply[1], { primary: true, fields: sel.reply[2] })); acts.push(g); }
-      acts = acts.concat(buttons(sel.links)); if (acts.length) U.row(o, acts);
-      return o;
+      var sel = cfg.select(p, ctx); if (!sel) return null;
+      var lang = langOf(cfg, ctx), o;
+      function fill(o, sel) {   // → false when there is nothing to show
+        if (!sel || !sel.items || !sel.items.length) return false;
+        var st = el('div', 'lbw-strip'); st.tabIndex = 0; st.setAttribute('role', 'list');
+        sel.items.forEach(function (x, i) { var s = cfg.slide(x, ctx), wh = "carousel('" + name + "') slide " + i;
+          if (!s || !s.name) { warn(wh, 'no name: the slide was left out'); return; }
+          budget(wh, 'title', s.name); budget(wh, 'line', s.desc); st.appendChild(slideEl(s)); });
+        if (!st.children.length) return false;
+        U.head(o.box, sel.kicker || '', sel.title || '');
+        note(o.box, sel.lead); o.box.appendChild(st); note(o.box, sel.note);
+        var acts = []; if (sel.reply) { var g = U.once('kit-actions'); g.appendChild(U.reply(sel.reply[0], sel.reply[1], { primary: true, fields: sel.reply[2] })); acts.push(g); }
+        acts = acts.concat(buttons(sel.links)); if (acts.length) U.row(o, acts);
+        return true;
+      }
+      // v0.7.6 · live data: select() may answer { later: a promise, then(data) → the selection, fallback() → a selection from
+      // the snapshot }. The card is a skeleton until the data comes; with no data and no fallback it removes itself.
+      if (sel.later) {
+        o = U.loading(lang, 'kit-carousel ' + cls);
+        return LBW.later(o, sel.later, function (d) { return fill(o, sel.then(d)); },
+          sel.fallback ? function () { if (!fill(o, sel.fallback())) throw new Error('nothing to show'); } : null);
+      }
+      o = U.card(lang, 'kit-carousel ' + cls);
+      return fill(o, sel) ? o : null;
     });
   }
 
@@ -708,6 +721,6 @@
     });
   }
 
-  LBW.kit = { version: '0.7.5', dev: DEV, describe: describe, L: L, last: last, cards: cards, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent, compare: compare,
+  LBW.kit = { version: '0.7.6', dev: DEV, describe: describe, L: L, last: last, cards: cards, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent, compare: compare,
     h: { note: note, list: list, label: label, dup: dup, choice: choice, multiChoice: multiChoice, copyBox: copyBox, status: status, wa: wa, fill: fill, money: money, total: total, lightbox: lightbox, chart: chart, statusHead: statusHead } };
 })(typeof window !== 'undefined' ? window : this);

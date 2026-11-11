@@ -1,0 +1,9 @@
+id,kind,name,name_es,sub,price,until,url,note
+trail-a,trail,Ridge Trail,Sendero de la Cresta,"Half day, 9 km",24,,https://rides.example/trail-a/,A row with every cell
+river-b,water,River Paddle,Remo en el río,2 hours,31,,https://rides.example/river-b/,
+dawn-c,trail,Dawn Walk,,"Short, easy",,,https://rides.example/dawn-c/,No price and no Spanish name: the price line is left out and the name falls back
+old-d,trail,Last Season's Walk,,Closed,12,1/1/2020,https://rides.example/old-d/,Expired: left out
+Bad Id!,trail,Skipped Row,,No,10,,https://rides.example/x/,The id is not a lower-case word: the row is skipped
+trail-a,trail,A Repeat,,No,10,,https://rides.example/y/,A repeated id: skipped
+noname-e,water,,,No name,10,,https://rides.example/z/,No name: skipped
+far-f,water,Sea Loop,Vuelta por mar,Full day,58,,https://elsewhere.example/far-f/,The link is outside "links": the slide draws with no link

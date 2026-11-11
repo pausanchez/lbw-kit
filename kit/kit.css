@@ -1,4 +1,4 @@
-/* AI Widgets kit v0.7.5 · the kit-* classes, from the --lbw-* tokens only (set them in the demo's theme.css).
+/* AI Widgets kit v0.7.6 · the kit-* classes, from the --lbw-* tokens only (set them in the demo's theme.css).
    Order in custom_css: @imports, lbw.css, kit.css, the demo's theme.css, the chat skin. */
 .kit-note { margin: 10px 0 0; font-size: 12px; line-height: 17px; color: var(--lbw-muted); }
 .kit-note.is-safe { color: var(--lbw-ink); background: var(--lbw-tint); border-radius: 8px; padding: 7px 10px; }
@@ -10,7 +10,7 @@
 .kit-facts li { position: relative; padding-left: 20px; }
 .kit-facts:not(.is-check):not(.is-dot):not(.is-steps) li::before,
 .kit-facts.is-dot li::before { content: ""; position: absolute; left: 5px; top: 7px; width: 6px; height: 6px; border-radius: 50%; background: var(--lbw-accent); }
-.kit-facts.is-check li::before { content: "\2713"; position: absolute; left: 2px; color: var(--lbw-accent); font-weight: 700; }
+.kit-facts.is-check li::before { content: "\2713"; position: absolute; left: 2px; color: var(--lbw-accent-text, var(--lbw-accent)); font-weight: 700; }
 .kit-facts.is-steps { counter-reset: kit; }
 .kit-facts.is-steps li { counter-increment: kit; padding-left: 26px; }
 .kit-facts.is-steps li::before { content: counter(kit); position: absolute; left: 0; top: 0; width: 19px; height: 19px; border-radius: 50%; background: var(--lbw-accent); color: var(--lbw-accent-ink); font-size: 11px; font-weight: 700; line-height: 19px; text-align: center; }
@@ -36,7 +36,7 @@
 .kit-slide .kit-img.is-product { aspect-ratio: 1 / 1; background: #fff; border-bottom: 1px solid var(--lbw-line); }
 .kit-slide .kit-img.is-product img { object-fit: contain; padding: 10px; box-sizing: border-box; }
 .kit-badge { position: absolute; top: 10px; right: 10px; background: var(--lbw-accent); color: var(--lbw-accent-ink); font: 700 13px/1 var(--lbw-font); padding: 6px 8px; border-radius: 6px; }
-.kit-slide-kicker { font: 600 11px/14px var(--lbw-font); letter-spacing: .05em; text-transform: uppercase; color: var(--lbw-accent); }
+.kit-slide-kicker { font: 600 11px/14px var(--lbw-font); letter-spacing: .05em; text-transform: uppercase; color: var(--lbw-accent-text, var(--lbw-accent)); }
 .kit-sub { font-size: 12px; }
 .kit-price { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
 .kit-price strong { font: 800 20px/26px var(--lbw-display); font-variant-numeric: tabular-nums; }
@@ -138,5 +138,5 @@
 .kit-cmp-cells { display: grid; gap: 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .kit-cmp.is-3 .kit-cmp-cells { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .kit-cmp-cell { overflow-wrap: anywhere; }
-.kit-cmp-row.is-head .kit-cmp-cell { font-weight: 700; font-size: 14px; color: var(--lbw-accent); }
+.kit-cmp-row.is-head .kit-cmp-cell { font-weight: 700; font-size: 14px; color: var(--lbw-accent-text, var(--lbw-accent)); }
 .kit-cmp-row.is-strong .kit-cmp-cell { font-weight: 700; font-size: 16px; }

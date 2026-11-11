@@ -1,10 +1,12 @@
-/* lbw.css · base look for Landbot AI Widgets (v0.7.5)
+/* lbw.css · base look for Landbot AI Widgets (v0.7.6)
    The ChatKit-gallery language measured in retos 16-19: white cards, 18px radius, a hairline and a soft shadow; a small
    kicker above an 18px title; pill buttons (primary filled, secondary an inset ring) under the card. Re-skin it by
    overriding the variables below in your Custom CSS; keep the class names, the test harness reads some of them. */
 :root {
   --lbw-accent: #1E1EFF;        /* primary buttons, kicker, selected states: check white-on-accent contrast >= 4.5:1 */
   --lbw-accent-ink: #FFFFFF;
+  /* --lbw-accent-text: the accent as TEXT (kickers, prices, ticks, sent pills). Unset, it is the accent. Set a darker
+     shade when the brand colour is light (a yellow accent on white reads 1.7:1): fills keep --lbw-accent. */
   --lbw-ink: #0D0D0D;
   --lbw-muted: #5D5D5D;         /* 6.6:1 on white */
   --lbw-card: #FFFFFF;
@@ -23,7 +25,7 @@
 .lbw *, .lbw *::before, .lbw *::after { box-sizing: border-box; }
 .lbw-box { position: relative; padding: 16px; background: var(--lbw-card); border: 1px solid var(--lbw-line); border-radius: var(--lbw-radius); box-shadow: 0 4px 8px -2px rgba(0,0,0,.1); overflow: hidden; }
 .lbw-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin: 0 0 10px; }
-.lbw-kicker { font: 600 11px/14px var(--lbw-font); letter-spacing: .06em; text-transform: uppercase; color: var(--lbw-accent); }
+.lbw-kicker { font: 600 11px/14px var(--lbw-font); letter-spacing: .06em; text-transform: uppercase; color: var(--lbw-accent-text, var(--lbw-accent)); }
 .lbw-title { margin-top: 2px; font: 600 18px/24px var(--lbw-display); letter-spacing: -.01em; }
 .lbw-muted { color: var(--lbw-muted); font-size: 13px; line-height: 18px; }
 .lbw-rows { margin: 0; border-top: 1px solid var(--lbw-line); }
@@ -39,7 +41,7 @@
   box-shadow: inset 0 0 0 1px var(--lbw-ring); font: 500 14px/1.25 var(--lbw-font); text-decoration: none; cursor: pointer; transition: background-color 150ms ease, transform 120ms ease, opacity 150ms ease; }
 .lbw-pill.is-primary { background: var(--lbw-accent); color: var(--lbw-accent-ink) !important; box-shadow: none; }
 .lbw-pill:disabled { opacity: .4; cursor: default; }
-.lbw-pill.is-sent { opacity: 1; background: var(--lbw-tint); color: var(--lbw-accent) !important; box-shadow: inset 0 0 0 1px var(--lbw-ring); }
+.lbw-pill.is-sent { opacity: 1; background: var(--lbw-tint); color: var(--lbw-accent-text, var(--lbw-accent)) !important; box-shadow: inset 0 0 0 1px var(--lbw-ring); }
 .lbw-pill.is-sent::before { content: "✓ "; white-space: pre; }
 @media (hover: hover) { .lbw-pill:hover:not(:disabled) { filter: brightness(.96); } }
 .lbw-pill:active:not(:disabled) { transform: scale(.97); }
@@ -59,7 +61,7 @@
 .lbw-slide .lbw-actions { margin-top: auto; padding-top: 10px; flex-wrap: nowrap; }
 .lbw-slide .lbw-pill { flex: 1; min-height: 34px; padding: 6px 10px; font-size: 13px; white-space: nowrap; }
 .lbw-name { font: 600 15px/20px var(--lbw-font); margin: 2px 0 6px; }
-.lbw-price { font: 700 18px/24px var(--lbw-font); color: var(--lbw-accent); }
+.lbw-price { font: 700 18px/24px var(--lbw-font); color: var(--lbw-accent-text, var(--lbw-accent)); }
 /* split card: media + body (ui.card(lang, 'lbw-split')): stacked in a narrow chat, side by side when there is room */
 .lbw-split > .lbw-box { padding: 0; }
 .lbw-split .lbw-media { aspect-ratio: 16 / 10; width: 100%; }

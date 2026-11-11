@@ -172,15 +172,54 @@
     },
     chips: function (cfg, name, w, lang) { K.chips(name, pick(w, ['cls', 'lang', 'max', 'items', 'own', 'carriedBy'])); },
     carousel: function (cfg, name, w, lang) {
-      var by = w.filter && w.filter.by, param = (w.filter && w.filter.param) || by, vals = [];
-      if (by) w.items.forEach(function (r) { if (r[by] != null && vals.indexOf(r[by]) < 0) vals.push(r[by]); });
+      var by = w.filter && w.filter.by, param = (w.filter && w.filter.param) || by, vals = (w.filter && w.filter.values) ? w.filter.values.slice() : [], src = w.source;
+      if (by) (w.items || []).forEach(function (r) { if (r[by] != null && vals.indexOf(r[by]) < 0) vals.push(r[by]); });
+      // v0.7.6 · "source": the slides come from a CSV or a JSON read live in the browser (a published Google Sheet, a public
+      // API with CORS); "items" is then the snapshot shown when the source can't be read. Every cell is text, cut at 300
+      // characters; a row with a bad or repeated id, or with no name, is skipped; a URL outside "links" draws no link or photo.
+      // A map never fills "reply": a cell must not become a sentence the visitor sends to the agent.
+      var load = src && function () { var o = { maxAge: src.maxAge }; return src.csv ? LBW.csv(src.csv, o) : LBW.json(src.json, o); };
+      var memo = null;   // the rows of the last answer read: one pass, and one log line per skipped row, per fetch
+      function live(data) {   // throws when the answer isn't the list (a sign-in page, an error object): the saved items are drawn then
+        if (memo && memo.data === data) return memo.rows;
+        var rows = src.json && src.path ? String(src.path).split('.').reduce(function (o, k) { return o != null && typeof o === 'object' && own(o, k) ? o[k] : null; }, data) : data;
+        var seen = Object.create(null), out = [], idCol = src.id || 'id';
+        if (!Array.isArray(rows)) throw new Error('the source did not answer a list');
+        if (!rows.length) throw new Error('the source has no rows');   // an emptied sheet or a page that isn't the file: can't tell them apart
+        if (!rows.some(function (r) { return r && typeof r === 'object' && own(r, idCol); })) throw new Error('the source has no "' + idCol + '" column');
+        rows.slice(0, src.max || 2000).forEach(function (r) {
+          if (!r || typeof r !== 'object') return;
+          var cell = function (k) { var v = own(r, k) ? r[k] : null; if (v == null || typeof v === 'object') return ''; v = String(v).trim(); return v.length > 300 ? Array.from(v).slice(0, 300).join('') : v; };
+          var get = function (k) { return (lang && cell(k + '_' + lang)) || cell(k); };
+          var id = cell(idCol); if (!/^[a-z0-9][a-z0-9_-]{0,39}$/.test(id) || seen[id]) { LBW.drop(name + ': source row skipped (id "' + id.slice(0, 40) + '")'); return; }
+          var it = { id: id };
+          Object.keys(src.map).forEach(function (k) {
+            var gap = false, put = function (x) {
+              if (typeof x === 'string') return x.replace(/\{([A-Za-z0-9_]+)\}/g, function (m, c) { var v = get(c); if (!v) gap = true; return v; });
+              if (Array.isArray(x)) return x.map(put);
+              if (x && typeof x === 'object') { var o = {}; Object.keys(x).forEach(function (j) { o[j] = put(x[j]); }); return o; }
+              return x; }, v = put(src.map[k]);
+            if (!gap) it[k] = v;   // a field with an empty cell is left out whole (no "From  €", no link with no URL)
+          });
+          if (!it.name) { LBW.drop(name + ': source row skipped (no name, id "' + id + '")'); return; }
+          if (it.until != null && LBW.day.read(it.until) == null) { LBW.drop(name + ': source row skipped (id "' + id + '": "until" is not D/M/YYYY)'); return; }
+          seen[id] = 1; out.push(it);
+        });
+        memo = { data: data, rows: out };
+        return out;
+      }
+      if (load && src.prefetch !== false && typeof fetch === 'function') { try { load().then(null, function () {}); } catch (e) {} }
       K.carousel(name, merge(pick(w, ['cls', 'lang', 'allowDup']), {
         select: function (p) {
           var k = by ? p.one(param, vals) : null, today = LBW.day.today();
           // an item with "until": "D/M/YYYY" is left out from the day after: a list that doesn't go stale
-          var rows = w.items.filter(function (r) { return (!k || r[by] === k) && (r.until == null || LBW.day.read(r.until) >= today); });
-          return { items: w.max ? rows.slice(0, w.max) : rows, kicker: w.kicker, title: (k && w.titles && own(w.titles, k) && w.titles[k]) || w.title, lead: w.lead, note: w.note,
-            reply: reply(cfg, w.reply), links: actions(cfg, w.links) };
+          var mk = function (items) {
+            var rows = (items || []).filter(function (r) { return (!k || r[by] === k) && (r.until == null || LBW.day.read(r.until) >= today); });
+            return { items: w.max ? rows.slice(0, w.max) : rows, kicker: w.kicker, title: (k && w.titles && own(w.titles, k) && w.titles[k]) || w.title, lead: w.lead, note: w.note,
+              reply: reply(cfg, w.reply), links: actions(cfg, w.links) };
+          };
+          if (!src) return mk(w.items);
+          return { later: load().then(live), then: mk, fallback: w.items && w.items.length ? function () { return mk(w.items); } : null };
         },
         slide: function (r) { return r; }
       }));

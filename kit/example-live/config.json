@@ -1,0 +1,31 @@
+{
+  "prefix": "lv",
+  "langs": ["en", "es"],
+  "defaultLang": "en",
+  "timeZone": "Europe/Madrid",
+  "links": ["https://rides.example/"],
+  "widgets": {
+    "rides": {
+      "type": "carousel",
+      "kicker": { "en": "Read live", "es": "Leído en vivo" },
+      "title": { "en": "Rides this season", "es": "Salidas de esta temporada" },
+      "titles": { "trail": { "en": "On foot", "es": "A pie" }, "water": { "en": "On the water", "es": "Por el agua" } },
+      "filter": { "by": "kind", "values": ["trail", "water"] },
+      "source": {
+        "csv": "https://cdn.jsdelivr.net/gh/pausanchez/lbw-kit@v0.7.6/kit/example-live/catalog.csv",
+        "id": "id",
+        "map": {
+          "kind": "{kind}",
+          "name": "{name}",
+          "sub": "{sub}",
+          "price": { "now": "{price} €", "unit": { "en": "per person", "es": "por persona" } },
+          "until": "{until}",
+          "link": [{ "en": "Details ↗", "es": "Detalles ↗" }, "{url}"]
+        }
+      },
+      "items": [
+        { "id": "trail-a", "kind": "trail", "name": { "en": "Ridge Trail", "es": "Sendero de la Cresta" }, "sub": { "en": "Saved copy", "es": "Copia guardada" } }
+      ]
+    }
+  }
+}
