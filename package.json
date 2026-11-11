@@ -1,6 +1,6 @@
 {
   "name": "lbw-kit",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "private": true,
   "description": "AI Widgets for the Landbot v4 web chat: the lbw.js runtime, the kit and their CSS, as one versioned library.",
   "scripts": {
@@ -10,7 +10,8 @@
     "build": "node scripts/build.mjs",
     "check": "npm run version:check && npm run build && npm test",
     "check:config": "node scripts/check-config.mjs",
-    "bot": "node scripts/bot-code.mjs"
+    "bot": "node scripts/bot-code.mjs",
+    "mock:report": "node scripts/mock-report.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.28.2",

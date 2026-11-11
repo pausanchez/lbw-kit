@@ -41,10 +41,10 @@ test('missing: unset fields and Landbot\'s default name read as missing', () => 
 
 test('params: closed lists, numbers, text and days', () => {
   const c = chat();
-  c.bot('[[t:probe ids=Symi-Fast+b,zzz,b n=4,5 big=99 txt=<b>hi</b> d=21/11/2026 bad=31/2/2026 name=@{name}]]');
+  c.bot('[[t:probe ids=Sea-Fast+b,zzz,b n=4,5 big=99 txt=<b>hi</b> d=21/11/2026 bad=31/2/2026 name=@{name}]]');
   c.LBW.scan();
   const p = c.p;
-  assert.deepEqual(json(p.list('ids', ['symi_fast', 'b'])), ['symi_fast', 'b']);
+  assert.deepEqual(json(p.list('ids', ['sea_fast', 'b'])), ['sea_fast', 'b']);
   assert.equal(p.one('ids', ['b']), 'b');
   assert.equal(p.one('ids', ['nope']), null);
   assert.equal(p.num('n', 0, 10, 1), 4.5);

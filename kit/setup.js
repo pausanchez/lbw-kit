@@ -321,6 +321,8 @@
     review: 'type cls lang kicker title cta note collapse allowDup state tables compute money lines total discard send',
     chart: 'type cls lang kicker title sub note links allowDup kind height state tables compute money x series y mark summary'
   };
+  var ITEM = { cards: 'kicker title who line points pointsCls pointsTitle rows note noteCls link'.split(' '), stats: 'kicker title stats source'.split(' '), people: 'name role img note'.split(' '),
+    slide: 'id img badge kicker name sub price save status desc reply link gallery until'.split(' ') };
   var NEED = { cards: [], form: ['steps', 'summary', 'cta'], contact: ['title'], chips: ['items'], carousel: ['items'], calc: ['state', 'controls', 'result', 'send', 'cta'],
     stats: [], people: ['items'], consent: ['title', 'yes', 'no'], slots: ['cta', 'say'], confirm: ['form', 'title'], review: ['state', 'lines', 'send', 'cta'], chart: ['title', 'x', 'series'] };
   // ── languages: a text may be an object of texts by language ──────────────────────────────────────
@@ -435,6 +437,8 @@
       }
       // options that are shown as text: an object or a list there would print as "[object Object]"
       function strs(o, keys, where) { if (isObj(o)) keys.forEach(function (k) { if (o[k] != null && typeof o[k] !== 'string') err((where ? where + '.' : '') + k + ' must be text'); }); }
+      // an item's own keys: a misspelt or misplaced one would be dropped in silence and its button or line never drawn
+      function only(o, known, where) { Object.keys(o).forEach(function (k) { if (known.indexOf(k) < 0) err(where + ': unknown key "' + k + '"' + (k === 'links' || k === 'buttons' ? ' (buttons go on the widget; an item has one "link": [label, url])' : '') + '. Known: ' + known.join(', ')); }); }
       function list(l, where, each) { if (l == null) return []; if (!isArr(l)) { err(where + ' must be a list'); return []; } l.forEach(function (x, i) { each(x, where + '[' + i + ']'); }); return l; }
       function pairs(l, where) { list(l, where, function (x, at) { if (!isPair(x)) err(at + ' is [text, text]'); }); }
       function rep(r, where) { if (r == null) return; if (typeof r === 'string') { if (!own(reps, r)) err(where + ': reply "' + r + '" is not in "replies"'); } else if (!isPair(r)) err(where + ' is a name in "replies" or [label, sentence]'); }
@@ -456,7 +460,7 @@
           if (!w.items && !w.item) err('missing "items" (or "item" for a single card)');
           if (w.items != null && !isObj(w.items)) err('"items" must be an object of cards by id');
           var cs = isObj(w.item) ? { item: w.item } : isObj(w.items) ? w.items : {};
-          Object.keys(cs).forEach(function (id) { var it = cs[id]; if (!isObj(it) || !isStr(it.title)) { err('card "' + id + '" has no "title"'); return; } strs(it, ['kicker', 'who', 'line', 'note', 'pointsTitle'], id); url(it.link, id + '.link'); pairs(it.rows, id + '.rows'); list(it.points, id + '.points', function (x, at) { if (!isStr(x)) err(at + ' must be text'); }); });
+          Object.keys(cs).forEach(function (id) { var it = cs[id]; if (!isObj(it) || !isStr(it.title)) { err('card "' + id + '" has no "title"'); return; } strs(it, ['kicker', 'who', 'line', 'note', 'pointsTitle'], id); only(it, ITEM.cards, id); url(it.link, id + '.link'); pairs(it.rows, id + '.rows'); list(it.points, id + '.points', function (x, at) { if (!isStr(x)) err(at + ' must be text'); }); });
           param(w.param, 'param'); if (w.fallback != null && !own(cs, w.fallback)) err('fallback "' + w.fallback + '" is not one of the items');
           var r = reply({ replies: reps }, w.reply); if (isPair(r)) { text(r[0], 'reply', ['id', 'title'], [], []); text(r[1], 'reply', ['id', 'title'], [], []); }
         }
@@ -502,7 +506,7 @@
         }
 
         if (w.type === 'carousel') {
-          var n = list(w.items, 'items', function (it, at) { if (!isObj(it) || !isStr(it.name)) { err(at + ' has no "name"'); return; } url(it.link, at + '.link'); if (it.until != null && LBW.day.read(it.until) == null) err(at + '.until is a date, D/M/YYYY'); if (it.until != null && !isStr(cfg.timeZone)) err(at + '.until needs "timeZone" in the config (the day ends where the client is, not where the visitor is)'); if (it.img != null && !(isObj(it.img) && linkOK(it.img.src))) err(at + '.img.src is not under any entry of "links"'); rep(it.reply, at + '.reply'); }).length;
+          var n = list(w.items, 'items', function (it, at) { if (!isObj(it) || !isStr(it.name)) { err(at + ' has no "name"'); return; } only(it, ITEM.slide.concat(isObj(w.filter) && isStr(w.filter.by) ? [w.filter.by] : []), at); strs(it, ['kicker', 'sub', 'desc', 'badge', 'save'], at); url(it.link, at + '.link'); if (it.until != null && LBW.day.read(it.until) == null) err(at + '.until is a date, D/M/YYYY'); if (it.until != null && !isStr(cfg.timeZone)) err(at + '.until needs "timeZone" in the config (the day ends where the client is, not where the visitor is)'); if (it.img != null && !(isObj(it.img) && linkOK(it.img.src))) err(at + '.img.src is not under any entry of "links"'); rep(it.reply, at + '.reply'); }).length;
           if (isArr(w.items) && !n) err('"items" is empty');
           if (w.filter != null) { if (!isObj(w.filter) || !isStr(w.filter.by)) err('filter is { "by": a key of the items, "param": the tag key }'); else param(w.filter.param || w.filter.by, 'filter.param'); }
           if (w.titles != null && !isObj(w.titles)) err('"titles" must be an object');
@@ -590,13 +594,13 @@
           if (!w.items && !w.item) err('missing "items" (or "item" for a single card)');
           if (w.items != null && !isObj(w.items)) err('"items" must be an object of cards by id');
           var ss = isObj(w.item) ? { item: w.item } : isObj(w.items) ? w.items : {};
-          Object.keys(ss).forEach(function (id) { var it = ss[id]; if (!isObj(it)) { err('"' + id + '" must be an object'); return; } strs(it, ['kicker', 'title', 'source'], id); pairs(it.stats, id + '.stats'); if (!isArr(it.stats) || it.stats.length < 2 || it.stats.length > 4) err(id + '.stats holds 2 to 4 [value, label]'); if (!isStr(it.source)) err(id + ' has no "source": say where and when the numbers were read'); });
+          Object.keys(ss).forEach(function (id) { var it = ss[id]; if (!isObj(it)) { err('"' + id + '" must be an object'); return; } strs(it, ['kicker', 'title', 'source'], id); only(it, ITEM.stats, id); pairs(it.stats, id + '.stats'); if (!isArr(it.stats) || it.stats.length < 2 || it.stats.length > 4) err(id + '.stats holds 2 to 4 [value, label]'); if (!isStr(it.source)) err(id + ' has no "source": say where and when the numbers were read'); });
           var sr = reply({ replies: reps }, w.reply); if (isPair(sr)) { text(sr[0], 'reply', ['id', 'title']); text(sr[1], 'reply', ['id', 'title']); }
         }
 
         if (w.type === 'people') {
           if (!isObj(w.items) || !Object.keys(w.items).length) err('"items" must be an object of people by id');
-          else Object.keys(w.items).forEach(function (id) { var x = w.items[id]; if (!isObj(x) || !isStr(x.name) || !isStr(x.role)) { err('"' + id + '" needs "name" and "role"'); return; } strs(x, ['note'], id); if (x.img != null && !linkOK(x.img)) err(id + '.img is not under any entry of "links"'); });
+          else Object.keys(w.items).forEach(function (id) { var x = w.items[id]; if (!isObj(x) || !isStr(x.name) || !isStr(x.role)) { err('"' + id + '" needs "name" and "role"'); return; } strs(x, ['note'], id); only(x, ITEM.people, id); if (x.img != null && !linkOK(x.img)) err(id + '.img is not under any entry of "links"'); });
           if (w.filter != null) { if (!isObj(w.filter) || !isStr(w.filter.param)) err('filter is { "param": the tag key that lists ids }'); else param(w.filter.param, 'filter.param'); }
           if (isObj(w.items) && Object.keys(w.items).length > 4 && w.filter == null) err('a people card shows 4 at most: add "filter": { "param": "who" } so the tag picks them');
           var pr = reply({ replies: reps }, w.reply); if (isPair(pr)) { text(pr[0], 'reply', ['id', 'name', 'role']); text(pr[1], 'reply', ['id', 'name', 'role']); }

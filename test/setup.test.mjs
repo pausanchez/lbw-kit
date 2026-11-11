@@ -190,3 +190,13 @@ test('check-config: the command line gives the same verdict', () => {
   const good = run('kit/example/config.json'); assert.equal(good.status, 0, good.stderr); assert.match(good.stdout, /8 widgets/);
   assert.equal(run('package.json').status, 1);
 });
+
+test('check: an unknown key inside an item is an error, with the place it belongs', () => {
+  const e = (w) => errors({ prefix: 't', links: ['https://shop.example/', 'https://wa.me/'], actions: { wa: { wa: '34600000000', label: 'WA' } }, widgets: { w } }).join('\n');
+  assert.match(e({ type: 'cards', items: { a: { title: 'A', links: ['wa'] } } }), /a: unknown key "links" \(buttons go on the widget; an item has one "link": \[label, url\]\)/);
+  assert.match(e({ type: 'cards', items: { a: { title: 'A', titel: 'x' } } }), /a: unknown key "titel"\. Known: kicker, title/);
+  assert.match(e({ type: 'stats', item: { title: 'A', stats: [['1', 'a'], ['2', 'b']], source: 's', sorce: 'x' } }), /item: unknown key "sorce"/);
+  assert.match(e({ type: 'people', items: { a: { name: 'A', role: 'R', phone: '1' } } }), /a: unknown key "phone"/);
+  assert.match(e({ type: 'carousel', filter: { by: 'kind' }, items: [{ name: 'A', kind: 'x', prize: '1 €' }] }), /items\[0\]: unknown key "prize"/);
+  assert.doesNotMatch(e({ type: 'carousel', filter: { by: 'kind' }, items: [{ name: 'A', kind: 'x' }] }), /unknown key/);
+});

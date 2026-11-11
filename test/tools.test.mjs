@@ -43,3 +43,15 @@ test('bot-code: a config with a problem writes nothing', () => {
   assert.equal(r.status, 1); assert.match(r.stderr, /card "x" has no "title"/);
   assert.equal(fs.existsSync(path.join(out, 'build')), false);
 });
+
+test('mock-report: reads what a page drew, with dev mode on', () => {
+  const out = tmp(), r = run('kit/example/config.json', '--out', out, '--inline');
+  assert.equal(r.status, 0, r.stderr);
+  const page = path.join(out, 'mock.html'), msg = (t) => `<div data-lb-part="message" data-lb-author="bot"><div data-lb-part="message-text">${t}</div></div>`;
+  fs.writeFileSync(page, '<!doctype html><body>' + msg('A [[np:service id=loft]]') + msg('B [[np:service id=castle]] [[np:room size=12 finish=clad]]') + fs.readFileSync(path.join(out, 'custom_js.html'), 'utf8') + '</body>');
+  const rep = spawnSync(process.execPath, ['scripts/mock-report.mjs', page, '--today', '11/11/2026', '--now', '10:30'], { cwd, encoding: 'utf8' });
+  assert.equal(rep.status, 0, rep.stderr + rep.stdout);
+  const d = JSON.parse(rep.stdout);
+  assert.deepEqual([d.devMode, d.library, d.widgets, d.setupErrors, d.rawTagsLeft], [true, pkg.version, { service: 1, room: 1 }, [], []]);
+  assert.ok(d.dropped.some((x) => /unknown value id=castle/.test(x)));
+});
