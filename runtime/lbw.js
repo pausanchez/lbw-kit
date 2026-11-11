@@ -1,4 +1,4 @@
-/* lbw.js · Landbot AI Widgets runtime · v0.7.0
+/* lbw.js · Landbot AI Widgets runtime · v0.7.1
    Turns tags that an AI agent (or a flow message) writes at the end of a bot message, e.g. [[shop:card id=boots lang=en]],
    into interactive widgets inside the Landbot v4 web chat. Distilled from four production experiments (retos 16-19).
    You write: your data, your labels and one function per widget. The runtime does the rest:
@@ -91,10 +91,16 @@
   function quiet() { return !document.querySelector('[data-lb-part="window"] [role="status"]') && Date.now() - quietSince > cfg.quietMs; }
   // say(): one send per 1.2 s (double clicks), queued until the chat is quiet: a click while the agent's reply is still
   // arriving otherwise lands ABOVE that reply. Returns true when accepted (mark the control as sent right away).
+  // Sends that wait go out in the order they were clicked: one queue, one timer (two waits on their own timers could swap).
+  var queue = [];
+  function pump() {
+    if (!queue.length) return;
+    if (quiet() || Date.now() - queue[0].t0 > cfg.maxWaitMs) { var q = queue.shift(); try { post(q.text, q.fields); } catch (e) { drop('send failed: ' + q.text + ' (' + e.message + ')'); } if (!queue.length) return; }
+    setTimeout(pump, 250);
+  }
   function say(text, fields) {
     if (!text || Date.now() - lock < 1200) return false; lock = Date.now();
-    var t0 = Date.now();
-    (function wait() { if (quiet() || Date.now() - t0 > cfg.maxWaitMs) post(text, fields); else setTimeout(wait, 250); })();
+    queue.push({ text: text, fields: fields, t0: Date.now() }); if (queue.length === 1) pump();
     return true;
   }
   // a button that says `text` (and writes `fields`) when clicked; `label` may be shorter than what it sends
@@ -445,7 +451,7 @@
   }
 
   root.LBW = {
-    version: '0.7.0',
+    version: '0.7.1',
     // LBW.init({ prefix, langs, defaultLang, labels: {en:{…}}, links: ['https://shop.example/', 'tel:', 'mailto:', 'https://calendar.google.com/'], maxPerMessage, quietMs, timeZone: 'Europe/Madrid' })
     init: function (o) { for (var k in o) cfg[k] = o[k]; start(); return root.LBW; },
     // LBW.widget('card', function (p, ctx) { …return an element or null… }, { last: true })

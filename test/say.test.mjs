@@ -67,3 +67,25 @@ test('once: chips nobody used go quiet when the visitor writes after them', () =
   assert.ok([...g.querySelectorAll('button')].every((b) => b.disabled));
   c.close();
 });
+
+test('say: sends that waited go out in the order they were made', async () => {
+  const c = chat(), busy = c.d.createElement('div');
+  busy.setAttribute('role', 'status'); c.d.querySelector('[data-lb-part="window"]').appendChild(busy);
+  await wait(40);
+  for (const t of ['one', 'two', 'three']) { assert.equal(c.LBW.say(t), true, t); await wait(1230); }
+  assert.equal(c.sent.length, 0);
+  busy.remove(); await wait(1200);
+  assert.deepEqual(c.sent.map((x) => x[1].message), ['one', 'two', 'three']);
+  c.close();
+});
+
+test('say: a send that throws is logged and the next one still goes', async () => {
+  const c = chat({ landbot: false }), got = [];
+  c.w._landbot = { sendMessage: (m) => { if (m.message === 'one') throw new Error('boom'); got.push(m.message); } };
+  const busy = c.d.createElement('div'); busy.setAttribute('role', 'status'); c.d.querySelector('[data-lb-part="window"]').appendChild(busy);
+  await wait(40);
+  c.LBW.say('one'); await wait(1230); c.LBW.say('two'); await wait(1230);
+  busy.remove(); await wait(900);
+  assert.deepEqual(got, ['two']);
+  c.close();
+});

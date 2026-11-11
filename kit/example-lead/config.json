@@ -1,0 +1,77 @@
+{
+  "prefix": "lg",
+  "langs": ["en"],
+  "defaultLang": "en",
+  "timeZone": "Europe/London",
+  "maxPerMessage": 3,
+  "links": ["https://solar.example/", "tel:"],
+
+  "actions": { "call": { "tel": "0116 000 0000", "cc": "44", "label": "Call us" } },
+  "replies": { "book": ["Book a visit", "I want to book a visit"] },
+
+  "widgets": {
+    "trust": {
+      "type": "stats", "cls": "lg-trust", "reply": "book", "links": ["call"],
+      "item": { "kicker": "Since 2009", "title": "Numbers from our site", "stats": [["1,200", "homes"], ["4.8", "rating"], ["15 yr", "warranty"]], "source": "solar.example, Nov 2026" }
+    },
+
+    "team": {
+      "type": "people", "cls": "lg-team", "kicker": "Your advisers", "title": "Who will call you", "note": "From the public team page.",
+      "filter": { "param": "who" },
+      "reply": ["Ask {name}", "I want to talk to {name}"],
+      "items": {
+        "ana": { "name": "Ana Ruiz", "role": "Energy adviser", "note": "Mon–Thu" },
+        "ben": { "name": "Ben Cole", "role": "Surveyor", "img": "https://solar.example/img/ben.jpg" }
+      }
+    },
+
+    "ok": {
+      "type": "consent", "cls": "lg-ok", "icon": "shield", "title": "Can we keep your answers?", "text": "Only to prepare your quote.",
+      "yes": ["Yes, keep them", "Yes, you can keep my answers", { "lg_consent": "yes" }],
+      "no": ["No thanks", "No, do not keep them", { "lg_consent": "no" }],
+      "link": ["Privacy ↗", "https://solar.example/privacy/"]
+    },
+
+    "visit": {
+      "type": "slots", "cls": "lg-visit", "kicker": "Free survey", "title": "Pick a time", "cta": "Book it", "note": "A demo: nothing is booked.",
+      "weekly": { "ahead": 3, "skip": ["25/12"], "week": { "1": [["09:00", "10:00"], ["10:00", "11:00", "busy"], ["14:00", "15:00"]], "3": [["10:00", "11:00"]], "5": [["09:00", "10:00"], ["11:00", "12:00"]] } },
+      "say": { "text": "My visit: {day:date}, {from:time}–{to:time}", "fields": { "lg_day": "{day:dmy}", "lg_from": "{from:time}" } },
+      "ics": { "title": "Solar survey", "where": "At your home" }
+    },
+
+    "done": {
+      "type": "confirm", "cls": "lg-done", "form": "visit", "status": "Request received", "title": "See you {day:date}",
+      "rows": [["When", "{from:time}–{to:time}"], ["Sent", "{text}"]],
+      "steps": ["We call to confirm", "The surveyor visits"],
+      "note": "A demo: nothing is booked.", "actions": ["call"]
+    },
+
+    "quote": {
+      "type": "review", "cls": "lg-quote", "kicker": "Your quote", "title": "Review it", "cta": "Confirm", "discard": ["Discard", "Discard the quote"], "note": "Fake prices.",
+      "state": { "panels": { "min": 4, "max": 20, "default": 8, "int": true }, "plan": { "values": ["basic", "plus"], "default": "basic" } },
+      "tables": { "price": { "basic": 450000, "plus": 620000 } },
+      "compute": { "install": "price[plan]", "total": "install + panels * 30000" },
+      "money": { "cur": "€", "after": true, "cents": false },
+      "lines": [
+        { "label": "Panels", "value": "{panels}" },
+        { "label": "Plan", "select": "plan", "items": [["basic", "Basic"], ["plus", "Plus"]] },
+        { "label": "Install", "value": "{install:money}" }
+      ],
+      "total": { "label": "Total", "value": "{total:money}" },
+      "send": { "text": "I confirm: {panels} panels, {plan:label}, {total:money}", "fields": { "lg_plan": "{plan}" } }
+    },
+
+    "saving": {
+      "type": "chart", "cls": "lg-saving", "kicker": "Estimate", "title": "Savings over 10 years", "sub": "From the published tariff", "note": "An example, not a promise.",
+      "kind": "line", "links": ["call"],
+      "state": { "panels": { "min": 4, "max": 20, "default": 8, "int": true } },
+      "compute": { "even": "ceil(450000 / (panels * 9000))" },
+      "money": { "cur": "€", "after": true, "cents": false },
+      "x": { "from": 1, "to": 10, "label": "Y{i}" },
+      "series": [{ "label": "Saved", "value": "panels * 9000 * i" }, { "label": "Cost", "value": "450000" }],
+      "y": { "money": true, "ticks": 4 },
+      "mark": { "at": "even - 1", "label": "Break-even" },
+      "summary": "Savings pass the cost in year {even}"
+    }
+  }
+}

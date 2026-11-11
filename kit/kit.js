@@ -1,4 +1,4 @@
-/* AI Widgets kit v0.7.0 · on lbw.js v0.7.0 · the widgets every url-to-demo build rewrote, written once with options. Load it after lbw.js and before the
+/* AI Widgets kit v0.7.1 · on lbw.js v0.7.1 · the widgets every url-to-demo build rewrote, written once with options. Load it after lbw.js and before the
    client's widgets.js: custom_js = <script>lbw.js</script><script>kit.js</script><script>widgets.js</script>.
 
    Each maker registers a widget under the name you give it, from data you pass. Nothing here holds client facts.
@@ -67,7 +67,7 @@
     calc: 'cls lang kicker title state cta controls result ready send notes links sent allowDup collapse',
     slots: 'cls lang kicker title days cta say ics note sep h12 allowDup collapse sent',
     confirm: 'cls lang form status title rows steps note actions allowDup',
-    review: 'cls lang kicker title state lines total cta discard send note allowDup collapse sent',
+    review: 'cls lang kicker title state lines total cta discard send ready note allowDup collapse sent',
     chart: 'cls lang kicker title sub data note links allowDup',
     stats: 'cls lang items single reply links allowDup',
     people: 'cls lang kicker title items select reply note allowDup',
@@ -211,7 +211,7 @@
     register('form', name, cfg.preset ? cfg.preset.param : null, pre && Array.isArray(pre.items) ? pre.items.map(function (x) { return x[0]; }) : null);
     LBW.widget(name, function (p, ctx) {
       if (!cfg.allowDup && dup(ctx, cls)) return null;
-      var lang = langOf(cfg, ctx), o = U.card(lang, 'kit-formcard ' + cls), state = {};
+      var lang = langOf(cfg, ctx), o = U.card(lang, 'kit-formcard ' + cls), state = {}, pend = null;
       cfg.steps.forEach(function (s) { state[s.key] = s.multi ? [] : null; });
       if (cfg.preset) { var first = cfg.steps.filter(function (s) { return s.key === cfg.preset.step; })[0]; if (first) state[first.key] = p.one(cfg.preset.param, (val(first.items, state) || []).map(function (x) { return x[0]; })); }
       var f = U.form('kit-form', {
@@ -222,10 +222,10 @@
         },
         send: function (s) {
           var copy = JSON.parse(JSON.stringify(s)), text = cfg.summary(copy);
-          last[name] = { state: copy, text: text };
+          pend = { state: copy, text: text };
           return [text, cfg.fields ? cfg.fields(copy) : {}];
         },
-        sent: function (s) { if (cfg.collapse !== false && last[name]) fold(o, last[name].text, lang); if (cfg.sent) cfg.sent(s); }
+        sent: function (s) { if (pend) last[name] = pend; if (cfg.collapse !== false && pend) fold(o, pend.text, lang); if (cfg.sent) cfg.sent(s); }
       });
       if (cfg.title) U.head(o.box, cfg.kicker || '', cfg.title);
       o.box.appendChild(f.el);
@@ -515,8 +515,9 @@
       var dayLabel = function (n) { return D.format(n, lang, { weekday: 'short', day: 'numeric', month: 'short' }); };
       var f = U.form('kit-slotform', { state: { day: days[0].day, from: null, to: null }, cta: cfg.cta,
         ready: function (s) { return s.from != null || w.pick; },
-        send: function (s) { var sel = { day: s.day, from: s.from, to: s.to }, r = cfg.say(sel, ctx); said = r && r[0]; if (said) last[name] = { state: sel, text: said }; return r; },
+        send: function (s) { var sel = { day: s.day, from: s.from, to: s.to }, r = cfg.say(sel, ctx); said = r && r[0]; return r; },
         sent: function (s) {
+          if (said) last[name] = { state: { day: s.day, from: s.from, to: s.to }, text: said };   // kept once it was really sent (a click inside the 1.2 s lock isn't)
           var ex = cfg.ics ? [U.ics(cfg.ics.label || '📅', { title: cfg.ics.title, day: s.day, from: s.from, to: s.to, where: cfg.ics.where, file: cfg.ics.file || 'visita' }, 'kit-sent-ics')] : [];
           if (cfg.collapse !== false && said) fold(o, said, lang, ex); if (cfg.sent) cfg.sent(s); } });
       U.head(o.box, cfg.kicker || '', cfg.title || ''); o.box.appendChild(f.el);
@@ -538,18 +539,18 @@
 
   // ── confirm: the "done" card after a form or a booking (ChatKit's "Purchase complete") ─────────────
   // cfg = { cls, lang, form: 'plan' (reads LBW.kit.last[form]; nothing to confirm → draws nothing), status: text | fn(last),
-  //         title: fn(last) | text, rows: fn(last) → [[label, value]], steps: fn(last) | [] (numbered next steps), note, actions: fn(last) → [el…] }
+  //         title: fn(last, ctx) | text, rows: fn(last, ctx) → [[label, value]], steps: fn(last, ctx) | [] (numbered next steps), note, actions: fn(last, ctx) → [el…] }
   function confirm(name, cfg) {
     var cls = cfg.cls || ('kit-' + name);
     checkCfg('confirm', name, cfg, ['title']); register('confirm', name, null, null);
     LBW.widget(name, function (p, ctx) {
       if (!cfg.allowDup && dup(ctx, cls)) return null;
       var ls = cfg.form ? last[cfg.form] : {}; if (!ls) return null;
-      var lang = langOf(cfg, ctx), o = U.card(lang, 'kit-confirm ' + cls), t = val(cfg.title, ls);
-      statusHead(o.box, { text: val(cfg.status, ls), tone: 'ok' }); U.head(o.box, '', t); budget("confirm('" + name + "')", 'title', t);
-      var rows = val(cfg.rows, ls); if (rows && rows.length) U.rows(o.box, rows).classList.add('kit-lines');
-      list(o.box, val(cfg.steps, ls), 'is-steps'); note(o.box, val(cfg.note, ls), 'is-muted');
-      var a = buttons(cfg.actions && cfg.actions(ls)); if (a.length) U.row(o, a);
+      var lang = langOf(cfg, ctx), o = U.card(lang, 'kit-confirm ' + cls), t = val(cfg.title, ls, ctx);
+      statusHead(o.box, { text: val(cfg.status, ls, ctx), tone: 'ok' }); U.head(o.box, '', t); budget("confirm('" + name + "')", 'title', t);
+      var rows = val(cfg.rows, ls, ctx); if (rows && rows.length) U.rows(o.box, rows).classList.add('kit-lines');
+      list(o.box, val(cfg.steps, ls, ctx), 'is-steps'); note(o.box, val(cfg.note, ls, ctx), 'is-muted');
+      var a = buttons(cfg.actions && cfg.actions(ls, ctx)); if (a.length) U.row(o, a);
       return o;
     });
   }
@@ -565,7 +566,7 @@
       if (!cfg.allowDup && dup(ctx, cls)) return null;
       var state = cfg.state(p, ctx); if (!state) return null;
       var lang = langOf(cfg, ctx), o = U.card(lang, 'kit-review ' + cls), said = '', vals = [];
-      var f = U.form('kit-reviewform', { state: state, cta: cfg.cta,
+      var f = U.form('kit-reviewform', { state: state, cta: cfg.cta, ready: cfg.ready,
         change: function (s) { vals.forEach(function (v) { v.node.textContent = v.fn(s); }); if (tot) tot.textContent = cfg.total.value(s); },
         send: function (s) { var r = cfg.send(s); said = r && r[0]; return r; },
         sent: function (s) { if (cfg.collapse !== false && said) fold(o, said, lang); if (cfg.sent) cfg.sent(s); } });
@@ -662,6 +663,6 @@
     });
   }
 
-  LBW.kit = { version: '0.7.0', dev: DEV, describe: describe, L: L, last: last, cards: cards, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent,
+  LBW.kit = { version: '0.7.1', dev: DEV, describe: describe, L: L, last: last, cards: cards, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent,
     h: { note: note, list: list, label: label, dup: dup, choice: choice, multiChoice: multiChoice, copyBox: copyBox, status: status, wa: wa, fill: fill, money: money, total: total, lightbox: lightbox, chart: chart, statusHead: statusHead } };
 })(typeof window !== 'undefined' ? window : this);
