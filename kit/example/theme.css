@@ -1,0 +1,4 @@
+/* Kit example theme: only --lbw-* tokens (a demo's theme.css sets these from the brand) */
+:root { --lbw-accent: #2F5D50; --lbw-accent-ink: #FFFFFF; --lbw-ink: #1B1F1E; --lbw-muted: #55605C; --lbw-soft: #F1F4F2; --lbw-tint: #E3EEEA; --lbw-radius: 14px; }
+.lbw .lbw-box { border-top: 3px solid var(--lbw-accent); }
+.lbw.kit-chips .lbw-box, .lbw.kit-contact.is-compact .lbw-box { border-top: 0; }

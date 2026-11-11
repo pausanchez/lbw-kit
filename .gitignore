@@ -1,0 +1,17 @@
+# Only the library is tracked. Docs, examples, tools and logs name clients and stay out of the repo:
+# everything is ignored, then the library's own paths are let back in.
+/*
+!/.gitignore
+!/package.json
+!/package-lock.json
+!/runtime/
+!/kit/
+!/scripts/
+!/test/
+!/dist/
+
+/kit/example-leadgen/
+/kit/tests/
+/kit/example/mock*
+node_modules/
+.DS_Store

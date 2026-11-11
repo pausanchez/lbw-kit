@@ -1,0 +1,46 @@
+[
+[
+"service",
+"Here’s what an extension covers. [[np:service id=extension]] [[np:chips q=plan,area,planning]]"
+],
+[
+"faq",
+"From the website: [[np:faq id=planning]]"
+],
+[
+"area",
+"[[np:area]] [[np:chips q=area,contact]]"
+],
+[
+"plan",
+"Three taps and you have a summary. [[np:plan kind=loft]]"
+],
+[
+"contact",
+"Here’s how to reach the team. [[np:contact]]"
+],
+[
+"contact-again",
+"Happy to help further. [[np:contact]]"
+],
+[
+"dup",
+"Two of the same in one message: only the first draws. [[np:service id=extension]] [[np:service id=loft]]"
+],
+[
+"projects",
+"A few we’ve built. [[np:projects kind=loft]]"
+],
+[
+"room",
+"Here’s a rough figure. [[np:room size=12 finish=render]]"
+],
+[
+"attack",
+"[[np:service id=<img src=x onerror=alert(1)>]] [[np:faq id=javascript:alert(1)]] [[np:plan kind=../../]] [[np:chips q=<b>]]"
+],
+[
+"attack-v02",
+"[[np:room size=9999 finish=<b>]] [[np:projects kind=../]]"
+]
+]
