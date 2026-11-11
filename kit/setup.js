@@ -5,7 +5,7 @@
               actions: { name: action },        buttons named once, used by name in any widget
               replies: { name: [label, say] },  quick replies named once
               widgets: { tagName: { type: one of the 13 kit makers, … } } }   (LBW.kit.setup.types lists them)
-   action = 'name'  |  { use: 'name', primary: true }  |  { tel, cc, label }  |  { wa, text, label }  |  { link, label }
+   action = 'name'  |  { use: 'name', primary: true }  |  { tel, cc, label }  |  { wa, text, label }  |  { link, label }  |  { mail, label }
             |  { reply: [label, say] }      (primary: true fills it)
    Where a kit maker takes a function, the JSON gives data instead:
      text      a template: 'My room: {size} m², {finish:label:lower}, {total:money}'. {key} is a value of the widget's
@@ -17,6 +17,8 @@
    LBW.kit.setup.check(config) → [errors] changes nothing and never throws (scripts/check-config.mjs runs it on a file).
    setup() registers every valid widget and skips a broken one (its tag then draws nothing), and returns
    { ok, errors, widgets }.
+   Languages: any text may be { "en": "Hours", "es": "Horario" } (the keys are languages of `langs`); the tag's lang picks one,
+   and a missing one falls back to defaultLang. A carousel item with "until": "D/M/YYYY" is left out after that day.
    Dates and times (slots, confirm): {day:date} "Friday, November 13" (in the chat's language), {day:dmy} 13/11/2026, {from:time} 10:00.
    What still needs your own script after setup(): slots read from an API (Calendly), a chart's own y format. */
 (function (root) {
@@ -104,6 +106,7 @@
     if (a.tel) return U.tel(a.label, a.tel, cls, a.cc);
     if (a.wa) return H.wa(a.label, a.wa, a.text == null ? '' : tpl(a.text, plain({ text: text || '' })), cls);
     if (a.link) return U.link(a.label, a.link, cls);
+    if (a.mail) return U.link(a.label, 'mailto:' + a.mail, cls);
     if (a.reply) return U.reply(a.reply[0], a.reply[1], { primary: !!a.primary });
     return null;
   }
@@ -131,14 +134,14 @@
 
   // ── one maker per type ───────────────────────────────────────────────────────────────────────────
   var MAKE = {
-    cards: function (cfg, name, w) {
+    cards: function (cfg, name, w, lang) {
       var o = pick(w, ['cls', 'param', 'items', 'kicker', 'disclaimer', 'single', 'fallback', 'pointsCls', 'allowDup', 'lang']), r = reply(cfg, w.reply);
       if (w.item) { o.items = { _: w.item }; o.single = true; }
       if (r) o.reply = function (id, it) { var sc = plain({ id: id, title: it.title }); return [tpl(r[0], sc), tpl(r[1], sc)]; };
       if (w.links) o.links = function () { return actions(cfg, w.links); };
       K.cards(name, o);
     },
-    form: function (cfg, name, w) {
+    form: function (cfg, name, w, lang) {
       var o = pick(w, ['cls', 'lang', 'kicker', 'title', 'cta', 'note', 'preset', 'allowDup', 'collapse']), items = {};
       var sc = function (s) { return { v: s, items: items, money: String }; };
       o.steps = w.steps.map(function (st) {
@@ -150,12 +153,12 @@
         }
         return s;
       });
-      FORMS[name] = items;
+      FORMS[name + '|' + lang] = items;
       o.summary = function (s) { return tpl(w.summary, sc(s)); };
       if (w.fields) o.fields = function (s) { var f = {}; Object.keys(w.fields).forEach(function (k) { f[k] = tpl(w.fields[k], sc(s)); }); return f; };
       K.form(name, o);
     },
-    contact: function (cfg, name, w) {
+    contact: function (cfg, name, w, lang) {
       var o = pick(w, ['cls', 'lang', 'kicker', 'title', 'big', 'rows', 'note', 'allowDup']), sm = w.summary;
       if (w.hours) { o.hours = pick(w.hours, ['week', 'sep', 'h12', 'open', 'closed', 'showNow']); if (w.hours.holidays) o.hours.holiday = LBW.day.on(w.hours.holidays); }
       o.buttons = function (p, ctx, topic, withSummary) { return actions(cfg, withSummary && w.buttonsWithSummary ? w.buttonsWithSummary : w.buttons); };
@@ -167,20 +170,22 @@
       if (w.compact) o.compact = { label: w.compact.label, buttons: function () { return actions(cfg, w.compact.buttons); } };
       K.contact(name, o);
     },
-    chips: function (cfg, name, w) { K.chips(name, pick(w, ['cls', 'lang', 'max', 'items', 'own', 'carriedBy'])); },
-    carousel: function (cfg, name, w) {
+    chips: function (cfg, name, w, lang) { K.chips(name, pick(w, ['cls', 'lang', 'max', 'items', 'own', 'carriedBy'])); },
+    carousel: function (cfg, name, w, lang) {
       var by = w.filter && w.filter.by, param = (w.filter && w.filter.param) || by, vals = [];
       if (by) w.items.forEach(function (r) { if (r[by] != null && vals.indexOf(r[by]) < 0) vals.push(r[by]); });
       K.carousel(name, merge(pick(w, ['cls', 'lang', 'allowDup']), {
         select: function (p) {
-          var k = by ? p.one(param, vals) : null, rows = w.items.filter(function (r) { return !k || r[by] === k; });
+          var k = by ? p.one(param, vals) : null, today = LBW.day.today();
+          // an item with "until": "D/M/YYYY" is left out from the day after: a list that doesn't go stale
+          var rows = w.items.filter(function (r) { return (!k || r[by] === k) && (r.until == null || LBW.day.read(r.until) >= today); });
           return { items: w.max ? rows.slice(0, w.max) : rows, kicker: w.kicker, title: (k && w.titles && own(w.titles, k) && w.titles[k]) || w.title, lead: w.lead, note: w.note,
             reply: reply(cfg, w.reply), links: actions(cfg, w.links) };
         },
         slide: function (r) { return r; }
       }));
     },
-    calc: function (cfg, name, w) {
+    calc: function (cfg, name, w, lang) {
       var o = pick(w, ['cls', 'lang', 'kicker', 'title', 'cta', 'notes', 'allowDup', 'collapse']), items = {}, steppers = {};
       var lines = Object.keys(w.compute || {}).map(function (k) { return [k, compile(w.compute[k])]; });
       // a stepper takes its range from the state it moves, so what it shows is what the result uses
@@ -219,22 +224,22 @@
       if (w.links) o.links = function () { return actions(cfg, w.links); };
       K.calc(name, o);
     },
-    stats: function (cfg, name, w) {
+    stats: function (cfg, name, w, lang) {
       var o = pick(w, ['cls', 'lang', 'items', 'allowDup']), r = reply(cfg, w.reply);
       if (w.item) { o.items = { _: w.item }; o.single = true; }
       if (r) o.reply = function (id, it) { var sc = plain({ id: id, title: it.title }); return [tpl(r[0], sc), tpl(r[1], sc)]; };
       if (w.links) o.links = function () { return actions(cfg, w.links); };
       K.stats(name, o);
     },
-    people: function (cfg, name, w) {
+    people: function (cfg, name, w, lang) {
       var o = pick(w, ['cls', 'lang', 'kicker', 'title', 'note', 'items', 'allowDup']), r = reply(cfg, w.reply), ids = Object.keys(w.items);
       // [[p:team who=ana,ben]] shows those; no `who` shows everyone; a `who` that names nobody known shows nothing
       if (w.filter) o.select = function (p) { var l = p.list(w.filter.param, ids, 4); return l.length ? l : p.has(w.filter.param) ? [] : ids; };
       if (r) o.reply = function (id, x) { var sc = plain({ id: id, name: x.name, role: x.role }); return [tpl(r[0], sc), tpl(r[1], sc)]; };
       K.people(name, o);
     },
-    consent: function (cfg, name, w) { K.consent(name, pick(w, ['cls', 'lang', 'icon', 'title', 'text', 'yes', 'no', 'link', 'allowDup'])); },
-    slots: function (cfg, name, w) {
+    consent: function (cfg, name, w, lang) { K.consent(name, pick(w, ['cls', 'lang', 'icon', 'title', 'text', 'yes', 'no', 'link', 'allowDup'])); },
+    slots: function (cfg, name, w, lang) {
       var o = pick(w, ['cls', 'lang', 'kicker', 'title', 'cta', 'note', 'sep', 'h12', 'collapse', 'allowDup', 'ics']), D = LBW.day;
       var norm = function (l) { return l.map(function (x) { return [timeOf(x[0]), timeOf(x[1]), x[2]]; }); };
       o.days = function () {   // from the config only: fixed dates from today on, or the next open days of a weekly diary
@@ -253,10 +258,10 @@
       };
       K.slots(name, o);
     },
-    confirm: function (cfg, name, w) {
+    confirm: function (cfg, name, w, lang) {
       var o = pick(w, ['cls', 'lang', 'form', 'allowDup']), src = cfg.widgets[w.form] || {};
       // what the form or the booking sent: its state, plus {text} for the sentence. Dates are written in the language of this tag
-      var sc = function (l, ctx) { return { v: merge(l.state, { text: l.text }), items: FORMS[w.form] || {}, money: String, lang: w.lang || (ctx && ctx.lang) || cfg.defaultLang || 'en', sep: src.sep, h12: src.h12 }; };
+      var sc = function (l, ctx) { return { v: merge(l.state, { text: l.text }), items: FORMS[w.form + '|' + lang] || {}, money: String, lang: w.lang || (ctx && ctx.lang) || cfg.defaultLang || 'en', sep: src.sep, h12: src.h12 }; };
       var T = function (t) { return function (l, ctx) { return tpl(t, sc(l, ctx)); }; };
       o.title = T(w.title); if (w.status != null) o.status = T(w.status); if (w.note != null) o.note = T(w.note);
       if (w.rows) o.rows = function (l, ctx) { var c = sc(l, ctx); return w.rows.map(function (r) { return [tpl(r[0], c), tpl(r[1], c)]; }); };
@@ -264,7 +269,7 @@
       if (w.actions) o.actions = function (l) { return actions(cfg, w.actions, l.text); };
       K.confirm(name, o);
     },
-    review: function (cfg, name, w) {
+    review: function (cfg, name, w, lang) {
       var o = pick(w, ['cls', 'lang', 'kicker', 'title', 'cta', 'note', 'collapse', 'allowDup']), N = numbers(w), items = {}, d = reply(cfg, w.discard);
       var sc = function (s, nb) { var c = N.scope(s, nb); c.items = items; return c; };
       var V = function (t) { return function (s) { var c = sc(s); if (!c.ok) LBW.drop('setup: ' + name + ': a compute line is not a number'); return c.ok ? tpl(t, c) : ''; }; };   // such a line stays empty
@@ -276,7 +281,7 @@
       o.send = function (s) { var c = sc(s, false), f = {}; if (!c.ok) return null; Object.keys(w.send.fields || {}).forEach(function (k) { f[k] = tpl(w.send.fields[k], c); }); return [tpl(w.send.text, c), f]; };
       K.review(name, o);
     },
-    chart: function (cfg, name, w) {
+    chart: function (cfg, name, w, lang) {
       var o = pick(w, ['cls', 'lang', 'kicker', 'title', 'sub', 'note', 'allowDup']), N = numbers(w), y = w.y || {};
       var fns = w.series.map(function (se) { return se.values ? null : compile(se.value); }), at = w.mark && typeof w.mark.at === 'string' ? compile(w.mark.at) : null;
       o.data = function (p) {
@@ -318,7 +323,64 @@
   };
   var NEED = { cards: [], form: ['steps', 'summary', 'cta'], contact: ['title'], chips: ['items'], carousel: ['items'], calc: ['state', 'controls', 'result', 'send', 'cta'],
     stats: [], people: ['items'], consent: ['title', 'yes', 'no'], slots: ['cta', 'say'], confirm: ['form', 'title'], review: ['state', 'lines', 'send', 'cta'], chart: ['title', 'x', 'series'] };
+  // ── languages: a text may be an object of texts by language ──────────────────────────────────────
+  // { "en": "Hours", "es": "Horario" }: every key a language of `langs`, every value a text or a list. Objects that are
+  // maps by a name of yours are never read that way, whatever their keys: actions, replies, widgets, titles, fields, own,
+  // carriedBy, tables, state, compute, map, week, and `items` in the types that keep items by id.
+  var MAPS = { actions: 1, replies: 1, widgets: 1, own: 1, carriedBy: 1, titles: 1, tables: 1, fields: 1, state: 1, compute: 1, map: 1, week: 1 };
+  var BYID = { cards: 1, stats: 1, people: 1, chips: 1 }, CODE = /^[a-z]{2,3}$/;
+  function langsOf(cfg) { return isObj(cfg) && isArr(cfg.langs) && cfg.langs.length && cfg.langs.every(isStr) ? cfg.langs : [isObj(cfg) && isStr(cfg.defaultLang) ? cfg.defaultLang : 'en']; }
+  function dfltOf(cfg, langs) { return isObj(cfg) && isStr(cfg.defaultLang) && langs.indexOf(cfg.defaultLang) >= 0 ? cfg.defaultLang : langs[0]; }
+  function isText(v) { return typeof v === 'string' || isArr(v); }
+  // the copy of x for one language. L = { lang, langs, dflt }; rep collects [path, problem] when given (check)
+  function loc(x, L, path, asMap, rep) {
+    if (isArr(x)) { var fieldsAt = /\.(yes|no)$/.test(path) ? 2 : -1; return x.map(function (y, i) { return loc(y, L, path + '[' + i + ']', i === fieldsAt, rep); }); }
+    if (!isObj(x)) return x;
+    var ks = Object.keys(x);
+    if (!asMap && ks.length && ks.every(function (k) { return /^[a-z]{2}(-[a-z]{2})?$/i.test(k); }) && ks.some(function (k) { return L.langs.indexOf(k) >= 0; })) {
+      var out = ks.filter(function (k) { return L.langs.indexOf(k) < 0; });
+      if (out.length && ks.every(function (k) { return isText(x[k]); })) { if (rep) rep.push([path, 'has texts for "' + out.join('", "') + '", not in "langs"', 1]); return x; }
+      if (!out.length && !ks.every(function (k) { return isText(x[k]); })) { if (rep && ks.every(function (k) { return !isObj(x[k]); })) rep.push([path, 'is by language but holds something that is not a text: only texts and lists can be by language']); }
+      else if (!out.length) {
+        if (rep && !own(x, L.dflt)) rep.push([path, 'has no text in the default language ("' + L.dflt + '")']);
+        if (rep) {   // lists of [key, label] by language must hold the same keys, or a pick made in one language has no label in another
+          var sig = function (v) { return isArr(v) && v.length && v.every(isArr) ? v.map(function (q) { return q[0]; }).join('\u0001') : null; }, first = sig(x[ks[0]]);
+          if (first != null && ks.some(function (k) { return sig(x[k]) !== first; })) rep.push([path, 'has different keys in each language: the first item of every pair must be the same in all of them']);
+        }
+        return loc(own(x, L.lang) ? x[L.lang] : own(x, L.dflt) ? x[L.dflt] : x[ks[0]], L, path, false, null);
+      }
+    }
+    var r = {}, byId = own(x, 'type') && own(BYID, x.type);
+    ks.forEach(function (k) {
+      if (k === '__proto__') return;
+      if (!path && (k === 'labels' || k === 'langs')) { r[k] = x[k]; return; }
+      r[k] = loc(x[k], L, path ? path + '.' + k : k, own(MAPS, k) || (k === 'items' && byId), rep);
+    });
+    return r;
+  }
+  // check every language's copy; a problem that every language has is reported once, the others with their language
   function check(cfg) {
+    if (!isObj(cfg)) return check1(cfg);
+    if (cfg.langs != null && langsOf({ langs: cfg.langs }) !== cfg.langs) return check1(cfg);
+    var langs = langsOf(cfg), dflt = dfltOf(cfg, langs), seen = {}, out = [], rep = [], stray = false;
+    var top = function (m) { out.push({ widget: null, message: m }); };
+    langs.forEach(function (l) { if (!CODE.test(l)) top('language "' + l + '" must be a lower-case code such as es or ca (a tag\'s lang is read lower-cased; regions such as pt-BR are not supported)'); });
+    if (isStr(cfg.defaultLang) && langs.indexOf(cfg.defaultLang) < 0) top('defaultLang "' + cfg.defaultLang + '" is not in "langs"');
+    loc(cfg, { lang: dflt, langs: langs, dflt: dflt }, '', false, rep);
+    rep.forEach(function (r) {
+      var m = /^widgets\.([^.\[]+)\.?(.*)$/.exec(r[0]), w = m ? m[1] : null;
+      out.push({ widget: w, message: (w ? w + ': ' + m[2] : r[0]) + ' ' + r[1] }); if (r[2]) stray = true;
+    });
+    if (stray) return out;   // fix the languages first: the rest would only repeat it in vaguer words
+    var per = langs.map(function (l) { return check1(loc(cfg, { lang: l, langs: langs, dflt: dflt }, '', false, null)); });
+    per.forEach(function (errs, i) { errs.forEach(function (e) {
+      var all = per.every(function (o) { return o.some(function (x) { return x.message === e.message; }); }), key = (all ? '' : langs[i] + ' ') + e.message;
+      if (seen[key]) return; seen[key] = 1;
+      out.push({ widget: e.widget, message: all || langs.length < 2 ? e.message : '[' + langs[i] + '] ' + e.message });
+    }); });
+    return out;
+  }
+  function check1(cfg) {
     var errs = [], top = function (m) { errs.push({ widget: null, message: m }); };
     if (!isObj(cfg)) { top('the config is not an object'); return errs; }
     Object.keys(cfg).forEach(function (k) { if (TOP.indexOf(k) < 0) top('unknown key "' + k + '". Known: ' + TOP.join(', ')); });
@@ -337,13 +399,15 @@
       var use = typeof a === 'string' ? a : isObj(a) ? a.use : null;
       if (use != null && !own(acts, use)) { say(where + ': action "' + use + '" is not in "actions"'); return; }
       var r = resolve({ actions: acts }, a); if (!r) { say(where + ': an action is a name or an object'); return; }
-      var kinds = ['tel', 'wa', 'link', 'reply'].filter(function (k) { return r[k] != null; });
-      if (kinds.length !== 1) { say(where + ': an action needs one of tel, wa, link, reply'); return; }
+      var kinds = ['tel', 'wa', 'link', 'reply', 'mail'].filter(function (k) { return r[k] != null; });
+      if (kinds.length !== 1) { say(where + ': an action needs one of tel, wa, link, reply, mail'); return; }
       if (r.reply) { if (!isPair(r.reply)) say(where + ': "reply" is [label, sentence]'); return; }
       if (!isStr(r.label)) say(where + ': the action has no "label"');
       if (r.tel && links.indexOf('tel:') < 0) say(where + ': a tel action needs "tel:" in "links"');
       if (r.wa && !linkOK('https://wa.me/')) say(where + ': a wa action needs "https://wa.me/" in "links"');
       if (r.link && !linkOK(r.link)) say(where + ': "' + r.link + '" is not under any entry of "links"');
+      if (r.mail && links.indexOf('mailto:') < 0) say(where + ': a mail action needs "mailto:" in "links"');
+      if (r.mail && !(typeof r.mail === 'string' && /^[^@\s?\/,;]+@[a-z0-9.-]+\.[a-z]{2,}$/i.test(r.mail))) say(where + ': "mail" is one plain address (a@b.co), with no subject or text');
     }
     Object.keys(acts).forEach(function (k) { act(acts[k], top, 'actions.' + k); });
     Object.keys(reps).forEach(function (k) { if (!isPair(reps[k])) top('replies.' + k + ' is [label, sentence]'); });
@@ -432,12 +496,13 @@
 
         if (w.type === 'chips') {
           if (!isObj(w.items)) err('"items" must be an object of [label, sentence] by key'); else Object.keys(w.items).forEach(function (k) { if (!isPair(w.items[k])) err('items.' + k + ' is [label, sentence]'); });
+          if (w.max != null && !(Number.isInteger(w.max) && w.max >= 1)) err('"max" must be a whole number, 1 or more');
           if (w.own != null && !isObj(w.own)) err('"own" must be an object');
           if (w.carriedBy != null && !isObj(w.carriedBy)) err('"carriedBy" must be an object'); else Object.keys(w.carriedBy || {}).forEach(function (k) { if (!isArr(w.carriedBy[k])) err('carriedBy.' + k + ' must be a list of widget names'); });
         }
 
         if (w.type === 'carousel') {
-          var n = list(w.items, 'items', function (it, at) { if (!isObj(it) || !isStr(it.name)) { err(at + ' has no "name"'); return; } url(it.link, at + '.link'); if (it.img != null && !(isObj(it.img) && linkOK(it.img.src))) err(at + '.img.src is not under any entry of "links"'); rep(it.reply, at + '.reply'); }).length;
+          var n = list(w.items, 'items', function (it, at) { if (!isObj(it) || !isStr(it.name)) { err(at + ' has no "name"'); return; } url(it.link, at + '.link'); if (it.until != null && LBW.day.read(it.until) == null) err(at + '.until is a date, D/M/YYYY'); if (it.until != null && !isStr(cfg.timeZone)) err(at + '.until needs "timeZone" in the config (the day ends where the client is, not where the visitor is)'); if (it.img != null && !(isObj(it.img) && linkOK(it.img.src))) err(at + '.img.src is not under any entry of "links"'); rep(it.reply, at + '.reply'); }).length;
           if (isArr(w.items) && !n) err('"items" is empty');
           if (w.filter != null) { if (!isObj(w.filter) || !isStr(w.filter.by)) err('filter is { "by": a key of the items, "param": the tag key }'); else param(w.filter.param || w.filter.by, 'filter.param'); }
           if (w.titles != null && !isObj(w.titles)) err('"titles" must be an object');
@@ -585,11 +650,21 @@
     root.__kitSetupErrors = errs.map(function (e) { return e.message; });
     errs.forEach(function (e) { if (e.widget != null) bad.push(e.widget); LBW.drop('setup: ' + e.message); try { console.error('[kit] setup: ' + e.message); } catch (x) {} });
     if (errs.some(function (e) { return e.widget == null; })) return { ok: false, errors: root.__kitSetupErrors, widgets: made };
-    LBW.init(pick(cfg, ['prefix', 'langs', 'defaultLang', 'timeZone', 'maxPerMessage', 'links', 'labels', 'quietMs', 'maxWaitMs']));
+    var langs = langsOf(cfg), dflt = dfltOf(cfg, langs);
+    LBW.init(merge(pick(cfg, ['prefix', 'langs', 'timeZone', 'maxPerMessage', 'links', 'labels', 'quietMs', 'maxWaitMs']), { langs: langs, defaultLang: dflt }));   // the runtime's default must be the config's
     Object.keys(cfg.widgets).forEach(function (name) {
       if (bad.indexOf(name) >= 0) return;
-      try { MAKE[cfg.widgets[name].type](cfg, name, cfg.widgets[name]); made.push(name); }
-      catch (e) { root.__kitSetupErrors.push(name + ': ' + e.message); LBW.drop('setup: ' + name + ': ' + e.message); }
+      // a text may be { en: …, es: … }: the maker runs once per language on a copy with that language's texts, and the
+      // widget registered under `name` picks the one for the tag's lang
+      var fns = {}, opts, cur, real = LBW.widget;
+      try {
+        LBW.widget = function (n, fn, o) { fns[cur] = fn; opts = o || opts; return LBW; };
+        try { langs.forEach(function (l) { cur = l; var c = loc(cfg, { lang: l, langs: langs, dflt: dflt }, '', false, null); MAKE[c.widgets[name].type](c, name, c.widgets[name], l); }); }
+        finally { LBW.widget = real; }
+        var fixed = cfg.widgets[name].lang;   // a widget with its own `lang` always speaks it
+        LBW.widget(name, function (p, ctx) { return (fns[isStr(fixed) && own(fns, fixed) ? fixed : ctx.lang] || fns[dflt])(p, ctx); }, opts);
+        made.push(name);
+      } catch (e) { root.__kitSetupErrors.push(name + ': ' + e.message); LBW.drop('setup: ' + name + ': ' + e.message); }
     });
     return { ok: !root.__kitSetupErrors.length, errors: root.__kitSetupErrors, widgets: made };
   }

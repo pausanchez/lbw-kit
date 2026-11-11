@@ -1,4 +1,4 @@
-/* AI Widgets kit v0.7.1 · on lbw.js v0.7.1 · the widgets every url-to-demo build rewrote, written once with options. Load it after lbw.js and before the
+/* AI Widgets kit v0.7.2 · on lbw.js v0.7.2 · the widgets every url-to-demo build rewrote, written once with options. Load it after lbw.js and before the
    client's widgets.js: custom_js = <script>lbw.js</script><script>kit.js</script><script>widgets.js</script>.
 
    Each maker registers a widget under the name you give it, from data you pass. Nothing here holds client facts.
@@ -28,20 +28,28 @@
   var L = {
     en: { copy: 'Copy', copied: 'Copied ✓', select: 'Select the text and copy it', summary: 'Your summary',
           open: 'Open now · until {t}', closed: 'Closed now · opens {d} at {t}', closedLong: 'Closed now', today: 'today', tomorrow: 'tomorrow',
-          days: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'], localTime: 'Local time: {t}', sent: 'Sent', show: 'Show', hide: 'Hide', busy: 'Busy', pick: 'Pick a time', confirm: 'Confirm', yes: 'Yes', no: 'No' },
+          days: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'], localTime: 'Local time: {t}', sent: 'Sent', show: 'Show', hide: 'Hide', busy: 'Busy', pick: 'Pick a time', confirm: 'Confirm', yes: 'Yes', no: 'No',
+          close: 'Close', prev: 'Previous photo', next: 'Next photo', photos: 'Photos', enlarge: 'Enlarge on the page' },
     es: { copy: 'Copiar', copied: 'Copiado ✓', select: 'Selecciona el texto y cópialo', summary: 'Tu resumen',
           open: 'Abierto ahora · hasta las {t}', closed: 'Cerrado ahora · abre {d} a las {t}', closedLong: 'Cerrado ahora', today: 'hoy', tomorrow: 'mañana',
-          days: ['el domingo', 'el lunes', 'el martes', 'el miércoles', 'el jueves', 'el viernes', 'el sábado'], localTime: 'Hora local: {t}', sent: 'Enviado', show: 'Ver', hide: 'Ocultar', busy: 'Ocupado', pick: 'Elige una hora', confirm: 'Confirmar', yes: 'Sí', no: 'No' },
+          days: ['el domingo', 'el lunes', 'el martes', 'el miércoles', 'el jueves', 'el viernes', 'el sábado'], localTime: 'Hora local: {t}', sent: 'Enviado', show: 'Ver', hide: 'Ocultar', busy: 'Ocupado', pick: 'Elige una hora', confirm: 'Confirmar', yes: 'Sí', no: 'No',
+          close: 'Cerrar', prev: 'Foto anterior', next: 'Foto siguiente', photos: 'Fotos', enlarge: 'Ampliar en la página' },
     it: { copy: 'Copia', copied: 'Copiato ✓', select: 'Seleziona il testo e copialo', summary: 'Il tuo riepilogo',
           open: 'Aperto ora · fino alle {t}', closed: 'Chiuso ora · apre {d} alle {t}', closedLong: 'Chiuso ora', today: 'oggi', tomorrow: 'domani',
-          days: ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato'], localTime: 'Ora locale: {t}', sent: 'Inviato', show: 'Mostra', hide: 'Nascondi', busy: 'Occupato', pick: 'Scegli un orario', confirm: 'Conferma', yes: 'Sì', no: 'No' },
+          days: ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato'], localTime: 'Ora locale: {t}', sent: 'Inviato', show: 'Mostra', hide: 'Nascondi', busy: 'Occupato', pick: 'Scegli un orario', confirm: 'Conferma', yes: 'Sì', no: 'No',
+          close: 'Chiudi', prev: 'Foto precedente', next: 'Foto successiva', photos: 'Foto', enlarge: 'Ingrandisci nella pagina' },
     de: { copy: 'Kopieren', copied: 'Kopiert ✓', select: 'Text markieren und kopieren', summary: 'Deine Zusammenfassung',
           open: 'Jetzt geöffnet · bis {t} Uhr', closed: 'Jetzt geschlossen · öffnet {d} um {t} Uhr', closedLong: 'Jetzt geschlossen', today: 'heute', tomorrow: 'morgen',
-          days: ['am Sonntag', 'am Montag', 'am Dienstag', 'am Mittwoch', 'am Donnerstag', 'am Freitag', 'am Samstag'], localTime: 'Ortszeit: {t}', sent: 'Gesendet', show: 'Anzeigen', hide: 'Ausblenden', busy: 'Belegt', pick: 'Uhrzeit wählen', confirm: 'Bestätigen', yes: 'Ja', no: 'Nein' },
+          days: ['am Sonntag', 'am Montag', 'am Dienstag', 'am Mittwoch', 'am Donnerstag', 'am Freitag', 'am Samstag'], localTime: 'Ortszeit: {t}', sent: 'Gesendet', show: 'Anzeigen', hide: 'Ausblenden', busy: 'Belegt', pick: 'Uhrzeit wählen', confirm: 'Bestätigen', yes: 'Ja', no: 'Nein',
+          close: 'Schließen', prev: 'Vorheriges Foto', next: 'Nächstes Foto', photos: 'Fotos', enlarge: 'Auf der Seite vergrößern' },
     fr: { copy: 'Copier', copied: 'Copié ✓', select: 'Sélectionnez le texte et copiez-le', summary: 'Votre résumé',
           open: 'Ouvert · jusqu’à {t}', closed: 'Fermé · ouvre {d} à {t}', closedLong: 'Fermé', today: 'aujourd’hui', tomorrow: 'demain',
           days: ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'], localTime: 'Heure locale : {t}', sent: 'Envoyé', show: 'Voir', hide: 'Masquer', busy: 'Occupé', pick: 'Choisissez une heure', confirm: 'Confirmer', yes: 'Oui', no: 'Non',
-          close: 'Fermer', prev: 'Photo précédente', next: 'Photo suivante', photos: 'Photos', enlarge: 'Agrandir sur la page' }
+          close: 'Fermer', prev: 'Photo précédente', next: 'Photo suivante', photos: 'Photos', enlarge: 'Agrandir sur la page' },
+    ca: { copy: 'Copia', copied: 'Copiat ✓', select: 'Selecciona el text i copia’l', summary: 'El teu resum',
+          open: 'Obert ara · fins a les {t}', closed: 'Tancat ara · obre {d} a les {t}', closedLong: 'Tancat ara', today: 'avui', tomorrow: 'demà',
+          days: ['diumenge', 'dilluns', 'dimarts', 'dimecres', 'dijous', 'divendres', 'dissabte'], localTime: 'Hora local: {t}', sent: 'Enviat', show: 'Mostra', hide: 'Amaga', busy: 'Ocupat', pick: 'Tria una hora', confirm: 'Confirma', yes: 'Sí', no: 'No',
+          close: 'Tanca', prev: 'Foto anterior', next: 'Foto següent', photos: 'Fotos', enlarge: 'Amplia a la pàgina' }
   };
   function words(lang) { return L[lang] || L.en; }
   function fill(s, o) { return String(s).replace(/\{(\w+)\}/g, function (m, k) { return o[k] == null ? '' : o[k]; }); }
@@ -82,7 +90,7 @@
   // makers' own cfg): LBW.kit.describe('dl') → { tags: ['[[dl:area id=concursal|laboral…]]  (cards)', …],
   // cases: [['area-concursal', '[[dl:area id=concursal]]'], …, ['area-attack', '[[dl:area id=<b>x]]']] } (build-mock.py's cases.json shape)
   var REG = [];
-  function register(maker, name, param, keys) { REG.push({ maker: maker, name: name, param: param, keys: keys || null }); }
+  function register(maker, name, param, keys) { REG = REG.filter(function (r) { return r.name !== name; }); REG.push({ maker: maker, name: name, param: param, keys: keys || null }); }
   function describe(prefix) {
     prefix = prefix || 'p'; var tags = [], cases = [];
     REG.forEach(function (r) {
@@ -266,7 +274,7 @@
       // card), unless the visitor asked for the channels again or this message already holds a full one
       // A summary not shown yet always gets the full card (kit example: the plan was sent, and the next contact came compact).
       var full = document.querySelector('.' + cls + ':not(.is-compact)'), pending = ls && !ls.shown && (!sm.match || sm.match(topic, ls));
-      if (cfg.compact && full && !pending && !(cfg.compact.unless && cfg.compact.unless(p, ctx, topic)) && !(cfg.compact.ask || /\b(number|phone|call|whatsapp|address|email|hours|open|where|contact|teléfono|telefono|dirección|horario|correo|llamar|téléphone|numéro|adresse|horaires|appeler|joindre|agence)\b/i).test(ctx.prev || '')) {
+      if (cfg.compact && full && !pending && !(cfg.compact.unless && cfg.compact.unless(p, ctx, topic)) && !(cfg.compact.ask || /(^|[^a-z\u00c0-\u024f])(number|phone|call|whatsapp|address|email|hours|open|where|contact|teléfono|telefono|dirección|horario|correo|llamar|téléphone|numéro|adresse|horaires|appeler|joindre|agence|indirizzo|orari|chiamare|telefon|anrufen|erreichen|telèfon|adreça|horari|horaris|trucar|correu)(?![a-z\u00c0-\u024f])/i).test(ctx.prev || '')) {
         var c = U.card(lang, 'kit-contact ' + cls + ' is-compact'); c.box.appendChild(el('span', 'kit-compact', cfg.compact.label));
         U.row(c.box, buttons(cfg.compact.buttons(p, ctx, topic))); return c;
       }
@@ -663,6 +671,6 @@
     });
   }
 
-  LBW.kit = { version: '0.7.1', dev: DEV, describe: describe, L: L, last: last, cards: cards, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent,
+  LBW.kit = { version: '0.7.2', dev: DEV, describe: describe, L: L, last: last, cards: cards, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent,
     h: { note: note, list: list, label: label, dup: dup, choice: choice, multiChoice: multiChoice, copyBox: copyBox, status: status, wa: wa, fill: fill, money: money, total: total, lightbox: lightbox, chart: chart, statusHead: statusHead } };
 })(typeof window !== 'undefined' ? window : this);
