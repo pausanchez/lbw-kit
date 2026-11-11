@@ -1,0 +1,103 @@
+{
+  "prefix": "np",
+  "langs": ["en"],
+  "defaultLang": "en",
+  "timeZone": "Europe/London",
+  "maxPerMessage": 3,
+  "links": ["https://northpeak.example/", "tel:", "https://wa.me/"],
+
+  "actions": {
+    "call": { "tel": "0116 000 0000", "cc": "44", "label": "Call 0116 000 0000" },
+    "wa": { "wa": "447700900000", "label": "WhatsApp ↗", "text": "Hello! Can I have some help please?" }
+  },
+  "replies": {
+    "plan": ["Plan my project", "I want to plan my project"]
+  },
+
+  "widgets": {
+    "service": {
+      "type": "cards", "cls": "np-service", "kicker": "Service", "pointsCls": "is-check", "reply": "plan",
+      "items": {
+        "extension": { "title": "Extensions", "line": "Single and double storey, designed and built by one team.", "pointsTitle": "What it covers", "points": ["Drawings and planning", "Groundworks to roof", "Project managed"], "link": ["See the page ↗", "https://northpeak.example/extensions/"] },
+        "loft": { "title": "Loft conversions", "line": "Dormer, hip-to-gable and roof-light conversions.", "pointsTitle": "What it covers", "points": ["Structural design", "Stairs and insulation", "Building Control"], "link": ["See the page ↗", "https://northpeak.example/lofts/"] }
+      }
+    },
+
+    "faq": {
+      "type": "cards", "cls": "np-faq", "kicker": "FAQ", "disclaimer": "General guidance from the website; your own project is checked at the survey.",
+      "items": {
+        "planning": { "title": "Do I need planning permission?", "points": ["Often for extensions and new builds", "Sometimes not, under permitted development"], "note": "The team checks it at the free consultation.", "link": ["Read more ↗", "https://northpeak.example/faq/planning/"] }
+      }
+    },
+
+    "area": {
+      "type": "cards", "cls": "np-area", "links": ["call"],
+      "item": { "kicker": "Where we build", "title": "Leicestershire and around", "rows": [["Base", "Leicester"], ["Also", "Nottinghamshire, Derbyshire"], ["Elsewhere", "Ask the team"]] }
+    },
+
+    "plan": {
+      "type": "form", "cls": "np-plan", "kicker": "Project planner", "title": "What are you planning?", "cta": "Send my summary",
+      "preset": { "param": "kind", "step": "kind" }, "note": "Three questions, no name, address or phone.",
+      "steps": [
+        { "key": "kind", "title": "The project", "ask": "What are you planning?", "items": [["extension", "Extension"], ["loft", "Loft conversion"], ["kitchen", "Kitchen"]] },
+        { "key": "draw", "title": "Drawings", "ask": "Do you have drawings?", "items": [["none", "No drawings yet"], ["full", "Full drawings"]] },
+        { "key": "near", "title": "Near the build (pick any)", "ask": "Anything near the build?", "multi": true, "none": "none", "items": [["tree", "A tree within 10 m"], ["party", "A shared wall"], ["none", "None of these"]] }
+      ],
+      "summary": "My project: {kind:label} · {draw:label} · Near: {near:labels:lower}",
+      "fields": { "np_kind": "{kind}", "np_drawings": "{draw}", "np_near": "{near}" }
+    },
+
+    "contact": {
+      "type": "contact", "cls": "np-contact", "kicker": "Talk to the team", "title": "Book a free consultation", "big": "0116 000 0000",
+      "hours": { "week": { "1": [[480, 1080]], "2": [[480, 1080]], "3": [[480, 1080]], "4": [[480, 1080]], "5": [[480, 1020]], "6": [[540, 780]] } },
+      "rows": [["WhatsApp", "+44 7700 900000"], ["Showroom", "1 Example Road, Leicester"]],
+      "summary": {
+        "form": "plan", "rows": 4, "strip": "My project: ", "text": "Hello! I’d like a free consultation for: {text}",
+        "actions": [{ "wa": "447700900000", "label": "Send on WhatsApp ↗", "text": "{text}", "primary": true }]
+      },
+      "note": "This chat is a demo: it doesn’t book or send anything.",
+      "buttons": [{ "use": "call", "primary": true }, "wa"],
+      "buttonsWithSummary": ["call"],
+      "compact": { "label": "Free consultation", "buttons": [{ "use": "call", "primary": true }, "wa"] }
+    },
+
+    "projects": {
+      "type": "carousel", "cls": "np-projects", "kicker": "Our work", "title": "Recent projects",
+      "filter": { "param": "kind", "by": "kind" },
+      "titles": { "loft": "Loft conversions we’ve built", "extension": "Extensions we’ve built" },
+      "reply": "plan",
+      "links": [{ "link": "https://northpeak.example/projects/", "label": "All projects ↗" }],
+      "items": [
+        { "id": "p1", "kind": "loft", "name": "Dormer loft conversion", "sub": "Quorn", "desc": "An ensuite and a bespoke staircase", "link": ["See the project ↗", "https://northpeak.example/projects/p1/"], "img": { "src": "https://northpeak.example/img/p1.jpg", "width": 640, "height": 400, "alt": "Dormer loft conversion, Quorn" } },
+        { "id": "p2", "kind": "extension", "name": "Double storey extension", "sub": "Anstey", "desc": "Two bedrooms and a new kitchen", "link": ["See the project ↗", "https://northpeak.example/projects/p2/"], "img": { "src": "https://northpeak.example/img/p2.jpg", "width": 640, "height": 400, "alt": "Double storey extension, Anstey" } },
+        { "id": "p3", "kind": "loft", "name": "Hip-to-gable loft", "sub": "Birstall", "desc": "A full re-roof and a home office", "link": ["See the project ↗", "https://northpeak.example/projects/p3/"], "img": { "src": "https://northpeak.example/img/p3.jpg", "width": 640, "height": 400, "alt": "Hip-to-gable loft, Birstall" } }
+      ]
+    },
+
+    "room": {
+      "type": "calc", "cls": "np-room", "kicker": "Garden room", "title": "A rough estimate", "cta": "Send my estimate",
+      "state": {
+        "size": { "min": 8, "max": 30, "default": 12, "int": true },
+        "finish": { "values": ["clad", "render"], "default": "clad" }
+      },
+      "controls": [
+        { "stepper": "size", "label": "Size (m²)", "step": 2, "less": "Smaller", "more": "Bigger" },
+        { "pick": "finish", "title": "Finish", "items": [["clad", "Timber cladding"], ["render", "Render"]] }
+      ],
+      "tables": { "rate": { "clad": 120000, "render": 135000 } },
+      "compute": { "base": "size * rate[finish]", "vat": "round(base * 0.2)", "total": "round(base * 1.2)" },
+      "money": { "cur": "£", "cents": false },
+      "result": { "rows": [["Build · {size} m²", "{base:money}"], ["VAT 20%", "{vat:money}"]], "total": ["Estimate", "{total:money}"] },
+      "send": { "text": "My garden room: {size} m², {finish:label:lower}, estimate {total:money}", "fields": { "np_size": "{size}", "np_finish": "{finish}" } },
+      "notes": [["A fake rate for the kit example: a real demo takes it from the client’s own calculator.", "is-muted"]],
+      "links": ["call"]
+    },
+
+    "chips": {
+      "type": "chips", "cls": "np-chips",
+      "items": { "plan": ["Plan my project", "I want to plan my project"], "area": ["Do you cover my area?", "Do you cover my area?"], "planning": ["Do I need planning?", "Do I need planning permission?"], "contact": ["Talk to the team", "How do I talk to someone?"] },
+      "own": { "plan": "plan", "area": "area", "contact": "contact" },
+      "carriedBy": { "plan": ["service"] }
+    }
+  }
+}

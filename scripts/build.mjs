@@ -17,13 +17,13 @@ const banner = (what) => `/*! ${what} v${v} */`;
 async function js(path) { return (await transform(read(path), { loader: 'js', minify: true, target: 'es2017', legalComments: 'none' })).code.trim(); }
 async function css(path) { return (await transform(read(path), { loader: 'css', minify: true, legalComments: 'none' })).code.trim(); }
 
-const lbw = await js('runtime/lbw.js'), kit = await js('kit/kit.js');
+const lbw = await js('runtime/lbw.js'), kit = await js('kit/kit.js'), setup = await js('kit/setup.js');
 const lbwCss = await css('runtime/lbw.css'), kitCss = await css('kit/kit.css');
 
 const out = {
   'lbw.min.js': `${banner('lbw.js')}\n${lbw}\n`,
-  'kit.min.js': `${banner('lbw kit (needs lbw.js)')}\n${kit}\n`,
-  'lbw-kit.min.js': `${banner('lbw.js + kit')}\n${lbw}\n${kit}\n`,
+  'kit.min.js': `${banner('lbw kit + setup (needs lbw.js)')}\n${kit}\n${setup}\n`,
+  'lbw-kit.min.js': `${banner('lbw.js + kit + setup')}\n${lbw}\n${kit}\n${setup}\n`,
   'lbw.min.css': `${banner('lbw.css')}\n${lbwCss}\n`,
   'kit.min.css': `${banner('lbw kit.css (needs lbw.css)')}\n${kitCss}\n`,
   'lbw-kit.min.css': `${banner('lbw.css + kit.css')}\n${lbwCss}\n${kitCss}\n`,
