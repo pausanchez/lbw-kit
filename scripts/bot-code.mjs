@@ -3,8 +3,10 @@
 // Writes into --out:
 //   custom_js.html    the library's load line (pinned version, integrity) + LBW.kit.setup(config) + your own widgets + the fallback
 //   custom_css.css    the library's @import + the theme + the chat skin
-//   mock-widgets.js   the same setup call and widgets as one script, for tools/build-mock.py (after kit/kit.js and kit/setup.js)
+//   mock-widgets.js   the same setup call and widgets as one script, for tools/build-mock.py (after kit/kit.js, kit/setup.js and kit/setup-check.js)
 // --inline puts the library's code in both files instead of loading it by URL (for a page that blocks outside hosts).
+// --all loads the bundle that carries its own CSS: custom_css then has no @import of the library, and a client with a
+// Content-Security-Policy allows one host in script-src only (measured: script without its CSS draws unstyled widgets).
 import fs from 'node:fs';
 import path from 'node:path';
 import { transform } from 'esbuild';
@@ -13,6 +15,7 @@ import { read, checkConfig } from './lib.mjs';
 const args = process.argv.slice(2), opt = {}, files = [];
 for (let i = 0; i < args.length; i++) {
   if (args[i] === '--inline') opt.inline = true;
+  else if (args[i] === '--all') opt.all = true;
   else if (/^--(out|widgets|theme|skin)$/.test(args[i])) opt[args[i].slice(2)] = args[++i];
   else files.push(args[i]);
 }
@@ -39,15 +42,15 @@ for (const s of scripts) if (/<\/script/i.test(s)) { console.error('the config o
 
 const tag = (s) => `<script>${s}</script>`;
 const load = opt.inline ? read('dist/inline/custom_js.html').trim()
-  : `<script src="${base}lbw-kit.min.js" integrity="${manifest.files['lbw-kit.min.js'].integrity}" crossorigin="anonymous"></script>`;
+  : `<script src="${base}${opt.all ? 'lbw-kit.all.min.js' : 'lbw-kit.min.js'}" integrity="${manifest.files[opt.all ? 'lbw-kit.all.min.js' : 'lbw-kit.min.js'].integrity}" crossorigin="anonymous"></script>`;
 const js = load + scripts.map(tag).join('') + (opt.inline ? '' : tag(read('dist/fallback.min.js').trim())) + '\n';
 // @import must come before any other rule: the fonts that the theme or the skin import go to the top, with the library's
-const imports = opt.inline ? [] : [`@import url("${base}lbw-kit.min.css");`];
+const imports = opt.inline || opt.all ? [] : [`@import url("${base}lbw-kit.min.css");`];
 const mine = [file(opt.theme), file(opt.skin)].filter(Boolean).join('\n').replace(/@import\s+(?:url\([^)]*\)|"[^"]*"|'[^']*')[^;]*;/g, (m) => { imports.push(m.trim()); return ''; });
 const cssOut = imports.concat(opt.inline ? [read('dist/lbw-kit.min.css').trim()] : [], [await min(mine, 'css')].filter(Boolean)).join('\n') + '\n';
 
 fs.mkdirSync(opt.out, { recursive: true });
 const out = { 'custom_js.html': js, 'custom_css.css': cssOut, 'mock-widgets.js': scripts.join('\n') + '\n' };
 for (const [name, text] of Object.entries(out)) fs.writeFileSync(path.join(opt.out, name), text);
-console.log(`lbw-kit v${pkg.version} · ${opt.inline ? 'inline' : 'by URL'} · ${Object.keys(config.widgets).length} widgets, prefix "${config.prefix}"`);
+console.log(`lbw-kit v${pkg.version} · ${opt.inline ? 'inline' : opt.all ? 'by URL, CSS inside the script' : 'by URL'} · ${Object.keys(config.widgets).length} widgets, prefix "${config.prefix}"`);
 for (const [name, text] of Object.entries(out)) console.log(`  ${path.join(opt.out, name).padEnd(34)} ${(Buffer.byteLength(text) / 1024).toFixed(1).padStart(6)} KB`);

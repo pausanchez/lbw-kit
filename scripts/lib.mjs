@@ -12,5 +12,6 @@ export function checkConfig(config) {
   vm.runInContext(read('runtime/lbw.js'), ctx);
   window.LBW.kit = { h: {} };
   vm.runInContext(read('kit/setup.js'), ctx);
+  vm.runInContext(read('kit/setup-check.js'), ctx);
   return [...window.LBW.kit.setup.check(config)];
 }

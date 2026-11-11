@@ -166,3 +166,16 @@ test('observer: a message that arrives after init() is drawn without calling sca
   assert.equal(m.text(), 'New'); assert.equal(m.widgets().length, 1);
   c.close();
 });
+
+test('events: LBW.on tells what was drawn, sent and dropped; a listener that throws is ignored', async () => {
+  const c = chat(), seen = [];
+  c.LBW.on('render', () => { throw new Error('a bad listener'); });
+  c.LBW.on('render', (e) => seen.push(['render', e.widget, e.tag, e.lang, e.el.className.split(' ')[0], e.message.getAttribute('data-lb-author')]));
+  c.LBW.on('drop', (what) => seen.push(['drop', String(what)]));
+  c.LBW.on('say', (e) => seen.push(['say', e.text, json(e.fields)]));
+  c.bot('A [[t:card id=boots lang=es]] [[t:card id=shoes]]'); c.LBW.scan();
+  await wait(30); c.LBW.say('Hello', { a: '1' }); await wait(400);
+  assert.deepEqual(seen.filter((x) => x[0] === 'render'), [['render', 'card', '[[t:card id=boots lang=es]]', 'es', 'lbw', 'bot']]);
+  assert.ok(seen.some((x) => x[0] === 'drop' && /unknown value id=shoes/.test(x[1])));
+  assert.deepEqual(seen.filter((x) => x[0] === 'say'), [['say', 'Hello', { a: '1' }]]);
+});

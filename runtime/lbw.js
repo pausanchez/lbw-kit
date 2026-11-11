@@ -1,4 +1,4 @@
-/* lbw.js · Landbot AI Widgets runtime · v0.7.3
+/* lbw.js · Landbot AI Widgets runtime · v0.7.4
    Turns tags that an AI agent (or a flow message) writes at the end of a bot message, e.g. [[shop:card id=boots lang=en]],
    into interactive widgets inside the Landbot v4 web chat. Distilled from four production experiments (retos 16-19).
    You write: your data, your labels and one function per widget. The runtime does the rest:
@@ -14,7 +14,11 @@
   var cfg = { prefix: 'w', langs: ['en'], defaultLang: 'en', maxPerMessage: 3, links: [], quietMs: 1500, maxWaitMs: 20000, labels: {} };
   var W = {}, last = {}, lock = 0, quietSince = Date.now(), started = false;
   var log = function (k, v) { (root[k] = root[k] || []).push(v); };
-  function drop(what) { log('__lbwDropped', what); }
+  // LBW.on('render' | 'say' | 'drop', fn): what was drawn, what the visitor sent through a widget, what was thrown away.
+  // For counting views and clicks; a listener that throws is ignored.
+  var subs = {};
+  function emit(name, data) { (subs[name] || []).forEach(function (f) { try { f(data); } catch (e) {} }); }
+  function drop(what) { log('__lbwDropped', what); emit('drop', what); }
 
   // ── DOM helpers: text only ───────────────────────────────────────────────────────────────────
   function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -78,7 +82,7 @@
   }
   function post(text, fields) {
     if (fields) store(fields);
-    log('__lbwSent', text);
+    log('__lbwSent', text); emit('say', { text: text, fields: fields || null });
     var msg = { type: 'text', message: text };
     try { if (root.Landbot && typeof root.Landbot.exec === 'function') { root.Landbot.exec('landbot-msg-send', msg); return; } } catch (e) {}
     try { if (root._landbot && typeof root._landbot.sendMessage === 'function') { root._landbot.sendMessage(msg); return; } } catch (e) {}
@@ -433,7 +437,7 @@
       if (split) box.textContent = swap(box.textContent).trim();
       else texts.forEach(function (t) { if (t.nodeValue.indexOf('[[') >= 0) t.nodeValue = swap(t.nodeValue).replace(/\s+$/, ''); });
       made.sort(function (a, b) { return (a.getAttribute('data-last') ? 1 : 0) - (b.getAttribute('data-last') ? 1 : 0); });
-      made.forEach(function (w) { host.appendChild(w); });
+      made.forEach(function (w) { host.appendChild(w); emit('render', { widget: w.getAttribute('data-widget'), tag: w.getAttribute('data-tag'), lang: w.getAttribute('lang'), el: w, message: host }); });
       if (made.length) host.classList.add('has-lbw');
     });
     // one-shot groups nobody used go quiet once the visitor has written after them
@@ -452,9 +456,11 @@
   }
 
   root.LBW = {
-    version: '0.7.3',
+    version: '0.7.4',
     // LBW.init({ prefix, langs, defaultLang, labels: {en:{…}}, links: ['https://shop.example/', 'tel:', 'mailto:', 'https://calendar.google.com/'], maxPerMessage, quietMs, timeZone: 'Europe/Madrid' })
     init: function (o) { for (var k in o) cfg[k] = o[k]; start(); return root.LBW; },
+    // LBW.on('render', function (e) { e.widget, e.tag, e.lang, e.el, e.message }) · 'say' → { text, fields } · 'drop' → the reason
+    on: function (name, fn) { if (typeof fn === 'function') (subs[name] = subs[name] || []).push(fn); return root.LBW; },
     // LBW.widget('card', function (p, ctx) { …return an element or null… }, { last: true })
     widget: function (name, fn, opts) { W[String(name).toLowerCase()] = { render: fn, last: !!(opts && opts.last) }; return root.LBW; },
     ui: { el: el, link: link, tel: tel, btn: btn, img: img, loading: loading, card: card, head: head, row: row, rows: rows, reply: reply, once: once, multi: multi, done: done, form: form, stepper: stepper, ics: ics },

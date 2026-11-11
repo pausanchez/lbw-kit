@@ -16,10 +16,10 @@ const CFG = () => ({ prefix: 't', langs: ['en', 'es', 'ca'], defaultLang: 'en', 
     desk: { type: 'contact', title: { en: 'Talk to us', ca: 'Parla amb nosaltres' }, hours: { week: { 3: [[540, 1080]] } }, buttons: ['call'] }
   } });
 function chat(cfg = CFG()) {
-  const c = boot({ kit: true, scripts: ['kit/setup.js'] }); c.w.__lbwToday = '11/11/2026'; c.w.__lbwNow = '10:30';   // a Wednesday
+  const c = boot({ kit: true, scripts: ['kit/setup.js', 'kit/setup-check.js'] }); c.w.__lbwToday = '11/11/2026'; c.w.__lbwNow = '10:30';   // a Wednesday
   c.result = json(c.w.LBW.kit.setup(JSON.parse(JSON.stringify(cfg)))); return c;
 }
-const errors = (cfg) => [...boot({ kit: true, scripts: ['kit/setup.js'] }).LBW.kit.setup.check(cfg)].join('\n');
+const errors = (cfg) => [...boot({ kit: true, scripts: ['kit/setup.js', 'kit/setup-check.js'] }).LBW.kit.setup.check(cfg)].join('\n');
 const draw = (c, text) => { const m = c.bot(text); c.LBW.scan(); return m; };
 const texts = (m, sel) => [...m.querySelectorAll(sel)].map((x) => x.textContent);
 

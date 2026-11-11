@@ -8,11 +8,11 @@ const CONFIG = JSON.parse(read('kit/example-lead/config.json'));
 const pin = (c) => { c.w.__lbwToday = '10/11/2026'; c.w.__lbwNow = '10:30'; return c; };   // a Tuesday
 const byHand = () => pin(boot({ kit: true, scripts: ['kit/example-lead/widgets.js'] }));
 function byJson(config = CONFIG) {
-  const c = pin(boot({ kit: true, scripts: ['kit/setup.js'] }));
+  const c = pin(boot({ kit: true, scripts: ['kit/setup.js', 'kit/setup-check.js'] }));
   c.result = json(c.w.LBW.kit.setup(JSON.parse(JSON.stringify(config))));
   return c;
 }
-const errors = (cfg) => [...boot({ kit: true, scripts: ['kit/setup.js'] }).LBW.kit.setup.check(cfg)];
+const errors = (cfg) => [...boot({ kit: true, scripts: ['kit/setup.js', 'kit/setup-check.js'] }).LBW.kit.setup.check(cfg)];
 // review gives each <select> a random id: the same card differs only there
 const html = (m) => m.widgets().map((w) => w.outerHTML).join('\n').replace(/lg-quote-quote-(\d+)-[a-z0-9]+/g, 'id-$1');
 const button = (m, label) => { const b = [...m.querySelectorAll('button')].find((x) => x.textContent.trim() === label); assert.ok(b, 'no button "' + label + '"'); return b; };
@@ -46,7 +46,7 @@ test('lead-gen: the example config is valid and registers the seven widgets', ()
   const c = byJson();
   assert.deepEqual(c.result.errors, []);
   assert.deepEqual([...c.result.widgets].sort(), ['done', 'ok', 'quote', 'saving', 'team', 'trust', 'visit']);
-  assert.equal(c.LBW.kit.setup.types.length, 13);
+  assert.equal(c.LBW.kit.setup.types.length, 14);
 });
 
 test('lead-gen: the JSON draws, clicks and sends exactly what the hand-written set does', async () => {
@@ -179,4 +179,12 @@ test('check: what the second review found is now an error sentence', () => {
   assert.match(errs('done', (w, cfg) => { cfg.widgets.plan = { type: 'form', cta: 'x', summary: 'x', steps: [{ key: 'text', items: [['a', 'A']] }] }; }), /a step can't be called "text"/);
   assert.match(errors(Object.assign(clone(), { timeZone: 'Europe/Madird' })).join('\n'), /timeZone "Europe\/Madird" is not a time zone/);
   assert.match(errors(Object.assign(clone(), { langs: 'en' })).join('\n'), /"langs" must be a list of language codes/);
+});
+
+test('people: a photo that fails to load becomes the initials', async () => {
+  const c = byJson(), m = c.bot('[[lg:team who=ben]]'); c.LBW.scan(); await wait(20);
+  const img = m.querySelector('.kit-person img'); assert.ok(img, 'the photo is tried first');
+  img.dispatchEvent(new c.w.Event('error'));
+  assert.equal(m.querySelector('.kit-person img'), null);
+  assert.equal(m.querySelector('.kit-person .is-initials').textContent, 'BC');
 });

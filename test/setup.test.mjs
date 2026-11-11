@@ -9,7 +9,7 @@ const CONFIG = JSON.parse(read('kit/example/config.json'));
 const pin = (c) => { c.w.__lbwToday = '10/11/2026'; c.w.__lbwNow = '10:30'; return c; };   // a Tuesday morning: "open now"
 const byHand = () => pin(boot({ kit: true, scripts: ['kit/example/widgets.js'] }));
 function byJson(config = CONFIG) {
-  const c = pin(boot({ kit: true, scripts: ['kit/setup.js'] }));
+  const c = pin(boot({ kit: true, scripts: ['kit/setup.js', 'kit/setup-check.js'] }));
   c.result = json(c.w.LBW.kit.setup(JSON.parse(JSON.stringify(config))));
   return c;
 }
@@ -81,7 +81,7 @@ const calc = (over = {}) => ({ prefix: 't', links: ['https://shop.example/', 'te
   controls: [{ stepper: 'n', label: 'N' }, { pick: 'k', title: 'K', items: [['a', 'A'], ['b', 'B']] }],
   tables: { rate: { a: 100, b: 250 } }, compute: { x: 'n * rate[k]' },
   result: { rows: [['x', '{x}']] }, send: { text: 'x={x} k={k:label}', fields: { f: '{n}' } } }, over) } });
-const errors = (cfg) => { const c = boot({ kit: true, scripts: ['kit/setup.js'] }); return [...c.LBW.kit.setup.check(cfg)]; };
+const errors = (cfg) => { const c = boot({ kit: true, scripts: ['kit/setup.js', 'kit/setup-check.js'] }); return [...c.LBW.kit.setup.check(cfg)]; };
 async function drawn(cfg, tag) { const c = byJson(cfg), m = c.bot(tag); c.LBW.scan(); await wait(20); return { c, m, dd: [...m.querySelectorAll('.kit-out dd')].map((x) => x.textContent) }; }
 
 test('expressions: precedence, left-to-right, unary minus, functions', async () => {
@@ -199,4 +199,79 @@ test('check: an unknown key inside an item is an error, with the place it belong
   assert.match(e({ type: 'people', items: { a: { name: 'A', role: 'R', phone: '1' } } }), /a: unknown key "phone"/);
   assert.match(e({ type: 'carousel', filter: { by: 'kind' }, items: [{ name: 'A', kind: 'x', prize: '1 €' }] }), /items\[0\]: unknown key "prize"/);
   assert.doesNotMatch(e({ type: 'carousel', filter: { by: 'kind' }, items: [{ name: 'A', kind: 'x' }] }), /unknown key/);
+});
+
+test('the bundle a bot loads has no checker: setup() still draws, and skips a widget that fails', () => {
+  const c = pin(boot({ kit: true, scripts: ['kit/setup.js'] }));
+  assert.equal(c.LBW.kit.setup.check, undefined);
+  const cfg = JSON.parse(JSON.stringify(CONFIG)); cfg.widgets.broken = { type: 'calc', cta: 'x', state: {}, controls: [], result: {}, send: { text: 'x' }, compute: { t: 'n * (' } };
+  const r = json(c.LBW.kit.setup(cfg));
+  assert.ok(!r.widgets.includes('broken') && r.widgets.includes('service') && r.widgets.length === 8, r.widgets.join(','));
+  assert.equal(r.ok, false); assert.match(r.errors.join(' '), /broken: /);
+  const m = c.bot('Text [[np:service id=loft]] [[np:broken]]'); c.LBW.scan();
+  assert.equal(m.text(), 'Text'); assert.deepEqual(m.widgets().map((w) => w.getAttribute('data-widget')), ['service']);
+});
+
+// ── compare (0.7.4) ──
+const CMP = () => ({ prefix: 't', links: ['https://shop.example/'], widgets: { vs: { type: 'compare', kicker: 'Side by side', title: 'Compare', titles: { 2: 'Two ways to go', 3: 'Three ways to go' },
+  rows: [['dep', 'Departs'], ['swim', 'Swimming'], ['price', 'From', 'is-strong']], note: 'Read today.',
+  items: { a: { name: 'Classic', values: { dep: '10:00', swim: '1 h', price: '34,99 €' }, reply: ['Price · Classic', 'How much is the classic?'], link: ['Its page ↗', 'https://shop.example/a/'] },
+           b: { name: 'Fast', values: { dep: '10:30', price: '34,99 €' }, reply: ['Price · Fast', 'How much is the fast one?'] },
+           c: { name: 'Premium', values: { swim: '1 h', price: '54,99 €' } } } } } });
+
+test('compare: two or three items side by side, empty rows left out, one reply per item', () => {
+  const c = byJson(CMP()); assert.deepEqual(c.result.errors, []);
+  const read = (m) => ({ title: m.querySelector('.lbw-title').textContent, cols: m.querySelector('.kit-cmp').className, rows: [...m.querySelectorAll('.kit-cmp-row')].map((r) => [(r.querySelector('.kit-cmp-label') || {}).textContent || '', ...[...r.querySelectorAll('.kit-cmp-cell')].map((x) => x.textContent)].join(' | ')),
+    buttons: [...m.querySelectorAll('.lbw-actions button, .lbw-actions a')].map((b) => b.textContent), primary: m.querySelectorAll('.lbw-reply.is-primary').length });
+  const three = c.bot('[[t:vs ids=a,b,c]]'); c.LBW.scan();
+  assert.deepEqual(read(three), { title: 'Three ways to go', cols: 'kit-cmp is-3', rows: [' | Classic | Fast | Premium', 'Departs | 10:00 | 10:30 | —', 'Swimming | 1 h | — | 1 h', 'From | 34,99 € | 34,99 € | 54,99 €'],
+    buttons: ['Price · Classic', 'Price · Fast', 'Its page ↗'], primary: 1 });
+  const two = c.bot('[[t:vs ids=c,zzz,b]]'); c.LBW.scan();
+  assert.equal(read(two).title, 'Two ways to go'); assert.equal(read(two).rows[0], ' | Premium | Fast');
+  for (const tag of ['[[t:vs ids=a]]', '[[t:vs ids=zzz,yyy]]', '[[t:vs]]']) { const m = c.bot('Text ' + tag); c.LBW.scan(); assert.equal(m.widgets().length, 0, tag); assert.equal(m.text(), 'Text'); }
+  assert.ok(three.querySelector('.kit-cmp-row.is-strong'));
+});
+
+test('check: a compare table says what is wrong', () => {
+  const e = (patch) => { const cfg = CMP(); patch(cfg.widgets.vs); return errors(cfg).join('\n'); };
+  assert.match(e((w) => { w.items.a.values.wify = 'yes'; }), /a\.values\.wify is not one of the rows \(dep, swim, price\)/);
+  assert.match(e((w) => { delete w.items.b; delete w.items.c; }), /"items" must hold at least two items by id/);
+  assert.match(e((w) => { w.items.a.values.price = 3499; }), /a\.values\.price must be text/);
+  assert.match(e((w) => { w.items.a.price = '1'; delete w.items.b.name; w.max = 5; w.rows.push(['x']); }), /a: unknown key "price"[\s\S]*"b" has no "name"[\s\S]*"max" is 2 or 3/);
+  assert.match(e((w) => { w.rows.push(['wifi', 'Wi-Fi']); }), /row "wifi" has no value in any item/);
+  assert.match(e((w) => { w.titles = { 4: 'Four' }; w.items.a.link = ['x', 'https://evil.example/']; }), /a\.link: .* is not under[\s\S]*"titles" is \{ "2": text, "3": text \}/);
+});
+
+// ── a calc for an item the tag names (0.7.4) ──
+const PRICE = () => ({ prefix: 't', links: ['https://tours.example/'], widgets: { price: { type: 'calc', kicker: 'Price for your group', title: '{tour:label}', cta: 'Send my group',
+  state: { tour: { values: ['boat', 'bays'], required: true, labels: { boat: 'Boat & swim', bays: 'The bays' } }, adults: { min: 0, max: 20, default: 2, int: true }, kids: { min: 0, max: 20, default: 0, int: true } },
+  controls: [{ stepper: 'adults', label: 'Adults' }, { stepper: 'kids', label: 'Children' }],
+  tables: { fare: { boat: 3499, bays: 5999 } }, compute: { a: 'adults * fare[tour]', k: 'round(kids * fare[tour] * 0.7)', total: 'a + k' }, money: { cur: '€', after: true },
+  result: { rows: [['Adults × {adults}', '{a:money}'], ['Children × {kids}', '{k:money}', 'kids']], total: ['Estimate', '{total:money}'] },
+  send: { text: 'My group for {tour:label}: {adults} adults, {kids} children, {total:money}', fields: { t_tour: '{tour}' } },
+  links: [{ link: 'https://tours.example/{tour}/', label: 'Book {tour:label} ↗' }] } } });
+
+test('calc: an item named in the tag sets the price, the title and the link; no tag value, no widget', async () => {
+  const c = byJson(PRICE()); assert.deepEqual(c.result.errors, []);
+  const m = c.bot('[[t:price tour=bays adults=2 kids=1]]'); c.LBW.scan(); await wait(20);
+  assert.equal(m.querySelector('.lbw-title').textContent, 'The bays');
+  assert.deepEqual([...m.querySelectorAll('.kit-out dt')].map((x) => x.textContent), ['Adults × 2', 'Children × 1']);
+  assert.equal(m.querySelector('.kit-total strong').textContent.replace(/\s/g, ' '), '161.97 €');
+  const a = m.querySelector('.lbw-actions a'); assert.equal(a.textContent, 'Book The bays ↗'); assert.equal(a.getAttribute('href'), 'https://tours.example/bays/');
+  const none = c.bot('[[t:price tour=boat]]'); c.LBW.scan(); await wait(20);
+  assert.deepEqual([...none.querySelectorAll('.kit-out dt')].map((x) => x.textContent), ['Adults × 2'], 'the children row is left out at 0');
+  for (const tag of ['[[t:price adults=2]]', '[[t:price tour=castle adults=2]]']) { const x = c.bot('Text ' + tag); c.LBW.scan(); assert.equal(x.widgets().length, 0, tag); assert.equal(x.text(), 'Text'); }
+});
+
+test('check: required values, labels, row keys and templated links in a calc', () => {
+  const e = (patch) => { const cfg = PRICE(); patch(cfg.widgets.price); return errors(cfg).join('\n'); };
+  assert.match(e((w) => { delete w.state.tour.required; }), /state\.tour has no "default" \(a list of values may say "required": true/);
+  assert.match(e((w) => { delete w.state.tour.labels.bays; w.state.tour.labels.sea = 'Sea'; }), /labels\.sea is not one of its values[\s\S]*labels has no label for "bays"/);
+  assert.match(e((w) => { delete w.state.tour.labels; }), /title: "\{tour:label\}" asks for a label/);
+  assert.match(e((w) => { w.result.rows[1][2] = 'tour'; }), /result\.rows\[1\]\[2\] "tour" is not a number/);
+  assert.match(e((w) => { w.links[0].link = 'https://evil.example/{tour}/'; }), /is not under any entry of "links"/);
+  assert.match(e((w) => { w.links[0].link = 'https://tours.example/{tuor}/'; }), /links\[0\]\.link: "\{tuor\}" is not a value here/);
+  assert.match(e((w) => { w.state.adults.required = true; }), /state\.adults\.required is true, on a list of values/);
+  const card = errors({ prefix: 't', links: ['https://tours.example/'], widgets: { a: { type: 'cards', links: [{ link: 'https://tours.example/{id}/', label: 'x' }], items: { x: { title: 'X' } } } } }).join('\n');
+  assert.match(card, /a link can only hold a \{placeholder\} in a calc's "links"/);
 });

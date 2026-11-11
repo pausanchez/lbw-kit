@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { boot, wait } from './helpers.mjs';
 
-const MAKERS = ['cards', 'form', 'contact', 'chips', 'carousel', 'calc', 'slots', 'confirm', 'review', 'chart', 'stats', 'people', 'consent'];
+const MAKERS = ['cards', 'form', 'contact', 'chips', 'carousel', 'calc', 'slots', 'confirm', 'review', 'chart', 'stats', 'people', 'consent', 'compare'];
 const example = () => boot({ kit: true, scripts: ['kit/example/widgets.js'] });
 
 test('kit: every maker is there', () => {

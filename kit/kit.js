@@ -1,4 +1,4 @@
-/* AI Widgets kit v0.7.3 · on lbw.js v0.7.3 · the widgets every url-to-demo build rewrote, written once with options. Load it after lbw.js and before the
+/* AI Widgets kit v0.7.4 · on lbw.js v0.7.4 · the widgets every url-to-demo build rewrote, written once with options. Load it after lbw.js and before the
    client's widgets.js: custom_js = <script>lbw.js</script><script>kit.js</script><script>widgets.js</script>.
 
    Each maker registers a widget under the name you give it, from data you pass. Nothing here holds client facts.
@@ -79,7 +79,8 @@
     chart: 'cls lang kicker title sub data note links allowDup',
     stats: 'cls lang items single reply links allowDup',
     people: 'cls lang kicker title items select reply note allowDup',
-    consent: 'cls lang icon title text yes no link allowDup'
+    consent: 'cls lang icon title text yes no link allowDup',
+    compare: 'cls lang kicker title param items rows min max empty note allowDup'
   };
   function checkCfg(maker, name, cfg, required) {
     if (!DEV) return; var ok = OPTS[maker].split(' '), where = maker + "('" + name + "')";
@@ -644,7 +645,9 @@
       var g = U.once('kit-peoplelist');
       pick.forEach(function (id) {
         var x = cfg.items[id], r = el('div', 'kit-person');
-        if (x.img) r.appendChild(U.img(x.img, 'kit-avatar', { alt: '', width: 40, height: 40 }));
+        var ini = function () { return el('span', 'kit-avatar is-initials', x.name.split(/\s+/).map(function (w) { return w.charAt(0); }).join('').slice(0, 2).toUpperCase()); };
+        // a photo that is refused or doesn't load becomes the initials, never an empty frame
+        if (x.img) { var fr = U.img(x.img, 'kit-avatar', { alt: '', width: 40, height: 40 }), im = fr.querySelector('img'); if (!im) r.appendChild(ini()); else { im.addEventListener('error', function () { if (fr.parentNode) fr.parentNode.replaceChild(ini(), fr); }); r.appendChild(fr); } }
         else r.appendChild(el('span', 'kit-avatar is-initials', x.name.split(/\s+/).map(function (w) { return w.charAt(0); }).join('').slice(0, 2).toUpperCase()));
         var t = el('div', 'kit-person-t'); t.appendChild(el('strong', null, x.name)); t.appendChild(el('span', null, x.role)); if (x.note) t.appendChild(el('span', 'kit-person-n', x.note)); r.appendChild(t);
         var rr = cfg.reply && cfg.reply(id, x); if (rr) r.appendChild(U.reply(rr[0], rr[1], { fields: rr[2], cls: 'kit-person-b' }));
@@ -671,6 +674,40 @@
     });
   }
 
-  LBW.kit = { version: '0.7.3', dev: DEV, describe: describe, L: L, last: last, cards: cards, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent,
+  // ── compare: two or three items of your data side by side (v0.7.4; three demos had written it by hand) ──────────
+  // cfg = { cls, lang, kicker, title: text | fn(ids, ctx), param: 'ids', min: 2, max: 3 (never more: the chat column is narrow),
+  //         items: { id: { name, values: { rowKey: text }, reply: [label, say, fields], link: [label, url] } },
+  //         rows: [[rowKey, label, cls]] (cls 'is-strong' for the line that decides, e.g. the price), empty: '—', note }
+  // The tag names the items: [[p:compare ids=a,b,c]]. Fewer than `min` known ids draws nothing (one item is a card's job).
+  // A row with no value in any column is left out. One label line, then equal columns: it fits 340 px.
+  function compare(name, cfg) {
+    var cls = cfg.cls || ('kit-' + name), ids = Object.keys(cfg.items || {}), param = cfg.param || 'ids', max = Math.min(cfg.max || 3, 3), empty = cfg.empty == null ? '—' : cfg.empty;
+    checkCfg('compare', name, cfg, ['items', 'rows']); register('compare', name, param, ids);
+    if (DEV) ids.forEach(function (id) { budget("compare('" + name + "') " + id, 'title', cfg.items[id].name); });
+    LBW.widget(name, function (p, ctx) {
+      if (!cfg.allowDup && dup(ctx, cls)) return null;
+      var got = p.list(param, ids, max); if (got.length < (cfg.min || 2)) return null;
+      var o = U.card(langOf(cfg, ctx), 'kit-compare ' + cls), grid = el('div', 'kit-cmp is-' + got.length); grid.setAttribute('role', 'table');
+      U.head(o.box, cfg.kicker || '', val(cfg.title, got, ctx) || '');
+      function line(label, cells, c) {
+        var r = el('div', 'kit-cmp-row' + (c ? ' ' + c : '')); r.setAttribute('role', 'row');
+        if (label) { var h = el('div', 'kit-cmp-label', label); h.setAttribute('role', 'rowheader'); r.appendChild(h); }
+        var cs = el('div', 'kit-cmp-cells'); cells.forEach(function (t) { var d = el('div', 'kit-cmp-cell', t); d.setAttribute('role', 'cell'); cs.appendChild(d); });
+        r.appendChild(cs); grid.appendChild(r);
+      }
+      line('', got.map(function (id) { return cfg.items[id].name; }), 'is-head');
+      (cfg.rows || []).forEach(function (row) {
+        var cells = got.map(function (id) { var v = (cfg.items[id].values || {})[row[0]]; return v == null || v === '' ? empty : String(v); });
+        if (cells.some(function (t) { return t !== empty; })) line(row[1], cells, row[2]);
+      });
+      o.box.appendChild(grid); note(o.box, cfg.note, 'is-muted');
+      var g = U.once('kit-actions'), links = [];
+      got.forEach(function (id, i) { var it = cfg.items[id]; if (it.reply) g.appendChild(U.reply(it.reply[0], it.reply[1], { primary: i === 0, fields: it.reply[2] })); if (it.link) links.push(U.link(it.link[0], it.link[1])); });
+      var acts = (g.children.length ? [g] : []).concat(buttons(links)); if (acts.length) U.row(o, acts);
+      return o;
+    });
+  }
+
+  LBW.kit = { version: '0.7.4', dev: DEV, describe: describe, L: L, last: last, cards: cards, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent, compare: compare,
     h: { note: note, list: list, label: label, dup: dup, choice: choice, multiChoice: multiChoice, copyBox: copyBox, status: status, wa: wa, fill: fill, money: money, total: total, lightbox: lightbox, chart: chart, statusHead: statusHead } };
 })(typeof window !== 'undefined' ? window : this);

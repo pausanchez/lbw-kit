@@ -55,3 +55,28 @@ test('mock-report: reads what a page drew, with dev mode on', () => {
   assert.deepEqual([d.devMode, d.library, d.widgets, d.setupErrors, d.rawTagsLeft], [true, pkg.version, { service: 1, room: 1 }, [], []]);
   assert.ok(d.dropped.some((x) => /unknown value id=castle/.test(x)));
 });
+
+test('build: the live bundle leaves the checker out, the dev bundle has it', () => {
+  const m = JSON.parse(fs.readFileSync(new URL('../dist/manifest.json', import.meta.url), 'utf8'));
+  const live = fs.readFileSync(new URL('../dist/lbw-kit.min.js', import.meta.url), 'utf8'), dev = fs.readFileSync(new URL('../dist/lbw-kit.dev.min.js', import.meta.url), 'utf8');
+  assert.ok(!/is not under any entry of/.test(live) && /is not under any entry of/.test(dev));
+  assert.ok(m.files['lbw-kit.min.js'].bytes < 75000, 'live bundle ' + m.files['lbw-kit.min.js'].bytes + ' B');
+  const a = boot({ lbw: false }), b = boot({ lbw: false }); a.w.eval(live); b.w.eval(dev);
+  assert.equal(typeof a.LBW, 'undefined'); assert.equal(a.w.LBW.kit.setup.check, undefined); assert.equal(typeof b.w.LBW.kit.setup.check, 'function');
+});
+
+test('build: the all-in-one bundle adds its CSS once, before every other style', () => {
+  const all = fs.readFileSync(new URL('../dist/lbw-kit.all.min.js', import.meta.url), 'utf8');
+  const c = boot({ lbw: false }), d = c.w.document, theme = d.createElement('style');
+  theme.textContent = ':root{--lbw-accent:#123456}'; d.head.appendChild(theme);
+  c.w.eval(all); c.w.eval(all);
+  const styles = [...d.head.querySelectorAll('style')];
+  assert.equal(d.querySelectorAll('style[data-lbw]').length, 1);
+  assert.equal(styles[0].hasAttribute('data-lbw'), true, 'the library comes first, so the theme after it wins');
+  assert.match(styles[0].textContent, /\.lbw-box/); assert.match(styles[0].textContent, /\.kit-/);
+  assert.equal(c.w.LBW.version, pkg.version);
+  const out = tmp(), r = run('kit/example/config.json', '--out', out, '--all', '--theme', 'kit/example/theme.css');
+  assert.equal(r.status, 0, r.stderr);
+  assert.match(fs.readFileSync(path.join(out, 'custom_js.html'), 'utf8'), /dist\/lbw-kit\.all\.min\.js" integrity="sha384-/);
+  assert.doesNotMatch(fs.readFileSync(path.join(out, 'custom_css.css'), 'utf8'), /lbw-kit\.min\.css/);
+});
