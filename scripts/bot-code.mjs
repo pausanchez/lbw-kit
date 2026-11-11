@@ -7,6 +7,7 @@
 // --inline puts the library's code in both files instead of loading it by URL (for a page that blocks outside hosts).
 import fs from 'node:fs';
 import path from 'node:path';
+import { transform } from 'esbuild';
 import { read, checkConfig } from './lib.mjs';
 
 const args = process.argv.slice(2), opt = {}, files = [];
@@ -29,7 +30,9 @@ if (!opt.inline && !repo) { console.error('package.json has no "repository": use
 const base = `https://cdn.jsdelivr.net/gh/${repo}@v${pkg.version}/dist/`;
 const file = (p) => (p ? fs.readFileSync(p, 'utf8').trim() : '');
 
-const setup = `LBW.kit.setup(${JSON.stringify(config)});`, own = file(opt.widgets);
+// the demo's own script and CSS are minified like the library: they are re-sent on every change
+const min = async (text, loader) => (text ? (await transform(text, { loader, minify: true, legalComments: 'none' })).code.trim() : '');
+const setup = `LBW.kit.setup(${JSON.stringify(config)});`, own = await min(file(opt.widgets), 'js');
 const scripts = [setup, own].filter(Boolean);
 // inside <script>…</script> a literal "</script" would end the block early
 for (const s of scripts) if (/<\/script/i.test(s)) { console.error('the config or the widgets contain "</script": write it as "<\\/script"'); process.exit(1); }
@@ -38,10 +41,10 @@ const tag = (s) => `<script>${s}</script>`;
 const load = opt.inline ? read('dist/inline/custom_js.html').trim()
   : `<script src="${base}lbw-kit.min.js" integrity="${manifest.files['lbw-kit.min.js'].integrity}" crossorigin="anonymous"></script>`;
 const js = load + scripts.map(tag).join('') + (opt.inline ? '' : tag(read('dist/fallback.min.js').trim())) + '\n';
-const css = [opt.inline ? read('dist/lbw-kit.min.css').trim() : `@import url("${base}lbw-kit.min.css");`, file(opt.theme), file(opt.skin)].filter(Boolean).join('\n') + '\n';
-// @import must come before any other rule: fonts the theme or the skin import go to the top with it
-const imports = [], rest = css.split('\n').filter((l) => { if (/^@import\b/.test(l.trim())) { imports.push(l.trim()); return false; } return true; });
-const cssOut = imports.concat(rest).join('\n');
+// @import must come before any other rule: the fonts that the theme or the skin import go to the top, with the library's
+const imports = opt.inline ? [] : [`@import url("${base}lbw-kit.min.css");`];
+const mine = [file(opt.theme), file(opt.skin)].filter(Boolean).join('\n').replace(/@import\s+(?:url\([^)]*\)|"[^"]*"|'[^']*')[^;]*;/g, (m) => { imports.push(m.trim()); return ''; });
+const cssOut = imports.concat(opt.inline ? [read('dist/lbw-kit.min.css').trim()] : [], [await min(mine, 'css')].filter(Boolean)).join('\n') + '\n';
 
 fs.mkdirSync(opt.out, { recursive: true });
 const out = { 'custom_js.html': js, 'custom_css.css': cssOut, 'mock-widgets.js': scripts.join('\n') + '\n' };
