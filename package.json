@@ -9,7 +9,8 @@
     "test": "node --test \"test/*.test.mjs\"",
     "build": "node scripts/build.mjs",
     "check": "npm run version:check && npm test && npm run build",
-    "check:config": "node scripts/check-config.mjs"
+    "check:config": "node scripts/check-config.mjs",
+    "bot": "node scripts/bot-code.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.28.2",
