@@ -1,5 +1,5 @@
 // scripts/bot-code.mjs · a bot's Custom JS and Custom CSS, written from its config. It checks the config first.
-//   node scripts/bot-code.mjs src/config.json --out build [--widgets src/widgets.js] [--theme src/theme.css] [--skin build/chat-skin.css] [--inline]
+//   node scripts/bot-code.mjs src/config.json --out build [--widgets src/widgets.js] [--theme src/theme.css] [--skin build/chat-skin.css] [--all | --inline]
 // Writes into --out:
 //   custom_js.html    the library's load line (pinned version, integrity) + LBW.kit.setup(config) + your own widgets + the fallback
 //   custom_css.css    the library's @import + the theme + the chat skin
@@ -19,12 +19,13 @@ for (let i = 0; i < args.length; i++) {
   else if (/^--(out|widgets|theme|skin)$/.test(args[i])) opt[args[i].slice(2)] = args[++i];
   else files.push(args[i]);
 }
-if (files.length !== 1 || !opt.out) { console.error('usage: node scripts/bot-code.mjs <config.json> --out <dir> [--widgets own.js] [--theme theme.css] [--skin chat-skin.css] [--inline]'); process.exit(2); }
+if (files.length !== 1 || !opt.out) { console.error('usage: node scripts/bot-code.mjs <config.json> --out <dir> [--widgets own.js] [--theme theme.css] [--skin chat-skin.css] [--all | --inline]  (--all: one file with its CSS, for a bot on a client\'s page; --inline: no outside host)'); process.exit(2); }
 
 let config;
 try { config = JSON.parse(fs.readFileSync(files[0], 'utf8')); } catch (e) { console.error(`${files[0]}: not valid JSON (${e.message})`); process.exit(1); }
 const errors = checkConfig(config);
 if (errors.length) { errors.forEach((e) => console.error('✖ ' + e)); process.exit(1); }
+if (/"(csv|json)":\s*"http:\/\/(localhost|127\.0\.0\.1)/.test(JSON.stringify(config))) console.error('⚠ a source on localhost: fine for trying a map in the mock. Do NOT upload this build: a published bot would draw the saved copy for ever.');
 
 const pkg = JSON.parse(read('package.json')), manifest = JSON.parse(read('dist/manifest.json'));
 if (manifest.version !== pkg.version) { console.error(`dist/ is v${manifest.version} and package.json is v${pkg.version}: run npm run build`); process.exit(1); }

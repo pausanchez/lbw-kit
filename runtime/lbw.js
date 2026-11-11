@@ -1,4 +1,4 @@
-/* lbw.js · Landbot AI Widgets runtime · v0.7.6
+/* lbw.js · Landbot AI Widgets runtime · v0.7.7
    Turns tags that an AI agent (or a flow message) writes at the end of a bot message, e.g. [[shop:card id=boots lang=en]],
    into interactive widgets inside the Landbot v4 web chat. Distilled from four production experiments (retos 16-19).
    You write: your data, your labels and one function per widget. The runtime does the rest:
@@ -48,6 +48,7 @@
   function img(src, cls, o) {
     o = o || {};
     var f = el('div', 'lbw-img' + (cls ? ' ' + cls : ''));
+    if (window.__lbwNoImg === true) { f.classList.add('is-empty'); return f; }   // a mock pin (&noimg=1): layout shots without loading the client's photos
     if (!allowed(src)) { drop('image not allowed: ' + src); f.classList.add('is-empty'); return f; }
     var i = el('img'); i.src = src; i.alt = o.alt || ''; i.loading = 'lazy'; i.decoding = 'async';
     if (o.srcset) {
@@ -462,7 +463,7 @@
   }
 
   root.LBW = {
-    version: '0.7.6',
+    version: '0.7.7',
     // LBW.init({ prefix, langs, defaultLang, labels: {en:{…}}, links: ['https://shop.example/', 'tel:', 'mailto:', 'https://calendar.google.com/'], maxPerMessage, quietMs, timeZone: 'Europe/Madrid' })
     init: function (o) { for (var k in o) cfg[k] = o[k]; start(); return root.LBW; },
     // LBW.on('render', function (e) { e.widget, e.tag, e.lang, e.el, e.message }) · 'say' → { text, fields } · 'drop' → the reason

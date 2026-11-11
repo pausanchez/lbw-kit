@@ -156,3 +156,95 @@ test('review: check() rejects the map shapes that broke at run time', () => {
   const noTz = CFG(); delete noTz.timeZone; assert.match(errors(noTz), /source\.map\.until needs "timeZone"/);
   const j = CFG(), s = j.widgets.rides.source; delete s.csv; s.json = 'https://api.example/r'; s.map.name = '{Name}'; assert.equal(errors(j), '');   // JSON keys keep their case
 });
+
+// ── what the third blind build asked for (0.7.7) ──
+test('0.7.7: a nested JSON key, HTML read as text, numbers as ids, and the saved item filling what the live row lacks', async () => {
+  const cfg = CFG(), w = cfg.widgets.rides, s = w.source; delete s.csv; delete w.filter; delete w.titles; delete s.map.kind; delete s.map.price; delete s.map.until; delete s.map.sub;
+  s.json = 'https://site.example/wp-json/wp/v2/pages'; s.map.name = '{title.rendered|text}'; s.map.link = [{ en: 'Details ↗', es: 'Detalles ↗' }, '{link}']; s.merge = true;
+  cfg.links.push('https://site.example/');
+  w.items = [{ id: '12', name: { en: 'Saved name', es: 'Nombre guardado' }, sub: { en: 'Saved line', es: 'Línea guardada' }, img: { src: 'https://rides.example/p.jpg', alt: '' } }, { id: '99', name: 'Only saved' }];
+  assert.equal(errors(cfg), '');
+  const body = JSON.stringify([{ id: 12, title: { rendered: 'Sports &amp; <em>Fun</em>' }, link: 'https://site.example/sports/' }, { id: 13, title: { rendered: '<script>alert(1)</script>' }, link: 'https://site.example/x/' }, { id: 14, title: { rendered: 'New page' }, link: 'https://site.example/new/' }]);
+  const c = chat(cfg, ok(body)), m = draw(c, 'Here [[lv:rides lang=es]]');
+  await wait(30);
+  assert.deepEqual(names(m), ['Sports & Fun', 'New page']);   // live name wins; markup is read as text (a title that is only a script has none: skipped); "Only saved" is not live
+  const first = m.querySelectorAll('.kit-slide')[0];
+  assert.match(first.textContent, /Línea guardada/); assert.ok(first.querySelector('.lbw-img'));     // filled from the saved item, in the tag's language
+  assert.equal(first.querySelector('a').getAttribute('href'), 'https://site.example/sports/');
+  assert.equal(m.querySelector('script'), null);
+  assert.equal(m.querySelectorAll('.kit-slide')[1].querySelector('.lbw-img'), null);
+});
+
+test('0.7.7: check(): dotted keys only for JSON, merge needs items, a localhost source to try a map', () => {
+  const bad = (f) => { const cfg = CFG(); f(cfg.widgets.rides); return errors(cfg); };
+  assert.match(bad((w) => { w.source.map.name = '{title.rendered}'; }), /not a column name/);                 // a CSV has no nested keys
+  assert.match(bad((w) => { w.source.merge = true; delete w.items; }), /source\.merge needs "items"/);
+  assert.match(bad((w) => { w.source.merge = 'yes'; }), /true or false/);
+  assert.equal(bad((w) => { w.source.csv = 'http://localhost:8777/catalog.csv'; }), '');
+  assert.equal(bad((w) => { w.source.csv = 'http://127.0.0.1:8777/catalog.csv'; }), '');
+  assert.match(bad((w) => { w.source.csv = 'http://localhost.evil.example/catalog.csv'; }), /https URL/);
+});
+
+test('0.7.7: a source URL per language reads its own file; only the default language is fetched at load', async () => {
+  const cfg = CFG(), w = cfg.widgets.rides, s = w.source; delete s.csv; delete w.filter; delete w.titles; delete s.map.kind; delete w.items[0].kind;
+  s.json = { en: 'https://api.example/en', es: 'https://api.example/es' };
+  const c = chat(cfg, (u) => Promise.resolve({ ok: true, text: () => Promise.resolve(JSON.stringify([{ id: 'a', name: u.slice(-2) + ' ride' }])) }));
+  assert.deepEqual(c.calls, ['https://api.example/en']);
+  const es = draw(c, 'x [[lv:rides lang=es]]'), en = draw(c, 'y [[lv:rides lang=en]]');
+  await wait(30);
+  assert.deepEqual(names(es), ['es ride']); assert.deepEqual(names(en), ['en ride']);
+  assert.deepEqual(c.calls, ['https://api.example/en', 'https://api.example/es']);
+});
+
+// ── what the second independent review found (0.7.7) ──
+const wp = (f) => { const cfg = CFG(), w = cfg.widgets.rides, s = w.source; delete s.csv; delete w.filter; delete w.titles; s.json = 'https://site.example/api'; s.map = { name: '{title|text}', price: { now: '{price} €' } }; s.merge = true;
+  w.items = [{ id: 'a', name: 'Saved name', sub: 'Saved line', price: { now: '24 €' }, until: '1/1/2020', reply: ['Book', 'I want to book'] }]; if (f) f(cfg, w, s); return cfg; };
+test('review 2: merge gives only the parts the map leaves out: an emptied cell stays empty, a saved "until" hides nothing', async () => {
+  const c = chat(wp(), ok(JSON.stringify([{ id: 'a', title: 'Live renamed', price: '' }]))), m = draw(c, 'Here [[lv:rides lang=en]]');
+  await wait(30);
+  assert.deepEqual(names(m), ['Live renamed']);
+  const t = m.widgets()[0].textContent;
+  assert.ok(!/24 €/.test(t)); assert.match(t, /Saved line/);
+});
+
+test('review 2: with merge and no mapped name, the saved item names the slide, in the tag\'s language', async () => {
+  const cfg = wp((cfg, w, s) => { s.map = { link: ['Page ↗', '{url}'] }; w.items = [{ id: 'a', name: { en: 'Sports', es: 'Deportes' } }]; cfg.links.push('https://site.example/'); });
+  assert.equal(errors(cfg), '');
+  const c = chat(cfg, ok(JSON.stringify([{ id: 'a', url: 'https://site.example/sports/' }, { id: 'b', url: 'https://site.example/new/' }]))), m = draw(c, 'Aquí [[lv:rides lang=es]]');
+  await wait(30);
+  assert.deepEqual(names(m), ['Deportes']);                                        // the row with no saved item has no name: skipped
+  assert.equal(m.querySelector('.kit-slide a').getAttribute('href'), 'https://site.example/sports/');
+  assert.match(errors(wp((cfg, w, s) => { s.map = { link: ['Page ↗', '{url}'] }; w.items = [{ id: 'a' }]; cfg.links.push('https://site.example/'); })), /every saved item needs one|no "name"/);
+  assert.match(errors(wp((cfg, w, s) => { s.map = { kicker: 'Fixed' }; })), /fills nothing from the file/);
+});
+
+test('review 2: |text decodes before it cuts, leaves script and style out, and keeps words apart; a nested id is read', async () => {
+  const long = '<a href="https://x.example/' + 'p'.repeat(290) + '">Real title</a>';
+  const rows = [{ m: { id: 'a' }, title: long }, { m: { id: 'b' }, title: 'Hi<script>alert(1)</script><style>.x{color:red}</style>' }, { m: { id: 'c' }, title: '<p>One</p><p>Two</p>Line<br>Break' }, { m: { id: 'd' }, title: 'Fish &amp; ' + 'x'.repeat(400) }];
+  const cfg = wp((cfg, w, s) => { s.id = 'm.id'; s.merge = false; delete s.map.price; });
+  assert.equal(errors(cfg), '');
+  const c = chat(cfg, ok(JSON.stringify(rows))), m = draw(c, 'Here [[lv:rides lang=en]]');
+  await wait(30);
+  const ns = names(m);
+  assert.deepEqual(ns.slice(0, 3), ['Real title', 'Hi', 'One Two Line Break']);
+  assert.match(ns[3], /^Fish & x+$/); assert.equal([...ns[3]].length, 300);
+});
+
+test('review 2: the photo pin is a boolean, and a URL per language with no defaultLang fetches one file at load', async () => {
+  const c0 = boot({ kit: true }); const d = c0.d.createElement('div'); d.id = '__lbwNoImg'; c0.d.body.appendChild(d);
+  c0.LBW.init({ prefix: 'q', links: ['https://rides.example/'] });
+  assert.ok(c0.LBW.ui.img('https://rides.example/a.jpg', '', {}).querySelector('img'));
+  const cfg = CFG(), w = cfg.widgets.rides, s = w.source; delete cfg.defaultLang; delete s.csv; delete w.filter; delete w.titles; delete s.map.kind; delete w.items[0].kind;
+  s.json = { en: 'https://api.example/en', es: 'https://api.example/es' };
+  const c = chat(cfg, ok('[]'));
+  assert.deepEqual(c.calls, ['https://api.example/en']);
+});
+
+test('0.7.7: "order": "items" puts live rows in the saved order; unsaved rows go last', async () => {
+  const cfg = wp((cfg, w, s) => { s.map = { name: '{title}' }; s.merge = false; s.order = 'items'; w.items = [{ id: 'b', name: 'B' }, { id: 'a', name: 'A' }]; });
+  assert.equal(errors(cfg), '');
+  const c = chat(cfg, ok(JSON.stringify([{ id: 'z', title: 'Zed' }, { id: 'a', title: 'Ay' }, { id: 'y', title: 'Why' }, { id: 'b', title: 'Bee' }]))), m = draw(c, 'Here [[lv:rides lang=en]]');
+  await wait(30);
+  assert.deepEqual(names(m), ['Bee', 'Ay', 'Zed', 'Why']);
+  assert.match(errors(wp((cfg, w, s) => { s.order = 'name'; })), /source\.order/);
+});

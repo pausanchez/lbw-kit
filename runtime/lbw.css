@@ -1,4 +1,4 @@
-/* lbw.css · base look for Landbot AI Widgets (v0.7.6)
+/* lbw.css · base look for Landbot AI Widgets (v0.7.7)
    The ChatKit-gallery language measured in retos 16-19: white cards, 18px radius, a hairline and a soft shadow; a small
    kicker above an 18px title; pill buttons (primary filled, secondary an inset ring) under the card. Re-skin it by
    overriding the variables below in your Custom CSS; keep the class names, the test harness reads some of them. */
@@ -19,6 +19,8 @@
   --lbw-display: var(--lbw-font);
   --lbw-max: none;              /* widgets take the whole message column (340 px on a phone, 672 px on tablet/desktop) */
 }
+/* the tint follows the accent set on :root (where themes set their tokens) unless the theme sets it too: a brand theme that only sets --lbw-accent no longer gets a lavender note box */
+@supports (color: color-mix(in srgb, red, blue)) { :root { --lbw-tint: color-mix(in srgb, var(--lbw-accent) 10%, #FFFFFF); } }
 [data-lb-part="message"].has-lbw { flex-wrap: wrap; }   /* lets the widget sit under the bubble */
 .lbw { box-sizing: border-box; width: 100%; max-width: var(--lbw-max); margin: 8px 0 0; font: 400 14px/20px var(--lbw-font); color: var(--lbw-ink);
   container-type: inline-size; container-name: lbw; }   /* layouts switch at the WIDGET's width, never the screen's: a Livechat window on a wide screen is ~360 px */

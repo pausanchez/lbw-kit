@@ -186,29 +186,47 @@
         var seen = Object.create(null), out = [], idCol = src.id || 'id';
         if (!Array.isArray(rows)) throw new Error('the source did not answer a list');
         if (!rows.length) throw new Error('the source has no rows');   // an emptied sheet or a page that isn't the file: can't tell them apart
-        if (!rows.some(function (r) { return r && typeof r === 'object' && own(r, idCol); })) throw new Error('the source has no "' + idCol + '" column');
+        // a JSON key may be dotted ("title.rendered", as WordPress nests it); every step is an own property
+        var raw = function (r, k) { var v = String(k).split('.').reduce(function (o, j) { return o != null && typeof o === 'object' && own(o, j) ? o[j] : null; }, r); return v == null || typeof v === 'object' ? '' : String(v).trim(); };
+        var cut = function (v) { return v.length > 300 ? Array.from(v).slice(0, 300).join('') : v; };
+        // {column|text}: the cell is HTML (a WordPress title). Read as text in an inert document (nothing runs or loads), with
+        // script and style left out and a space where a block or a <br> ends; decoded first, cut after.
+        var text = function (v) {
+          var d = new DOMParser().parseFromString(v.slice(0, 20000), 'text/html');
+          [].forEach.call(d.querySelectorAll('script,style,template,noscript'), function (n) { n.remove(); });
+          [].forEach.call(d.querySelectorAll('br,p,div,li,h1,h2,h3,h4,h5,h6,tr,td'), function (n) { n.insertAdjacentText(n.tagName === 'BR' ? 'beforebegin' : 'afterend', ' '); });
+          return (d.body ? d.body.textContent : '').replace(/\s+/g, ' ').trim();
+        };
+        if (!rows.some(function (r) { return r && typeof r === 'object' && raw(r, idCol) !== ''; })) throw new Error('the source has no "' + idCol + '" column');
         rows.slice(0, src.max || 2000).forEach(function (r) {
           if (!r || typeof r !== 'object') return;
-          var cell = function (k) { var v = own(r, k) ? r[k] : null; if (v == null || typeof v === 'object') return ''; v = String(v).trim(); return v.length > 300 ? Array.from(v).slice(0, 300).join('') : v; };
-          var get = function (k) { return (lang && cell(k + '_' + lang)) || cell(k); };
-          var id = cell(idCol); if (!/^[a-z0-9][a-z0-9_-]{0,39}$/.test(id) || seen[id]) { LBW.drop(name + ': source row skipped (id "' + id.slice(0, 40) + '")'); return; }
+          var get = function (k, t) { var v = (lang && k.indexOf('.') < 0 && raw(r, k + '_' + lang)) || raw(r, k); return cut(t && v ? text(v) : v); };
+          var id = cut(raw(r, idCol)); if (!/^[a-z0-9][a-z0-9_-]{0,39}$/.test(id) || seen[id]) { LBW.drop(name + ': source row skipped (id "' + id.slice(0, 40) + '")'); return; }
           var it = { id: id };
           Object.keys(src.map).forEach(function (k) {
             var gap = false, put = function (x) {
-              if (typeof x === 'string') return x.replace(/\{([A-Za-z0-9_]+)\}/g, function (m, c) { var v = get(c); if (!v) gap = true; return v; });
+              if (typeof x === 'string') return x.replace(/\{([A-Za-z0-9_.]+)(\|text)?\}/g, function (m, c, t) { var v = get(c, t); if (!v) gap = true; return v; });
               if (Array.isArray(x)) return x.map(put);
               if (x && typeof x === 'object') { var o = {}; Object.keys(x).forEach(function (j) { o[j] = put(x[j]); }); return o; }
               return x; }, v = put(src.map[k]);
             if (!gap) it[k] = v;   // a field with an empty cell is left out whole (no "From  €", no link with no URL)
           });
+          // "merge": true · the saved item with the same id gives the parts the map doesn't fill (a photo, a description, a
+          // name by language when "name" isn't mapped). A mapped part comes only from the file: an emptied cell stays empty,
+          // and a saved "until" never hides a live row.
+          if (src.merge) (w.items || []).some(function (s) { if (String(s.id) !== id) return false; Object.keys(s).forEach(function (k) { if (k !== 'id' && k !== 'until' && !own(src.map, k)) it[k] = s[k]; }); return true; });
           if (!it.name) { LBW.drop(name + ': source row skipped (no name, id "' + id + '")'); return; }
           if (it.until != null && LBW.day.read(it.until) == null) { LBW.drop(name + ': source row skipped (id "' + id + '": "until" is not D/M/YYYY)'); return; }
           seen[id] = 1; out.push(it);
         });
+        // "order": "items" · the saved items' order (an API that sorts its own way); rows that aren't saved go last, as they came
+        if (src.order === 'items') { var pos = Object.create(null); (w.items || []).forEach(function (s, i) { pos[String(s.id)] = i; });
+          out = out.map(function (it, i) { return [it, i]; }).sort(function (a, b) { var x = a[0].id in pos ? pos[a[0].id] : 1e9, y = b[0].id in pos ? pos[b[0].id] : 1e9; return x - y || a[1] - b[1]; }).map(function (p) { return p[0]; }); }
         memo = { data: data, rows: out };
         return out;
       }
-      if (load && src.prefetch !== false && typeof fetch === 'function') { try { load().then(null, function () {}); } catch (e) {} }
+      // fetched once when the chat loads; with a URL per language, only the default language's
+      if (load && src.prefetch !== false && typeof fetch === 'function' && (!lang || lang === (cfg.defaultLang && (cfg.langs || []).indexOf(cfg.defaultLang) >= 0 ? cfg.defaultLang : (cfg.langs || [lang])[0]))) { try { load().then(null, function () {}); } catch (e) {} }
       K.carousel(name, merge(pick(w, ['cls', 'lang', 'allowDup']), {
         select: function (p) {
           var k = by ? p.one(param, vals) : null, today = LBW.day.today();

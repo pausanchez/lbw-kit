@@ -185,16 +185,19 @@
             var sc = w.source, slideKeys = ITEM.slide.concat(isObj(w.filter) && isStr(w.filter.by) ? [w.filter.by] : []);
             if (!isObj(sc)) err('"source" is { "csv" | "json": an https URL, "id": the id column, "map": { "name": "{column}", … } }');
             else {
-              only(sc, ['csv', 'json', 'path', 'id', 'map', 'max', 'maxAge', 'prefetch'], 'source');
+              only(sc, ['csv', 'json', 'path', 'id', 'map', 'merge', 'order', 'max', 'maxAge', 'prefetch'], 'source');
+              if (sc.order != null && (sc.order !== 'items' || !(isArr(w.items) && w.items.length))) err('source.order is "items": the slides follow the saved items\' order (it needs "items")');
+              if (sc.merge != null && (sc.merge !== true && sc.merge !== false)) err('source.merge is true or false');
+              if (sc.merge === true && !(isArr(w.items) && w.items.length)) err('source.merge needs "items": the saved item with the same id fills what a live row lacks');
               if ((sc.csv == null) === (sc.json == null)) err('source needs one of "csv" or "json"');
-              ['csv', 'json'].forEach(function (k) { if (sc[k] != null && (!isStr(sc[k]) || !/^https:\/\/[^\s"'<>]+$/.test(sc[k]))) err('source.' + k + ' must be an https URL'); });
+              ['csv', 'json'].forEach(function (k) { if (sc[k] != null && (!isStr(sc[k]) || !/^(https:\/\/|http:\/\/(localhost|127\.0\.0\.1)(:\d+)?\/)[^\s"'<>]+$/.test(sc[k]))) err('source.' + k + ' must be an https URL (http://localhost is accepted, to try a map against a saved copy)'); });
               if (sc.path != null && (sc.json == null || !isStr(sc.path))) err('source.path is the dotted key of the list inside a "json" answer');
-              if (sc.id != null && !isStr(sc.id)) err('source.id is the name of the id column');
+              if (sc.id != null && (!isStr(sc.id) || !(sc.csv != null ? /^[a-z0-9_]+$/ : /^[A-Za-z0-9_]+(\.[A-Za-z0-9_]+)*$/).test(sc.id))) err('source.id is the name of the id column' + (sc.csv != null ? ' (lower-case: a CSV\'s headers are read lower-cased)' : ''));
               if (sc.max != null && !(typeof sc.max === 'number' && sc.max % 1 === 0 && sc.max >= 1 && sc.max <= 5000)) err('source.max is how many rows are read: a whole number from 1 to 5000');
               if (sc.maxAge != null && !(typeof sc.maxAge === 'number' && sc.maxAge >= 10000)) err('source.maxAge is in milliseconds, 10000 at least (60000 by default)');
               var cols = [], lowOnly = sc.csv != null, col = function (x, at) {   // every "{column}" in the map, and its shape
-                if (isStr(x)) { (x.match(/\{[^{}]*\}/g) || []).forEach(function (m) { var c = m.slice(1, -1); cols.push(c);
-                  if (!/^[A-Za-z0-9_]+$/.test(c)) err(at + ': "' + m + '" is not a column name (letters, digits, _)');
+                if (isStr(x)) { (x.match(/\{[^{}]*\}/g) || []).forEach(function (m) { var c = m.slice(1, -1).replace(/\|text$/, ''); cols.push(c);
+                  if (lowOnly ? !/^[A-Za-z0-9_]+$/.test(c) : !/^[A-Za-z0-9_]+(\.[A-Za-z0-9_]+)*$/.test(c)) err(at + ': "' + m + '" is not a column name (letters, digits, _' + (lowOnly ? '' : '; dots for a nested JSON key, as {title.rendered}; {key|text} reads HTML as text') + ')');
                   else if (lowOnly && c !== c.toLowerCase()) err(at + ': "' + m + '" must be lower-case (a CSV\'s headers are read lower-cased)'); }); return true; }
                 return false; };
               if (isStr(sc.id) && lowOnly && sc.id !== sc.id.toLowerCase()) err('source.id "' + sc.id + '" must be lower-case (a CSV\'s headers are read lower-cased)');
@@ -204,8 +207,10 @@
                 only(mp, TEXT.concat(['price', 'img', 'link']), 'source.map');
                 if (own(mp, 'reply')) err('source.map can\'t fill "reply": a cell would become a sentence the visitor sends');
                 TEXT.forEach(function (k) { if (mp[k] != null && !col(mp[k], 'source.map.' + k)) err('source.map.' + k + ' must be text, as "{column}"'); });
-                if (!isStr(mp.name) || !/\{[A-Za-z0-9_]+\}/.test(mp.name)) err('source.map.name must name a column, as "{name}"');
-                if (fkey && !(isStr(mp[fkey]) && /\{[A-Za-z0-9_]+\}/.test(mp[fkey]))) err('source.map.' + fkey + ' is missing: the filter reads it from a column, as "{' + fkey + '}"');
+                if (mp.name == null && sc.merge === true) { if (isArr(w.items) && !w.items.every(function (it) { return isObj(it) && it.name != null; })) err('source.map has no "name": with merge every saved item needs one'); }
+                else if (!isStr(mp.name) || !/\{[A-Za-z0-9_.]+(\|text)?\}/.test(mp.name)) err('source.map.name must name a column, as "{name}" (or leave it out with "merge": true, and the saved item names the slide)');
+                if (!Object.keys(mp).some(function (k) { return JSON.stringify(mp[k]).indexOf('{') >= 0 && /\{[A-Za-z0-9_.]+(\|text)?\}/.test(JSON.stringify(mp[k])); })) err('source.map fills nothing from the file: name at least one column, as "{url}"');
+                if (fkey && !(isStr(mp[fkey]) && /\{[A-Za-z0-9_.]+(\|text)?\}/.test(mp[fkey]))) err('source.map.' + fkey + ' is missing: the filter reads it from a column, as "{' + fkey + '}"');
                 if (mp.until != null && !isStr(cfg.timeZone)) err('source.map.until needs "timeZone" in the config (the day ends where the client is)');
                 if (mp.link != null) { if (!isPair(mp.link)) err('source.map.link is [label, "{column}"]'); else { col(mp.link[0], 'source.map.link'); col(mp.link[1], 'source.map.link'); } }
                 if (mp.img != null) { if (!(isObj(mp.img) && isStr(mp.img.src))) err('source.map.img is { "src": "{column}", "alt": text }'); else { only(mp.img, ['src', 'alt', 'width', 'height'], 'source.map.img'); col(mp.img.src, 'source.map.img.src'); if (mp.img.alt != null && !col(mp.img.alt, 'source.map.img.alt')) err('source.map.img.alt must be text'); } }
