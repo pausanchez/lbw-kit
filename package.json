@@ -1,6 +1,6 @@
 {
   "name": "lbw-kit",
-  "version": "0.7.4",
+  "version": "0.7.5",
   "private": true,
   "description": "AI Widgets for the Landbot v4 web chat: the lbw.js runtime, the kit and their CSS, as one versioned library.",
   "scripts": {

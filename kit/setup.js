@@ -341,7 +341,8 @@
         if (rep && !own(x, L.dflt)) rep.push([path, 'has no text in the default language ("' + L.dflt + '")']);
         if (rep) {   // lists of [key, label] by language must hold the same keys, or a pick made in one language has no label in another
           var sig = function (v) { return isArr(v) && v.length && v.every(isArr) ? v.map(function (q) { return q[0]; }).join('\u0001') : null; }, first = sig(x[ks[0]]);
-          if (first != null && ks.some(function (k) { return sig(x[k]) !== first; })) rep.push([path, 'has different keys in each language: the first item of every pair must be the same in all of them']);
+          // only for lists of choices (a step's or a control's `items`): rows of [label, value] differ by language by nature
+          if (first != null && /(^|\.|\])items$|\.map\.[^.]+$|\.else$/.test(path) && ks.some(function (k) { return sig(x[k]) !== first; })) rep.push([path, 'has different keys in each language: the first item of every pair must be the same in all of them']);
         }
         return loc(own(x, L.lang) ? x[L.lang] : own(x, L.dflt) ? x[L.dflt] : x[ks[0]], L, path, false, null);
       }

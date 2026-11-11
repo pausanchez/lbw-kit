@@ -152,3 +152,13 @@ test('check: what the review of 0.7.2 found is an error sentence', () => {
   assert.match(e((c) => { c.actions.mail.mail = 'a,b@b.co'; }), /"mail" is one plain address/);
   assert.match(e((c) => { c.actions.mail.mail = ['a@b.co']; }), /"mail" is one plain address/);
 });
+
+test('languages: rows of [label, value] may be a whole list per language; choices must keep their keys', () => {
+  const cfg = CFG();
+  cfg.widgets.info.items.a.rows = { en: [['Open', '10:00'], ['Price', '5 €']], es: [['Abierto', '10:00'], ['Precio', '5 €'], ['Reducida', '3 €']] };
+  const c = chat(cfg); assert.deepEqual(c.result.errors, []);
+  assert.deepEqual(texts(draw(c, '[[t:info id=a lang=es]]'), 'dt'), ['Abierto', 'Precio', 'Reducida']);
+  assert.deepEqual(texts(draw(c, '[[t:info id=a lang=en]]'), 'dt'), ['Open', 'Price']);
+  const bad = CFG(); bad.widgets.plan.steps[0].items.es = [['x', 'Tejado'], ['b', 'Jardín']];
+  assert.match(errors(bad), /plan: steps\[0\]\.items has different keys in each language/);
+});
