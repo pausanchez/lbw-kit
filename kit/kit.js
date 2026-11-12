@@ -1,4 +1,4 @@
-/* AI Widgets kit v0.8.1.9 · on lbw.js v0.8.1.9 · the widgets every url-to-demo build rewrote, written once with options. Load it after lbw.js and before the
+/* AI Widgets kit v0.8.1.10 · on lbw.js v0.8.1.10 · the widgets every url-to-demo build rewrote, written once with options. Load it after lbw.js and before the
    client's widgets.js: custom_js = <script>lbw.js</script><script>kit.js</script><script>widgets.js</script>.
 
    Each maker registers a widget under the name you give it, from data you pass. Nothing here holds client facts.
@@ -131,20 +131,28 @@
   }
   function label(arr, k) { for (var i = 0; i < (arr || []).length; i++) if (arr[i][0] === k) return arr[i][1]; return ''; }
   function dup(ctx, cls) { return (ctx.others || []).some(function (w) { return w.classList.contains(cls); }); }
+  // v0.8.1.10 · an option may say what it means under its label: [key, label, desc] in a form, { label, say, desc } in
+  // chips. A group with one such option becomes a list (one per row, label then a muted line); the others stay as they are.
+  function described(b, label, desc) {
+    if (!desc) return b;
+    b.textContent = ''; b.appendChild(el('span', 'kit-opt-l', label)); b.appendChild(el('span', 'kit-opt-d', desc)); b.classList.add('has-desc');
+    return b;
+  }
+  function listy(g, items, at) { if (items.some(function (it) { return !!at(it); })) g.classList.add('is-list'); return g; }
   function choice(title, items, cur, pick) {   // one of [[key, label], …]; returns the block
-    var w = el('div', 'kit-q'); if (title) w.appendChild(el('p', 'kit-ql', title)); var g = el('div', 'lbw-chips');
+    var w = el('div', 'kit-q'); if (title) w.appendChild(el('p', 'kit-ql', title)); var g = listy(el('div', 'lbw-chips'), items, function (it) { return it[2]; });
     items.forEach(function (it) {
-      var b = U.btn(it[1], 'lbw-tog'); b.setAttribute('data-k', it[0]); b.setAttribute('aria-pressed', it[0] === cur ? 'true' : 'false');
+      var b = described(U.btn(it[1], 'lbw-tog'), it[1], it[2]); b.setAttribute('data-k', it[0]); b.setAttribute('aria-pressed', it[0] === cur ? 'true' : 'false');
       b.addEventListener('click', function () { if (b.closest('.is-done')) return; [].forEach.call(g.children, function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); }); pick(it[0]); });
       g.appendChild(b);
     });
     w.appendChild(g); return w;
   }
   function multiChoice(title, items, cur, pick, none) {   // any of them; the `none` key clears the rest and the rest clear it
-    var w = el('div', 'kit-q'); if (title) w.appendChild(el('p', 'kit-ql', title)); var g = el('div', 'lbw-chips'); cur = cur || [];
+    var w = el('div', 'kit-q'); if (title) w.appendChild(el('p', 'kit-ql', title)); var g = listy(el('div', 'lbw-chips'), items, function (it) { return it[2]; }); cur = cur || [];
     function keys() { return [].filter.call(g.children, function (x) { return x.getAttribute('aria-pressed') === 'true'; }).map(function (x) { return x.getAttribute('data-k'); }); }
     items.forEach(function (it) {
-      var b = U.btn(it[1], 'lbw-tog'); b.setAttribute('data-k', it[0]); b.setAttribute('aria-pressed', cur.indexOf(it[0]) >= 0 ? 'true' : 'false');
+      var b = described(U.btn(it[1], 'lbw-tog'), it[1], it[2]); b.setAttribute('data-k', it[0]); b.setAttribute('aria-pressed', cur.indexOf(it[0]) >= 0 ? 'true' : 'false');
       b.addEventListener('click', function () {
         if (b.closest('.is-done')) return;
         var on = b.getAttribute('aria-pressed') !== 'true'; b.setAttribute('aria-pressed', on ? 'true' : 'false');
@@ -300,6 +308,7 @@
           f.update();
         };
         slot.appendChild(st.multi ? multiChoice(st.title, items, f.state[st.key], pick, st.none) : choice(st.title, items, f.state[st.key], pick));
+        f.el.classList.toggle('has-list', !!f.el.querySelector('.lbw-chips.is-list'));   // v0.8.1.10: the plain steps then draw as a grid that matches
       }
       cfg.steps.forEach(function (s, i) { draw(i); });
       note(o.box, cfg.note, 'is-safe');
@@ -385,8 +394,10 @@
   //         carriedBy: { key: ['widget', …] } (skip when a card in the reply has the same button) }
   function chips(name, cfg) {
     var cls = cfg.cls || ('kit-' + name), keys = Object.keys(cfg.items);
+    // v0.8.1.10 · a chip is [label, sentence] or { label, say, desc, fields }: fields are saved in Landbot with the sentence
+    var chip = function (k) { var v = cfg.items[k]; return Array.isArray(v) ? { label: v[0], say: v[1] } : v || {}; };
     checkCfg('chips', name, cfg, ['items']); register('chips', name, 'q', keys);
-    if (DEV) keys.forEach(function (k) { budget("chips('" + name + "') " + k, 'title', cfg.items[k][0]); });
+    if (DEV) keys.forEach(function (k) { budget("chips('" + name + "') " + k, 'title', chip(k).label); });
     LBW.widget(name, function (p, ctx) {
       var g = U.once('lbw-chips'), tags = ctx.tags || [];
       var norm = function (x) { return String(x || '').replace(/[\s\u00a0]+/g, ' ').replace(/^[¿¡\s]+|[.!?…\s]+$/g, '').trim().toLowerCase(); }, offered = {};
@@ -396,13 +407,15 @@
       var crowd = cfg.crowd == null ? 2 : cfg.crowd, acts = 0;
       (ctx.others || []).forEach(function (w) { [].forEach.call(w.querySelectorAll('.lbw-actions .lbw-pill'), function (b) { if (!b.closest('.lbw-slide') && !b.closest('.lbw-form')) acts++; }); });
       if (crowd && acts >= crowd) return null;
+      var shown = [];
       p.list('q', keys, cfg.max || 3).forEach(function (k) {
-        var c = cfg.items[k]; if (c[1].toLowerCase() === ctx.prev) return;
+        var c = chip(k); if (!c.say || String(c.say).toLowerCase() === ctx.prev) return;
         if (cfg.own && cfg.own[k] && tags.indexOf(cfg.own[k]) >= 0) return;
         if (cfg.carriedBy && (cfg.carriedBy[k] || []).some(function (w) { return tags.indexOf(w) >= 0; })) return;
-        if (offered[norm(c[1])]) return;   // v0.8.1: a card in this message already has a button that sends this sentence
-        g.appendChild(U.reply(c[0], c[1]));
+        if (offered[norm(c.say)]) return;   // v0.8.1: a card in this message already has a button that sends this sentence
+        g.appendChild(described(U.reply(c.label, c.say, c.fields ? { fields: c.fields } : null), c.label, c.desc)); shown.push(c);
       });
+      listy(g, shown, function (c) { return c.desc; });
       if (!g.children.length) return null;
       var o = U.card(langOf(cfg, ctx), 'kit-chips ' + cls); o.box.appendChild(g); return o;
     }, { last: true });
@@ -894,7 +907,7 @@
     });
   }
 
-  LBW.kit = { version: '0.8.1.9', dev: DEV, describe: describe, L: L, last: last, cards: cards, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent, compare: compare, season: season, rating: rating,
+  LBW.kit = { version: '0.8.1.10', dev: DEV, describe: describe, L: L, last: last, cards: cards, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent, compare: compare, season: season, rating: rating,
     h: { note: note, list: list, label: label, dup: dup, choice: choice, multiChoice: multiChoice, copyBox: copyBox, status: status, wa: wa, fill: fill, money: money, total: total, lightbox: lightbox, chart: chart, statusHead: statusHead,
       icon: icon, withIcon: withIcon, icons: Object.keys(ICONS), badge: badge, tones: TONES.slice() } };
 })(typeof window !== 'undefined' ? window : this);

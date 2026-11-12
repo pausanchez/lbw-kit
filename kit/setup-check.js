@@ -14,7 +14,7 @@
   var ICONS = 'check x info alert phone mail chat calendar clock pin external star user shield bell doc thumb'.split(' '), TONES = 'neutral ok info warn danger'.split(' ');
   K.setup._.icons = ICONS; K.setup._.tones = TONES;
   // ── checking a config: every problem as a sentence, nothing drawn, never a throw ─────────────────
-  var TOP = '$schema version prefix langs defaultLang timeZone maxPerMessage links labels quietMs maxWaitMs reveal actions replies widgets'.split(' ');
+  var TOP = '$schema version prefix langs defaultLang timeZone maxPerMessage links labels quietMs maxWaitMs reveal photos actions replies widgets'.split(' ');
   var KEYS = {
     cards: 'type cls param items item kicker disclaimer single fallback pointsCls allowDup lang reply links status',
     form: 'type cls lang kicker title cta note preset steps summary fields allowDup collapse',
@@ -38,8 +38,36 @@
   var NEED = { cards: [], form: ['steps', 'summary', 'cta'], contact: ['title'], chips: ['items'], carousel: [], calc: ['state', 'controls', 'result', 'send', 'cta'],
     stats: [], people: ['items'], consent: ['title', 'yes', 'no'], slots: ['cta', 'say'], confirm: ['form', 'title'], review: ['state', 'lines', 'send', 'cta'], chart: ['title', 'x', 'series'], compare: ['items', 'rows'], season: ['ranges'], rating: ['title', 'send'] };
   // check every language's copy; a problem that every language has is reported once, the others with their language
+  // v0.8.1.10 · the photo sets: a base under "links", sizes as [folder, width] going up, an optional ratio [w, h]
+  function photoSets(cfg, top) {
+    var P = cfg.photos; if (P == null) return;
+    if (!isObj(P)) { top('"photos" is an object of sets: { "name": { "base": "https://…/", "sizes": [["folder/", 495], …], "ratio": [4, 3] } }'); return; }
+    var links = isArr(cfg.links) ? cfg.links.filter(isStr) : [];
+    Object.keys(P).forEach(function (n) {
+      var d = P[n], at = 'photos.' + n;
+      if (!/^[a-z_][a-z0-9_]*$/i.test(n)) top(at + ': a set\'s name is a plain word (it starts a photo: "' + n + ':file.jpg")');
+      if (!isObj(d)) { top(at + ' must be an object with "base" and "sizes"'); return; }
+      Object.keys(d).forEach(function (k) { if (['base', 'sizes', 'ratio'].indexOf(k) < 0) top(at + ': unknown key "' + k + '". Known: base, sizes, ratio'); });
+      if (!isStr(d.base) || !/^https:\/\/[^\s"'<>]+\/$/.test(d.base)) top(at + '.base is an https address ending in "/"');
+      else if (!links.some(function (o) { return /^https:/.test(o) && d.base.indexOf(o) === 0; })) top(at + '.base "' + d.base + '" is not under any entry of "links"');
+      if (!isArr(d.sizes) || !d.sizes.length) top(at + '.sizes is a list of [folder, width], smallest first: [["T2D3/", 495], ["", 1440]]');
+      else d.sizes.forEach(function (z, i) {
+        if (!isArr(z) || z.length !== 2 || typeof z[0] !== 'string' || !(Number.isInteger(z[1]) && z[1] > 0)) top(at + '.sizes[' + i + '] is [folder, width]: a text ("" for none) and a whole number of pixels');
+        else if (/[\s"'<>]/.test(z[0]) || /^\//.test(z[0])) top(at + '.sizes[' + i + ']: the folder "' + z[0] + '" has a space, a quote or a leading "/"');
+        else if (i && isArr(d.sizes[i - 1]) && !(z[1] > d.sizes[i - 1][1])) top(at + '.sizes: the widths go up (' + d.sizes[i - 1][1] + ', then ' + z[1] + ')');
+      });
+      if (d.ratio != null && !(isArr(d.ratio) && d.ratio.length === 2 && d.ratio.every(function (x) { return typeof x === 'number' && x > 0; }))) top(at + '.ratio is [width, height], such as [4, 3]');
+    });
+  }
   function check(cfg) {
     if (!isObj(cfg)) return check1(cfg);
+    var pre = [];
+    photoSets(cfg, function (m) { pre.push({ widget: null, message: m }); });
+    cfg = I.photosIn(cfg, function (w, m) { pre.push({ widget: w, message: w + ': ' + m }); });
+    if (pre.length) return pre.concat(check0(cfg).filter(function (e) { return !pre.some(function (p) { return p.message === e.message; }); }));
+    return check0(cfg);
+  }
+  function check0(cfg) {
     if (cfg.langs != null && langsOf({ langs: cfg.langs }) !== cfg.langs) return check1(cfg);
     var langs = langsOf(cfg), dflt = dfltOf(cfg, langs), seen = {}, out = [], rep = [], stray = false;
     var top = function (m) { out.push({ widget: null, message: m }); };
@@ -135,6 +163,9 @@
       function only(o, known, where) { Object.keys(o).forEach(function (k) { if (known.indexOf(k) < 0) err(where + ': unknown key "' + k + '"' + (k === 'links' || k === 'buttons' ? ' (buttons go on the widget; an item has one "link": [label, url])' : '') + '. Known: ' + known.join(', ')); }); }
       function list(l, where, each) { if (l == null) return []; if (!isArr(l)) { err(where + ' must be a list'); return []; } l.forEach(function (x, i) { each(x, where + '[' + i + ']'); }); return l; }
       function pairs(l, where) { list(l, where, function (x, at) { if (!isPair(x)) err(at + ' is [text, text]'); }); }
+      // v0.8.1.10 · a form's options: [key, label] or [key, label, desc], the desc one short line
+      function opts(l, where) { list(l, where, function (x, at) { if (!isPair(x) || x.length > 3) err(at + ' is [key, label] or [key, label, desc]'); else if (x.length === 3) desc(x[2], at + '[2]'); }); }
+      function desc(d, where) { if (typeof d !== 'string' || !d.trim()) err(where + ': a desc is one line of text'); else if (Array.from(d).length > 80) err(where + ': a desc is one short line, 80 characters at most (' + Array.from(d).length + ')'); }
       function rep(r, where, keys) { if (r == null) return; if (typeof r === 'string') { if (!own(reps, r)) err(where + ': reply "' + r + '" is not in "replies"'); } else if (!isPair(r)) err(where + ' is a name in "replies" or [label, sentence]'); else fieldsCheck(r[2], where, err, keys || null); }
       function param(v, where) { if (v != null && !WORD.test(v)) err(where + ' "' + v + '" must be lower-case (a tag\'s keys are read lower-cased)'); }
       // v0.8.1.4 · a status ({ text, tone }) or a badge ('text' or { text, tone }); the tone one of LBW.kit.h.tones
@@ -179,11 +210,11 @@
             if (!isStr(st.key)) { err('step ' + keys.length + ' has no "key"'); return; }
             if (st.key === 'text') err('a step can\'t be called "text": {text} is the sentence the form sends');
             strs(st, ['title', 'ask'], st.key);
-            if (isArr(st.items)) pairs(st.items, st.key + '.items');
+            if (isArr(st.items)) opts(st.items, st.key + '.items');
             else if (isObj(st.items)) {
               if (keys.indexOf(st.items.by) < 0) err(st.key + '.items.by "' + st.items.by + '" is not an earlier step');
-              if (!isObj(st.items.map)) err(st.key + '.items.map must be an object'); else Object.keys(st.items.map).forEach(function (k) { pairs(st.items.map[k], st.key + '.items.map.' + k); });
-              pairs(st.items['else'], st.key + '.items.else');
+              if (!isObj(st.items.map)) err(st.key + '.items.map must be an object'); else Object.keys(st.items.map).forEach(function (k) { opts(st.items.map[k], st.key + '.items.map.' + k); });
+              opts(st.items['else'], st.key + '.items.else');
             } else err('step ' + st.key + ' has no "items"');
             keys.push(st.key); picks.push(st.key);
           });
@@ -206,7 +237,11 @@
         }
 
         if (w.type === 'chips') {
-          if (!isObj(w.items)) err('"items" must be an object of [label, sentence] by key'); else Object.keys(w.items).forEach(function (k) { if (!isPair(w.items[k])) err('items.' + k + ' is [label, sentence]'); });
+          if (!isObj(w.items)) err('"items" must be an object of [label, sentence] by key'); else Object.keys(w.items).forEach(function (k) {
+            var c = w.items[k], at = 'items.' + k;
+            if (isObj(c)) { only(c, ['label', 'say', 'desc', 'fields'], at); if (!isStr(c.label) || !isStr(c.say)) err(at + ' needs "label" and "say" (the sentence it sends)'); if (c.desc != null) desc(c.desc, at + '.desc'); if (c.fields != null && (!isObj(c.fields) || !Object.keys(c.fields).length)) err(at + '.fields is { "field": "value" }, saved in Landbot with the sentence'); else fieldsCheck(c.fields, at + '.fields', err, null); }
+            else if (!isPair(c) || c.length > 2) err(at + ' is [label, sentence] or { "label", "say", "desc", "fields" }');
+          });
           if (w.max != null && !(Number.isInteger(w.max) && w.max >= 1)) err('"max" must be a whole number, 1 or more');
           if (w.crowd != null && !(typeof w.crowd === 'number' && w.crowd >= 0 && w.crowd % 1 === 0)) err('"crowd" is a whole number: with that many actions already under the message\'s cards the chips stay out (2 by default, 0 = never)');
           if (w.own != null && !isObj(w.own)) err('"own" must be an object');

@@ -442,10 +442,48 @@
     });
     return r;
   }
+  // v0.8.1.10 · "photos": a CDN's size folders, written once. { "h10": { "base": "https://cdn/gallery/",
+  // "sizes": [["T2D3/", 495], ["T4D3/", 964], ["", 1440]], "ratio": [4, 3] } }. A slide's "img" (or a gallery photo) is then
+  // "h10:01_room.jpg" or { "photo": "h10:01_room.jpg", "alt": … }: the kit writes src (the smallest), srcset (every size),
+  // width and height (from ratio), and a gallery photo's "big" (the largest). say(widget, message) reports, for the checker.
+  var REF = /^([a-z_][a-z0-9_]*):([^\s"'<>]+)$/i;
+  function photosIn(cfg, say) {
+    var P = isObj(cfg) && isObj(cfg.photos) ? cfg.photos : null;
+    if (!isObj(cfg) || !isObj(cfg.widgets)) return cfg;
+    var out = merge(cfg, {}); out.widgets = {};
+    function ref(x) { var s = isStr(x) ? x : isObj(x) && isStr(x.photo) ? x.photo : null, m = s && !/^https?:/i.test(s) ? REF.exec(s) : null; return m ? { cdn: m[1], file: m[2], o: isObj(x) ? x : {} } : null; }
+    function set(r) { var d = P && own(P, r.cdn) ? P[r.cdn] : null; return d && isStr(d.base) && isArr(d.sizes) && d.sizes.length && d.sizes.every(function (z) { return isArr(z) && typeof z[0] === 'string' && typeof z[1] === 'number'; }) ? d : null; }
+    function one(x, name, at, big, alt) {
+      var r = ref(x); if (!r) return x;
+      var d = set(r); if (!d) { var m = at + ': "' + r.cdn + ':" is not a set in "photos"'; if (say) say(name, m); else LBW.drop('setup: ' + name + ': ' + m); return undefined; }
+      var url = function (z) { return d.base + z[0] + r.file; }, zs = d.sizes, o = {};
+      Object.keys(r.o).forEach(function (k) { if (k !== 'photo' && k !== '__proto__') o[k] = r.o[k]; });
+      o.src = url(big ? zs[Math.floor(zs.length / 2)] : zs[0]); o.srcset = zs.map(function (z) { return [url(z), z[1]]; });
+      if (big) o.big = url(zs[zs.length - 1]);
+      else if (isArr(d.ratio) && d.ratio[0] > 0 && d.ratio[1] > 0) { o.width = zs[0][1]; o.height = Math.round(zs[0][1] * d.ratio[1] / d.ratio[0]); }
+      if (o.alt == null && alt != null) o.alt = alt;
+      return o;
+    }
+    // defineProperty: a widget named "__proto__" stays a key (the checker reports it) instead of setting the prototype
+    var put = function (name, v) { Object.defineProperty(out.widgets, name, { value: v, enumerable: true, writable: true, configurable: true }); };
+    Object.keys(cfg.widgets).forEach(function (name) {
+      var w = cfg.widgets[name];
+      if (!isObj(w) || w.type !== 'carousel' || !isArr(w.items)) { put(name, w); return; }
+      put(name, merge(w, { items: w.items.map(function (it, i) {
+        if (!isObj(it)) return it;
+        var at = 'items[' + i + ']', c = merge(it, {});
+        if (it.img != null) { var im = one(it.img, name, at + '.img', false, it.name); if (im === undefined) delete c.img; else c.img = im; }
+        if (isObj(it.gallery) && isArr(it.gallery.photos)) c.gallery = merge(it.gallery, { photos: it.gallery.photos.map(function (p, j) { return one(p, name, at + '.gallery.photos[' + j + ']', true, it.gallery.title || it.name); }).filter(function (p) { return p !== undefined; }) });
+        return c;
+      }) }));
+    });
+    return out;
+  }
   function setup(cfg) {
     // the checker is a separate file (kit/setup-check.js): `npm run bot` runs it before a config is uploaded, and the
     // bundle a bot loads leaves it out. Without it a config is taken as checked, and a widget that fails is skipped.
     var errs = setup._check ? setup._check(cfg) : [], bad = [], made = [];
+    cfg = photosIn(cfg);
     root.__kitSetupErrors = errs.map(function (e) { return e.message; });
     errs.forEach(function (e) { if (e.widget != null) bad.push(e.widget); LBW.drop('setup: ' + e.message); try { console.error('[kit] setup: ' + e.message); } catch (x) {} });
     if (errs.some(function (e) { return e.widget == null; })) return { ok: false, errors: root.__kitSetupErrors, widgets: made };
@@ -470,6 +508,6 @@
   setup.types = Object.keys(MAKE);
   // for kit/setup-check.js
   setup._ = { own: own, pick: pick, isArr: isArr, isObj: isObj, isStr: isStr, isPair: isPair, WORD: WORD, CODE: CODE, HOLE: HOLE, SLOT: SLOT,
-    compile: compile, loc: loc, langsOf: langsOf, dfltOf: dfltOf, resolve: resolve, reply: reply, timeOf: timeOf };
+    compile: compile, loc: loc, photosIn: photosIn, langsOf: langsOf, dfltOf: dfltOf, resolve: resolve, reply: reply, timeOf: timeOf };
   K.setup = setup;
 })(typeof window !== 'undefined' ? window : this);
