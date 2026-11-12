@@ -1,11 +1,12 @@
-/* AI Widgets kit v0.8.0 · the kit-* classes, from the --lbw-* tokens only (set them in the demo's theme.css).
+/* AI Widgets kit v0.8.1 · the kit-* classes, from the --lbw-* tokens only (set them in the demo's theme.css).
    Order in custom_css: @imports, lbw.css, kit.css, the demo's theme.css, the chat skin. */
 .kit-note { margin: 10px 0 0; font-size: 12px; line-height: 17px; color: var(--lbw-muted); }
-.kit-note.is-safe { color: var(--lbw-ink); background: var(--lbw-tint); border-radius: 8px; padding: 7px 10px; }
+.kit-note:not(.is-safe):not(.is-flag), .kit-line, .kit-desc { max-width: 62ch; }
+.kit-note.is-safe { color: var(--lbw-ink); background: var(--lbw-tint); border-radius: var(--lbw-radius-in); padding: 7px 10px; }
 .kit-note.is-flag { color: var(--lbw-ink); background: var(--lbw-soft); border-left: 3px solid var(--lbw-accent); border-radius: 4px; padding: 7px 10px; }
 .kit-who { margin: 0 0 6px; font-size: 13px; line-height: 18px; color: var(--lbw-muted); font-weight: 600; }
 .kit-line { margin: 2px 0 8px; font-size: 14px; line-height: 20px; }
-.kit-big { margin: 2px 0 8px; font-size: 24px; font-weight: 800; letter-spacing: .01em; }
+.kit-big { margin: 4px 0 8px; font: 700 24px/30px var(--lbw-display); letter-spacing: 0; font-variant-numeric: tabular-nums; }
 .kit-facts { margin: 4px 0 0; padding-left: 0; list-style: none; display: grid; gap: 5px; font-size: 14px; line-height: 19px; }
 .kit-facts li { position: relative; padding-left: 20px; }
 .kit-facts:not(.is-check):not(.is-dot):not(.is-steps) li::before,
@@ -13,20 +14,22 @@
 .kit-facts.is-check li::before { content: "\2713"; position: absolute; left: 2px; color: var(--lbw-accent-text, var(--lbw-accent)); font-weight: 700; }
 .kit-facts.is-steps { counter-reset: kit; }
 .kit-facts.is-steps li { counter-increment: kit; padding-left: 26px; }
-.kit-facts.is-steps li::before { content: counter(kit); position: absolute; left: 0; top: 0; width: 19px; height: 19px; border-radius: 50%; background: var(--lbw-accent); color: var(--lbw-accent-ink); font-size: 11px; font-weight: 700; line-height: 19px; text-align: center; }
+.kit-facts.is-steps li::before { content: counter(kit); position: absolute; left: 0; top: 0; width: 19px; height: 19px; border-radius: 50%; background: var(--lbw-accent); color: var(--lbw-accent-ink); font-size: 12px; font-weight: 700; line-height: 19px; text-align: center; }
 .kit-actions { display: contents; }
 .kit-q { margin: 10px 0 0; }
-.kit-ql { margin: 12px 0 6px; font-size: 13px; font-weight: 700; }
-.kit-slot:empty { display: none; }
-.lbw-form.kit-form .lbw-cta { width: 100%; min-height: 44px; margin-top: 14px; }
-.kit-lines.lbw-rows > div { grid-template-columns: 8em 1fr; }
+.kit-ql { margin: 12px 0 6px; font-size: 13px; font-weight: 600; }
+.kit-step:empty { display: none; }
+.lbw-form.kit-form .lbw-cta { margin-top: 8px; }
 .kit-lines dd { overflow-wrap: anywhere; }
-.kit-copytext { width: 100%; box-sizing: border-box; margin: 0 0 4px; padding: 8px 10px; border: 1px solid var(--lbw-ring); border-radius: 8px; background: var(--lbw-soft); font: 13px/18px var(--lbw-font); color: var(--lbw-ink); resize: none; }
+.kit-copytext { width: 100%; box-sizing: border-box; margin: 0 0 4px; padding: 8px 10px; border: 1px solid var(--lbw-ring); border-radius: var(--lbw-radius-in); background: var(--lbw-soft); font: 13px/18px var(--lbw-font); color: var(--lbw-ink); resize: none; }
 .kit-copymsg { font-size: 12px; color: var(--lbw-muted); align-self: center; }
 .kit-status { display: flex; align-items: center; gap: 8px; margin: 2px 0 6px; font-size: 14px; font-weight: 700; }
 .kit-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--lbw-muted); flex: none; }
 .kit-status.is-open .kit-dot { background: #1F9D55; box-shadow: 0 0 0 3px rgba(31,157,85,.18); }
 .lbw.kit-chips .lbw-box { border: 0; box-shadow: none; background: transparent; padding: 0; }
+.lbw.kit-chips .lbw-box::before, .lbw.kit-contact.is-compact .lbw-box::before, .lbw.kit-stats .lbw-box::before, .lbw.lbw-split .lbw-box::before { display: none; }
+/* chips are suggestions, one step quieter than a card's actions (they were the same white pill as a bubble and a button) */
+.kit-chips .lbw-pill:not(.is-sent) { min-height: 40px; padding: 7px 14px; background: var(--lbw-soft); box-shadow: inset 0 0 0 1px var(--lbw-line); color: var(--lbw-ink) !important; font: 500 13px/1.25 var(--lbw-font); }
 .lbw.kit-contact.is-compact .lbw-box { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; }
 .lbw.kit-contact.is-compact .lbw-actions { margin: 0; }
 .kit-compact { font-size: 13px; font-weight: 700; color: var(--lbw-muted); }
@@ -36,22 +39,23 @@
 .kit-slide .kit-img.is-product { aspect-ratio: 1 / 1; background: #fff; border-bottom: 1px solid var(--lbw-line); }
 .kit-slide .kit-img.is-product img { object-fit: contain; padding: 10px; box-sizing: border-box; }
 .kit-badge { position: absolute; top: 10px; right: 10px; background: var(--lbw-accent); color: var(--lbw-accent-ink); font: 700 13px/1 var(--lbw-font); padding: 6px 8px; border-radius: 6px; }
-.kit-slide-kicker { font: 600 11px/14px var(--lbw-font); letter-spacing: .05em; text-transform: uppercase; color: var(--lbw-accent-text, var(--lbw-accent)); }
+.kit-slide-kicker { font: 600 12px/16px var(--lbw-font); letter-spacing: .04em; text-transform: uppercase; color: var(--lbw-accent-text, var(--lbw-accent)); }
 .kit-sub { font-size: 12px; }
 .kit-price { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
-.kit-price strong { font: 800 20px/26px var(--lbw-display); font-variant-numeric: tabular-nums; }
+.kit-price strong { font: 700 18px/24px var(--lbw-display); font-variant-numeric: tabular-nums; }
 .kit-unit, .kit-list { font-size: 13px; color: var(--lbw-muted); }
 .kit-save { font-size: 12px; font-weight: 600; margin-top: 2px; }
 .kit-stock { margin-top: 4px; font-size: 12px; color: var(--lbw-muted); }
 .kit-stock.is-ok { color: #1F7A45; font-weight: 600; }
 .kit-desc { margin: 4px 0 8px; font-size: 13px; line-height: 18px; }
 .kit-out { margin-top: 12px; }
+.kit-out .lbw-rows > div { grid-template-columns: 1fr auto; } .kit-out .lbw-rows dd { text-align: right; font-variant-numeric: tabular-nums; }   /* the amounts of a sum share the total's right edge */
 .kit-total { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding: 10px 0 2px; border-top: 1px solid var(--lbw-ring); }
-.kit-total strong { font: 800 24px/30px var(--lbw-display); font-variant-numeric: tabular-nums; }
-.kit-total.is-due strong { font-size: 15px; line-height: 20px; text-align: right; }
+.kit-total strong { font: 700 24px/30px var(--lbw-display); font-variant-numeric: tabular-nums; }
+.kit-total.is-due strong { font-size: 14px; line-height: 20px; text-align: right; }
 /* v0.3 · overlays (CHALLENGES #11): a slide photo that opens a lightbox, fixed over the whole chat window */
 .kit-zoom { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; padding: 0; background: transparent; cursor: zoom-in; }
-.kit-zoom:focus-visible { outline: 3px solid var(--lbw-accent); outline-offset: -3px; }
+.kit-zoom:focus-visible { outline: 3px solid var(--lbw-focus, var(--lbw-ink)); outline-offset: -3px; }
 .kit-zoom-n { position: absolute; right: 8px; bottom: 8px; padding: 3px 8px; border-radius: 999px; background: rgba(0,0,0,.62); color: #fff; font: 600 12px/16px var(--lbw-font); }
 .kit-ovl { position: fixed; inset: 0; z-index: 2147483000; display: grid; grid-template-rows: auto 1fr auto; background: #121416; color: #fff; font-family: var(--lbw-font); overscroll-behavior: contain; }   /* opaque: at .94 the chat showed through in shots */
 .kit-ovl-top { display: flex; align-items: center; gap: 8px; padding: 10px 10px 6px 16px; }
@@ -73,70 +77,75 @@
 .lbw:not(.is-collapsed) .kit-sentline { padding-bottom: 8px; margin-bottom: 4px; border-bottom: 1px solid var(--lbw-line); }
 .kit-sent-l { font-weight: 700; color: var(--lbw-ink); flex: none; }
 .kit-sent-t { flex: 1; min-width: 0; color: var(--lbw-muted); overflow-wrap: anywhere; }
-.kit-sent-toggle { flex: none; background: none; border: 0; padding: 0; color: var(--lbw-ink); font: 600 13px/18px var(--lbw-font); text-decoration: underline; cursor: pointer; }
+.kit-sent-toggle { flex: none; background: none; border: 0; padding: 0 4px; min-height: 44px; display: inline-flex; align-items: center; color: var(--lbw-ink); font: 600 13px/18px var(--lbw-font); text-decoration: underline; cursor: pointer; }
 /* v0.5 · the lead-gen set. Extra tokens a theme may set: --kit-series-2 (a chart's 2nd series), --kit-hero-from / --kit-hero-to / --kit-hero-ink (the stats card) */
-.kit-statusbar { display: flex; align-items: center; gap: 8px; margin: -2px 0 10px; padding-bottom: 10px; border-bottom: 1px solid var(--lbw-line); font-size: 13px; font-weight: 600; color: #1F7A45; }
+.kit-statusbar { display: flex; align-items: center; gap: 8px; margin: -2px 0 8px; font-size: 13px; font-weight: 600; color: #1F7A45; }
 .kit-statusbar.is-info { color: var(--lbw-ink); } .kit-statusbar.is-warn { color: #9A5B00; }
-.kit-statusbar-i { width: 18px; height: 18px; border-radius: 50%; background: currentColor; display: grid; place-items: center; flex: none; font-size: 11px; font-weight: 800; line-height: 1; }
+.kit-statusbar-i { width: 18px; height: 18px; border-radius: 50%; background: currentColor; display: grid; place-items: center; flex: none; font-size: 12px; font-weight: 700; line-height: 1; }
 .kit-statusbar-i { color: #fff; } .kit-statusbar.is-ok .kit-statusbar-i { background: #1F7A45; } .kit-statusbar.is-info .kit-statusbar-i { background: var(--lbw-ink); } .kit-statusbar.is-warn .kit-statusbar-i { background: #9A5B00; }
 /* chart */
 .kit-chart { margin: 6px 0 0; }
 .kit-chart svg { display: block; width: 100%; max-width: 440px; margin: 0 auto; height: auto; overflow: visible; }   /* the viewBox is 320 wide: past ~440 px its text grows too big (1440 shot) */
-.kit-chart-sub { font-size: 12px; color: var(--lbw-muted); white-space: nowrap; }
+.kit-chart-sub { font-size: 12px; color: var(--lbw-muted); }
+.lbw-head:has(.kit-chart-sub) { display: block; }   /* the caption goes under the title: beside it, the title wrapped at 375 px */
 .kit-grid { stroke: var(--lbw-line); stroke-width: 1; stroke-dasharray: 3 3; } .kit-grid.is-zero { stroke: var(--lbw-ring); stroke-dasharray: none; }
-.kit-tick { fill: var(--lbw-muted); font: 10px var(--lbw-font); font-variant-numeric: tabular-nums; }
-.kit-s1 { --c: var(--lbw-accent); } .kit-s2 { --c: var(--kit-series-2, #E0A100); }
+.kit-tick { fill: var(--lbw-muted); font: 12px var(--lbw-font); font-variant-numeric: tabular-nums; }
+.kit-s1 { --c: var(--lbw-accent); } .kit-s2 { --c: var(--kit-series-2, #B26A00); }   /* was #E0A100: 2.3:1 on white */
 .is-line { fill: none; stroke: var(--c); stroke-width: 2.25; stroke-linejoin: round; stroke-linecap: round; }
 .is-area { fill: var(--c); opacity: .16; stroke: none; } .is-bar { fill: var(--c); } .is-end { fill: var(--c); stroke: var(--lbw-card); stroke-width: 2; }
-.kit-mark { stroke: var(--lbw-ink); stroke-width: 1; stroke-dasharray: 4 3; opacity: .55; } .kit-mark-l { fill: var(--lbw-ink); font: 600 10px var(--lbw-font); }
+.kit-mark { stroke: var(--lbw-ink); stroke-width: 1; stroke-dasharray: 4 3; opacity: .55; } .kit-mark-l { fill: var(--lbw-ink); font: 600 12px var(--lbw-font); }
 .kit-legend { display: flex; gap: 14px; justify-content: center; margin-top: 4px; font-size: 12px; color: var(--lbw-muted); }
 .kit-legend-i { display: inline-flex; align-items: center; gap: 6px; } .kit-legend-i i { width: 10px; height: 10px; border-radius: 3px; background: var(--c); display: inline-block; }
 .kit-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: 0; padding: 0; }
 /* slots */
 .kit-slotlist { display: grid; grid-template-columns: repeat(auto-fill, minmax(136px, 1fr)); gap: 8px; margin-top: 12px; }
-.kit-slot { min-height: 40px; border-radius: 10px; border: 1px solid var(--lbw-ring); background: var(--lbw-card); color: var(--lbw-ink); font: 600 14px var(--lbw-font); font-variant-numeric: tabular-nums; cursor: pointer; }
-.kit-slot[aria-pressed="true"] { border: 2px dashed var(--lbw-accent); background: var(--lbw-tint); }
+.kit-slot { min-height: 44px; border-radius: var(--lbw-radius-in); border: 1px solid var(--lbw-ring); background: var(--lbw-card); color: var(--lbw-ink); font: 600 14px var(--lbw-font); font-variant-numeric: tabular-nums; cursor: pointer; }
+.kit-slot[aria-pressed="true"] { border-color: transparent; background: var(--lbw-accent); color: var(--lbw-accent-ink); }   /* selected like a toggle (it was a dashed border: a third convention) */
+.kit-slot[aria-pressed="true"]::before { content: "✓ "; white-space: pre; }
 .kit-slot.is-busy { background: var(--lbw-soft); color: var(--lbw-muted); font-weight: 500; font-size: 12px; cursor: default; border-color: transparent; text-decoration: none; }
-.kit-slot:focus-visible { outline: 2px solid var(--lbw-accent); outline-offset: 2px; }
-.kit-sent-ics { margin-left: auto; } .lbw-pill.kit-sent-ics { min-height: 30px; padding: 4px 10px; font-size: 12px; }
+.kit-slot:focus-visible { outline: 2px solid var(--lbw-focus, var(--lbw-ink)); outline-offset: 2px; }
+.kit-sent-ics { margin-left: auto; } .lbw-pill.kit-sent-ics { min-height: 40px; padding: 4px 12px; font-size: 12px; }
 /* review */
 .kit-rlines { display: grid; margin-top: 4px; }
 .kit-rline { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 40px; border-bottom: 1px solid var(--lbw-line); font-size: 14px; }
 .kit-rlabel { color: var(--lbw-muted); } .kit-rvalue { font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
 .kit-sel { appearance: none; -webkit-appearance: none; border: 1px solid var(--lbw-ring); border-radius: 8px; background: var(--lbw-card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23666' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right 10px center; padding: 6px 28px 6px 10px; font: 600 14px var(--lbw-font); color: var(--lbw-ink); max-width: 62%; }
-.kit-sel:focus-visible { outline: 2px solid var(--lbw-accent); outline-offset: 2px; }
+.kit-sel:focus-visible { outline: 2px solid var(--lbw-focus, var(--lbw-ink)); outline-offset: 2px; }
+.kit-sel { min-height: 40px; }
+.kit-rline:last-child { border-bottom: 0; }
 .kit-rtotal { display: flex; justify-content: space-between; align-items: baseline; margin: 10px -16px 0; padding: 12px 16px; background: var(--lbw-soft); font-size: 14px; }
-.kit-rtotal strong { font: 800 18px var(--lbw-display); font-variant-numeric: tabular-nums; }
-.lbw-form.kit-reviewform { display: flex; flex-direction: column; } .kit-reviewform .lbw-cta { order: 10; width: 100%; min-height: 44px; margin-top: 12px; }
-.kit-reviewform .kit-discard { order: 11; width: 100%; min-height: 40px; margin-top: 8px; }
+.kit-rtotal strong { font: 700 18px var(--lbw-display); font-variant-numeric: tabular-nums; }
+.lbw-form.kit-reviewform { display: flex; flex-direction: column; } .kit-reviewform .lbw-cta { order: 10; margin-top: 12px; }
+.kit-reviewform .kit-discard { order: 11; width: 100%; min-height: 44px; margin-top: 4px; background: none; box-shadow: none; color: var(--lbw-muted) !important; font-weight: 500; }   /* a text button: it had the weight of "Confirm" */
 /* stats */
 .lbw.kit-stats .lbw-box { background: linear-gradient(135deg, var(--kit-hero-from, var(--lbw-accent)), var(--kit-hero-to, var(--lbw-ink))); color: var(--kit-hero-ink, #fff); border: 0; }
 .lbw.kit-stats .lbw-kicker, .lbw.kit-stats .lbw-title { color: inherit; }
 .kit-statgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(68px, 1fr)); gap: 10px; margin-top: 10px; }
-.kit-stat strong { display: block; font: 800 24px/1.1 var(--lbw-display); font-variant-numeric: tabular-nums; } .kit-stat span { display: block; margin-top: 2px; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; opacity: .85; }
-.kit-stat-src { margin: 12px 0 0; font-size: 11px; opacity: .8; }
+.kit-stat strong { display: block; font: 700 24px/1.1 var(--lbw-display); font-variant-numeric: tabular-nums; } .kit-stat span { display: block; margin-top: 2px; font-size: 12px; letter-spacing: .04em; text-transform: uppercase; opacity: .9; }
+.kit-stat-src { margin: 12px 0 0; font-size: 12px; opacity: .85; }
 /* people */
 .kit-peoplelist { display: grid; gap: 10px; margin-top: 4px; }
 .kit-person { display: flex; align-items: center; gap: 12px; }
 .kit-avatar { width: 40px; height: 40px; border-radius: 50%; overflow: hidden; flex: none; } .kit-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .kit-avatar.is-initials { display: grid; place-items: center; background: var(--lbw-accent); color: var(--lbw-accent-ink); font: 700 14px var(--lbw-font); }
 .kit-person-t { flex: 1; min-width: 0; display: grid; font-size: 13px; line-height: 18px; } .kit-person-t strong { font-size: 14px; } .kit-person-t span { color: var(--lbw-muted); } .kit-person-n { font-size: 12px; }
-.lbw-pill.kit-person-b { min-height: 32px; padding: 4px 12px; font-size: 13px; flex: none; }
+.lbw-pill.kit-person-b { min-height: 40px; padding: 4px 12px; font-size: 13px; flex: none; }
 /* consent */
 .lbw.kit-consent .lbw-box { text-align: center; }
-.kit-consent-i { display: grid; place-items: center; width: 52px; height: 52px; margin: 4px auto 10px; border-radius: 50%; background: #1F9D55; color: #fff; font-size: 24px; font-weight: 800; }
+.kit-consent-i { display: grid; place-items: center; width: 52px; height: 52px; margin: 4px auto 10px; border-radius: 50%; background: #1F9D55; color: #fff; font-size: 24px; font-weight: 700; }
 .kit-consent-t { margin: 0; font: 600 18px/24px var(--lbw-display); } .kit-consent-x { margin: 4px 0 0; font-size: 14px; line-height: 20px; color: var(--lbw-muted); }
 .kit-consent-b { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px; } .kit-consent-b .lbw-pill { width: 100%; min-height: 44px; justify-content: center; }
-.kit-consent-l { display: inline-block; margin-top: 10px; font-size: 12px; }
-.lbw-form.kit-slotform .lbw-cta { width: 100%; min-height: 44px; margin-top: 12px; }
+.kit-consent-l { display: inline-flex; align-items: center; min-height: 44px; margin-top: 4px; font-size: 13px; }
+.lbw-pill.kit-consent-l { background: none; box-shadow: none; text-decoration: underline; }
+.lbw-form.kit-slotform .lbw-cta { margin-top: 12px; }
 
 /* compare: a label line, then one equal column per item; sized to the chat column, never the screen */
 .kit-cmp { margin-top: 10px; font-size: 13px; line-height: 1.35; color: var(--lbw-ink); }
 .kit-cmp-row { padding: 8px 0; border-top: 1px solid var(--lbw-ring); }
 .kit-cmp-row.is-head { border-top: 0; padding-top: 0; }
-.kit-cmp-label { font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--lbw-muted); margin-bottom: 3px; }
+.kit-cmp-label { font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--lbw-muted); margin-bottom: 3px; }
 .kit-cmp-cells { display: grid; gap: 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .kit-cmp.is-3 .kit-cmp-cells { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .kit-cmp-cell { overflow-wrap: anywhere; }
 .kit-cmp-row.is-head .kit-cmp-cell { font-weight: 700; font-size: 14px; color: var(--lbw-accent-text, var(--lbw-accent)); }
-.kit-cmp-row.is-strong .kit-cmp-cell { font-weight: 700; font-size: 16px; }
+.kit-cmp-row.is-strong .kit-cmp-cell { font-weight: 700; font-size: 14px; }

@@ -4,7 +4,7 @@
    config = { prefix, langs, defaultLang, timeZone, maxPerMessage, links: ['https://shop.example/', 'tel:'],
               actions: { name: action },        buttons named once, used by name in any widget
               replies: { name: [label, say] },  quick replies named once
-              widgets: { tagName: { type: one of the 13 kit makers, … } } }   (LBW.kit.setup.types lists them)
+              widgets: { tagName: { type: one of the kit makers, … } } }   (LBW.kit.setup.types lists them)
    action = 'name'  |  { use: 'name', primary: true }  |  { tel, cc, label }  |  { wa, text, label }  |  { link, label }  |  { mail, label }
             |  { reply: [label, say] }      (primary: true fills it)
    Where a kit maker takes a function, the JSON gives data instead:
@@ -357,6 +357,9 @@
       // "titles": { "2": "Two ways to go", "3": "Three ways to go" }: a title by how many are compared
       if (w.titles) o.title = function (ids) { return own(w.titles, String(ids.length)) ? w.titles[ids.length] : w.title || ''; };
       K.compare(name, o);
+    },
+    season: function (cfg, name, w, lang) {
+      K.season(name, merge(pick(w, ['cls', 'lang', 'kicker', 'ranges', 'words', 'rows', 'note', 'allowDup']), { reply: reply(cfg, w.reply), links: function () { return actions(cfg, w.links); } }));
     },
     chart: function (cfg, name, w, lang) {
       var o = pick(w, ['cls', 'lang', 'kicker', 'title', 'sub', 'note', 'allowDup']), N = numbers(w), y = w.y || {};

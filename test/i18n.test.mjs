@@ -176,3 +176,78 @@ test('0.7.8: ids= in a carousel tag shows only those slides, in that order; an u
   const bad = CFG(); bad.widgets.list.filter = { by: 'kind', param: 'ids' }; bad.widgets.list.items.forEach((it) => { it.kind = 'a'; });
   assert.match(errors(bad), /can't be "ids"/);
 });
+
+// ── 0.8.1: what a design critique of a live demo found ──
+test('0.8.1: no blank last line and no empty bubble once the tags are gone', () => {
+  const c = chat();
+  const a = c.bot(null, '<p>Here are the hours.</p><p>[[t:info id=a lang=en]]</p>'); c.LBW.scan();
+  assert.equal(a.querySelector('[data-lb-part="message-text"]').innerHTML, '<p>Here are the hours.</p>');
+  const b = c.bot(null, 'Here are the hours.<br><br>[[t:info id=a lang=en]] [[t:desk lang=en]]'); c.LBW.scan();
+  assert.equal(b.querySelector('[data-lb-part="message-text"]').innerHTML, 'Here are the hours.');
+  const only = c.bot(null, '<p>[[t:info id=a lang=en]]</p>'); c.LBW.scan();
+  assert.equal(only.widgets().length, 1); assert.ok(only.querySelector('[data-lb-part="message-text"]').hasAttribute('data-lbw-empty')); assert.ok(only.classList.contains('lbw-only'));
+  const kept = c.bot(null, '<p>See <a href="https://shop.example/x">this page</a></p><p></p><p>[[t:info id=a lang=en]]</p><p>And a last word.</p>'); c.LBW.scan();
+  assert.equal(kept.querySelector('[data-lb-part="message-text"]').innerHTML, '<p>See <a href="https://shop.example/x">this page</a></p><p></p><p>And a last word.</p>');   // the author's own empty <p> stays: only what held a tag goes
+  const plain = c.bot(null, '<p>No tags here.</p><p></p>'); c.LBW.scan();
+  assert.equal(plain.querySelector('[data-lb-part="message-text"]').innerHTML, '<p>No tags here.</p><p></p>');           // untouched: not ours
+});
+
+test('0.8.1: chips leave out what a card of the same message already offers', () => {
+  const cfg = CFG(); cfg.widgets.chips = { type: 'chips', items: { plan: { en: ['Plan it', 'I want a plan'], es: ['Planificar', 'Quiero un plan'] }, more: { en: ['More', 'Tell me more'], es: ['Más', 'Cuéntame más'] } } };
+  const c = chat(cfg);
+  assert.deepEqual(c.result.errors, []);
+  const m = draw(c, 'Text [[t:info id=a lang=en]] [[t:chips q=plan,more lang=en]]');                                    // the info card has the "plan" reply
+  assert.deepEqual(texts(m, '.kit-chips [data-say]'), ['More']);
+  assert.deepEqual(texts(draw(c, 'Text [[t:chips q=plan,more lang=en]]'), '.kit-chips [data-say]'), ['Plan it', 'More']);
+  assert.equal(draw(c, 'Texto [[t:info id=a lang=es]] [[t:chips q=plan lang=es]]').querySelector('.kit-chips'), null);   // nothing left: no chips row
+});
+
+test('0.8.1: a season card: closed with the days left, open until, and nothing published', () => {
+  const mk = (ranges, today) => { const cfg = CFG(); cfg.widgets.season = { type: 'season', kicker: { en: 'Season', es: 'Temporada' }, ranges, reply: 'plan', note: { en: 'Dates from the website.', es: 'Fechas de la web.' } };
+    const c = boot({ kit: true, scripts: ['kit/setup.js', 'kit/setup-check.js'] }); c.w.__lbwToday = today; c.w.__lbwNow = '10:30'; c.result = json(c.w.LBW.kit.setup(JSON.parse(JSON.stringify(cfg)))); return c; };
+  const R = [['19/3/2027', '1/11/2027'], ['20/3/2026', '2/11/2026']];
+  let c = mk(R, '11/11/2026'); assert.deepEqual(c.result.errors, []);
+  let t = draw(c, 'x [[t:season lang=es]]').widgets()[0].textContent;
+  assert.match(t, /Cerrado hoy/); assert.match(t, /Abre viernes, 19 de marzo de 2027/); assert.match(t, /128 días/); assert.match(t, /Planificar/);
+  c = mk(R, '1/11/2027'); t = draw(c, 'x [[t:season lang=en]]').widgets()[0].textContent;
+  assert.match(t, /Open today/); assert.match(t, /Open until Monday, 1 November 2027|Open until Monday, November 1, 2027/);
+  c = mk(R, '18/3/2027'); assert.match(draw(c, 'x [[t:season lang=en]]').widgets()[0].textContent, /1 day/);
+  c = mk(R, '2/11/2027'); assert.match(draw(c, 'x [[t:season lang=en]]').widgets()[0].textContent, /aren’t published yet/);
+  const bad = (f) => { const cfg = CFG(); cfg.widgets.season = { type: 'season', ranges: R }; f(cfg, cfg.widgets.season); return errors(cfg); };
+  assert.match(bad((cfg, w) => { w.ranges = [['19 March', '1/11/2027']]; }), /D\/M\/YYYY/);
+  assert.match(bad((cfg, w) => { w.ranges = [['1/11/2027', '19/3/2027']]; }), /before the first/);
+  assert.match(bad((cfg) => { delete cfg.timeZone; }), /needs "timeZone"/);
+  assert.match(bad((cfg, w) => { w.words = { opened: 'x' }; }), /unknown key "opened"/);
+});
+
+// ── what the independent review of 0.8.1 found ──
+test('review 3: the clean-up removes only what held a tag: images, rules, cells and spaces between words stay', () => {
+  const c = chat(), box = (m) => m.querySelector('[data-lb-part="message-text"]');
+  const a = c.bot(null, '<p>Hi <span><img src="https://shop.example/a.png"></span> there [[t:info id=a lang=en]]</p>'); c.LBW.scan();
+  assert.ok(box(a).querySelector('img')); assert.match(box(a).textContent, /^Hi\s+there$/);
+  const b = c.bot(null, '<p><img src="https://shop.example/a.png"></p><p>[[t:info id=a lang=en]]</p>'); c.LBW.scan();
+  assert.ok(box(b).querySelector('img')); assert.ok(!box(b).hasAttribute('data-lbw-empty')); assert.equal(box(b).querySelectorAll('p').length, 1);
+  const d = c.bot(null, 'Hello<span> </span>world<hr><table><tbody><tr><td></td><td>x</td></tr></tbody></table><ul><li></li><li>one</li></ul>[[t:info id=a lang=en]]'); c.LBW.scan();
+  assert.match(box(d).textContent, /^Hello world/); assert.ok(box(d).querySelector('hr')); assert.equal(box(d).querySelectorAll('td').length, 2); assert.equal(box(d).querySelectorAll('li').length, 2);
+  const e = c.bot(null, '<p>Before</p><p><em>[[t:info id=a lang=en]]</em></p>'); c.LBW.scan();
+  assert.equal(box(e).innerHTML, '<p>Before</p>');                                                   // the tag's own wrappers go, up to the box
+});
+
+test('review 3: chips written BEFORE the card still leave out what the card offers; a final full stop doesn\'t hide a repeat', () => {
+  const cfg = CFG(); cfg.widgets.chips = { type: 'chips', items: { plan: { en: ['Plan it', 'I want a plan.'], es: ['Planificar', 'Quiero un plan'] }, more: { en: ['More', 'Tell me more'], es: ['Más', 'Cuéntame más'] } } };
+  const c = chat(cfg), m = draw(c, 'Text [[t:chips q=plan,more lang=en]] [[t:info id=a lang=en]]');
+  assert.deepEqual(texts(m, '.kit-chips [data-say]'), ['More']);
+  assert.deepEqual([...m.querySelectorAll('.lbw')].map((w) => w.getAttribute('data-widget')), ['info', 'chips']);   // and the chips sit last
+});
+
+test('review 3: seasons that overlap or touch are one season; day words can be set', () => {
+  const mk = (ranges, today, words) => { const cfg = CFG(); cfg.widgets.season = { type: 'season', ranges, words };
+    const c = boot({ kit: true, scripts: ['kit/setup.js', 'kit/setup-check.js'] }); c.w.__lbwToday = today; c.w.__lbwNow = '10:30'; c.result = json(c.w.LBW.kit.setup(JSON.parse(JSON.stringify(cfg)))); return c; };
+  let c = mk([['1/1/2026', '30/11/2026'], ['1/12/2026', '31/12/2026']], '12/11/2026');
+  assert.match(draw(c, 'x [[t:season lang=en]]').widgets()[0].textContent, /Open until Thursday, (31 December|December 31)/);
+  c = mk([['1/3/2026', '30/9/2026'], ['1/6/2026', '15/7/2026']], '1/7/2026');
+  assert.match(draw(c, 'x [[t:season lang=en]]').widgets()[0].textContent, /(30 September|September 30)/);
+  c = mk([['19/3/2027', '1/11/2027']], '11/11/2026', { in: 'Em', day: '1 dia', days: '{n} dias' }); assert.deepEqual(c.result.errors, []);
+  assert.match(draw(c, 'x [[t:season lang=en]]').widgets()[0].textContent, /Em128 dias|Em\s*128 dias/);
+  c = mk([['19/3/2027', '1/11/2027']], '18/3/2027'); assert.match(draw(c, 'x [[t:season lang=es]]').widgets()[0].textContent, /En1 día|En\s*1 día/);
+});

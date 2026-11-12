@@ -1,4 +1,4 @@
-/* lbw.js · Landbot AI Widgets runtime · v0.8.0
+/* lbw.js · Landbot AI Widgets runtime · v0.8.1
    Turns tags that an AI agent (or a flow message) writes at the end of a bot message, e.g. [[shop:card id=boots lang=en]],
    into interactive widgets inside the Landbot v4 web chat. Distilled from four production experiments (retos 16-19).
    You write: your data, your labels and one function per widget. The runtime does the rest:
@@ -426,11 +426,14 @@
     [].forEach.call(document.querySelectorAll(sel), function (box) {
       if (box.textContent.indexOf('[[') < 0) return;
       box.setAttribute('data-lbw', '1');
-      var host = box.closest('[data-lb-part="message"]') || box, made = [];
+      var host = box.closest('[data-lb-part="message"]') || box, made = [], late = [], held = [];
       var names = []; box.textContent.replace(re, function (m, name) { names.push(String(name).toLowerCase()); return m; });
       function swap(s) {
         return s.replace(re, function (m, name, attrs) {
-                  if (made.length >= cfg.maxPerMessage) { drop(m + ' (over the limit)'); return ''; }
+                  if (made.length + late.length >= cfg.maxPerMessage) { drop(m + ' (over the limit)'); return ''; }
+                  // a widget registered as `last` (chips) is drawn after every other one, wherever its tag was written: it
+                  // must see the cards of the whole message (to leave out what they already offer)
+                  var d = W[String(name).toLowerCase()]; if (d && d.last) { late.push([name, attrs, m]); return ''; }
                   var r = render(name, attrs, m, host, names, made); if (r.w) made.push(r.w); else drop(m + ' (' + r.why + ')'); return '';
                 })
                 .replace(new RegExp('\\[\\[[^\\]]*\\]\\]|`?\\[\\[\\s*' + cfg.prefix + ':[^\\]]*$', 'gi'), function (m) { drop(m); return ''; })
@@ -442,7 +445,23 @@
       // text is re-read and the box keeps plain text
       var split = texts.some(function (t) { return t.nodeValue.lastIndexOf('[[') > t.nodeValue.lastIndexOf(']]'); });
       if (split) box.textContent = swap(box.textContent).trim();
-      else texts.forEach(function (t) { if (t.nodeValue.indexOf('[[') >= 0) t.nodeValue = swap(t.nodeValue).replace(/\s+$/, ''); });
+      else texts.forEach(function (t) { if (t.nodeValue.indexOf('[[') >= 0) { t.nodeValue = swap(t.nodeValue).replace(/\s+$/, ''); held.push(t); } });
+      late.forEach(function (x) { var r = render(x[0], x[1], x[2], host, names, made); if (r.w) made.push(r.w); else drop(x[2] + ' (' + r.why + ')'); });
+      // v0.8.1 · what the tags leave behind: the chat's Markdown puts a tag written on its own line in its own <p>, which
+      // stays as a blank last line; a message that was only tags stays as an empty bubble. Only what HELD a tag is
+      // touched: an element left with no text and no media goes, with the ancestors it empties. Nothing else in the
+      // message is removed (an <hr>, an image, an empty cell, a space between two words are the author's).
+      var MEDIA = 'img,svg,picture,video,audio,canvas,iframe,embed,object,input,select,textarea,button,a[href],hr';
+      var hollow = function (e) { return !e.textContent.trim() && !e.matches(MEDIA) && !e.querySelector(MEDIA); };
+      held.forEach(function (t) {
+        var e = t.parentNode; if (t.nodeValue.trim() || !e || e === box) return;
+        while (e && e !== box && box.contains(e) && hollow(e)) { var up = e.parentNode; e.remove(); e = up; }
+      });
+      if (held.length || split) {   // line breaks and spaces left at the very end, where the tags were
+        for (var tail = box.lastChild; tail && ((tail.nodeType === 3 && !tail.nodeValue.trim()) || tail.nodeName === 'BR'); tail = box.lastChild) tail.remove();
+        if (box.lastChild && box.lastChild.nodeType === 3) box.lastChild.nodeValue = box.lastChild.nodeValue.replace(/\s+$/, '');
+      }
+      if (made.length && !box.textContent.trim() && !box.querySelector(MEDIA)) { var top = box; while (top.parentNode && top.parentNode !== host && top.parentNode.children.length === 1) top = top.parentNode; top.setAttribute('data-lbw-empty', '1'); host.classList.add('lbw-only'); }
       made.sort(function (a, b) { return (a.getAttribute('data-last') ? 1 : 0) - (b.getAttribute('data-last') ? 1 : 0); });
       made.forEach(function (w) { host.appendChild(w); emit('render', { widget: w.getAttribute('data-widget'), tag: w.getAttribute('data-tag'), lang: w.getAttribute('lang'), el: w, message: host }); });
       if (made.length) host.classList.add('has-lbw');
@@ -463,7 +482,7 @@
   }
 
   root.LBW = {
-    version: '0.8.0',
+    version: '0.8.1',
     // LBW.init({ prefix, langs, defaultLang, labels: {en:{…}}, links: ['https://shop.example/', 'tel:', 'mailto:', 'https://calendar.google.com/'], maxPerMessage, quietMs, timeZone: 'Europe/Madrid' })
     init: function (o) { for (var k in o) cfg[k] = o[k]; start(); return root.LBW; },
     // LBW.on('render', function (e) { e.widget, e.tag, e.lang, e.el, e.message }) · 'say' → { text, fields } · 'drop' → the reason

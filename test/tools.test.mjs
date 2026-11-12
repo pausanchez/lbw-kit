@@ -60,7 +60,7 @@ test('build: the live bundle leaves the checker out, the dev bundle has it', () 
   const m = JSON.parse(fs.readFileSync(new URL('../dist/manifest.json', import.meta.url), 'utf8'));
   const live = fs.readFileSync(new URL('../dist/lbw-kit.min.js', import.meta.url), 'utf8'), dev = fs.readFileSync(new URL('../dist/lbw-kit.dev.min.js', import.meta.url), 'utf8');
   assert.ok(!/is not under any entry of/.test(live) && /is not under any entry of/.test(dev));
-  assert.ok(m.files['lbw-kit.min.js'].bytes < 75000, 'live bundle ' + m.files['lbw-kit.min.js'].bytes + ' B');
+  assert.ok(m.files['lbw-kit.min.js'].bytes < 80000, 'live bundle ' + m.files['lbw-kit.min.js'].bytes + ' B');
   const a = boot({ lbw: false }), b = boot({ lbw: false }); a.w.eval(live); b.w.eval(dev);
   assert.equal(typeof a.LBW, 'undefined'); assert.equal(a.w.LBW.kit.setup.check, undefined); assert.equal(typeof b.w.LBW.kit.setup.check, 'function');
 });

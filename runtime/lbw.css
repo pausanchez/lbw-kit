@@ -1,4 +1,4 @@
-/* lbw.css · base look for Landbot AI Widgets (v0.8.0)
+/* lbw.css · base look for Landbot AI Widgets (v0.8.1)
    The ChatKit-gallery language measured in retos 16-19: white cards, 18px radius, a hairline and a soft shadow; a small
    kicker above an 18px title; pill buttons (primary filled, secondary an inset ring) under the card. Re-skin it by
    overriding the variables below in your Custom CSS; keep the class names, the test harness reads some of them. */
@@ -19,52 +19,64 @@
   --lbw-radius: 18px;
   --lbw-font: "Inter", system-ui, sans-serif;
   --lbw-display: var(--lbw-font);
-  --lbw-max: none;              /* widgets take the whole message column (340 px on a phone, 672 px on tablet/desktop) */
+  --lbw-max: 520px;             /* a card stays a chat message on a wide column (it was the whole 672 px: 105-character lines); strips and split cards take the full width; set none to go back */
+  --lbw-radius-in: calc(var(--lbw-radius) * .55);   /* inner shapes (slides, notes, time slots, selects) follow the theme's radius */
+  --lbw-radius-pill: 9999px;    /* pills, toggles: one line squares every button */
+  --lbw-topline: 0px;           /* an accent line on top of every card (themes drew it by hand as a border, which tapers at the corners) */
+  /* --lbw-focus: the focus ring. Unset, it is the ink: an accent ring fails on a light brand colour (yellow on white, 1.66:1) */
 }
 /* the tint follows the accent set on :root (where themes set their tokens) unless the theme sets it too: a brand theme that only sets --lbw-accent no longer gets a lavender note box */
-@supports (color: color-mix(in srgb, red, blue)) { :root { --lbw-tint: color-mix(in srgb, var(--lbw-accent) 10%, #FFFFFF); } }
-[data-lb-part="message"].has-lbw { flex-wrap: wrap; }   /* lets the widget sit under the bubble */
+@supports (color: color-mix(in srgb, red, blue)) { :root { --lbw-tint: color-mix(in srgb, var(--lbw-accent) 10%, #FFFFFF); --lbw-pill-ring: color-mix(in srgb, var(--lbw-accent-text, var(--lbw-accent)) 45%, transparent); } }
+[data-lb-part="message"].has-lbw { flex-wrap: wrap; }
+[data-lbw-empty] { display: none !important; }   /* a message that was only tags: no empty bubble (v0.8.1) */   /* lets the widget sit under the bubble */
 .lbw { box-sizing: border-box; width: 100%; max-width: var(--lbw-max); margin: 8px 0 0; font: 400 14px/20px var(--lbw-font); color: var(--lbw-ink);
   container-type: inline-size; container-name: lbw; }   /* layouts switch at the WIDGET's width, never the screen's: a Livechat window on a wide screen is ~360 px */
 .lbw *, .lbw *::before, .lbw *::after { box-sizing: border-box; }
-.lbw-box { position: relative; padding: 16px; background: var(--lbw-card); border: 1px solid var(--lbw-line); border-radius: var(--lbw-radius); box-shadow: 0 4px 8px -2px rgba(0,0,0,.1); overflow: hidden; }
+.lbw-box { position: relative; padding: 16px; background: var(--lbw-card); border: 1px solid var(--lbw-line); border-radius: var(--lbw-radius); box-shadow: 0 1px 2px rgba(0,0,0,.06); overflow: hidden; }
+.lbw-box::before { content: ""; position: absolute; inset: 0 0 auto; height: var(--lbw-topline); background: var(--lbw-accent); }
+.lbw:has(.lbw-strip), .lbw.lbw-split { max-width: none; }
+.lbw-box > p { max-width: 62ch; }
 .lbw-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin: 0 0 10px; }
-.lbw-kicker { font: 600 11px/14px var(--lbw-font); letter-spacing: .06em; text-transform: uppercase; color: var(--lbw-accent-text, var(--lbw-accent)); }
+.lbw-kicker { font: 600 12px/16px var(--lbw-font); letter-spacing: .04em; text-transform: uppercase; color: var(--lbw-accent-text, var(--lbw-accent)); }
 .lbw-title { margin-top: 2px; font: 600 18px/24px var(--lbw-display); letter-spacing: -.01em; }
 .lbw-muted { color: var(--lbw-muted); font-size: 13px; line-height: 18px; }
 .lbw-rows { margin: 0; border-top: 1px solid var(--lbw-line); }
-.lbw-rows > div { display: grid; grid-template-columns: 96px 1fr; gap: 10px; padding: 7px 0; font-size: 13px; line-height: 18px; }
+.lbw-rows > div { display: grid; grid-template-columns: minmax(72px, 34%) 1fr; gap: 10px; padding: 7px 0; font-size: 13px; line-height: 18px; }
 .lbw-rows > div + div { border-top: 1px solid var(--lbw-hair, rgba(13,13,13,.06)); }
-.lbw-rows dt { color: var(--lbw-muted); } .lbw-rows dd { margin: 0; font-weight: 500; }
+.lbw-rows dt { color: var(--lbw-muted); } .lbw-rows dd { margin: 0; font-weight: 600; text-wrap: balance; }
 .lbw-img { overflow: hidden; background: var(--lbw-soft); }
 .lbw-img img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform 300ms ease; }
 .lbw-img.is-empty { display: none; }
 .lbw-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 0; }
 .lbw button { font-family: inherit; }
-.lbw-pill { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; padding: 7px 16px; border: 0; border-radius: 9999px; background: var(--lbw-pill-bg, #fff); color: var(--lbw-ink) !important;
-  box-shadow: inset 0 0 0 1px var(--lbw-ring); font: 500 14px/1.25 var(--lbw-font); text-decoration: none; cursor: pointer; transition: background-color 150ms ease, transform 120ms ease, opacity 150ms ease; }
+.lbw-pill { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 9px 16px; border: 0; border-radius: var(--lbw-radius-pill); background: var(--lbw-pill-bg, #fff); color: var(--lbw-accent-text, var(--lbw-accent)) !important;
+  box-shadow: inset 0 0 0 1px var(--lbw-pill-ring, var(--lbw-ring)); font: 600 14px/1.25 var(--lbw-font); text-decoration: none; cursor: pointer; transition: background-color 150ms ease, transform 120ms ease, opacity 150ms ease; }
 .lbw-pill.is-primary { background: var(--lbw-accent); color: var(--lbw-accent-ink) !important; box-shadow: none; }
-.lbw-pill:disabled { opacity: .4; cursor: default; }
+/* disabled: readable (it was the accent at 40 %: white on it read 1.9:1), and plainly not a button */
+.lbw-pill:disabled { opacity: 1; background: var(--lbw-soft); color: var(--lbw-muted) !important; box-shadow: none; cursor: default; }
 .lbw-pill.is-sent { opacity: 1; background: var(--lbw-tint); color: var(--lbw-accent-text, var(--lbw-accent)) !important; box-shadow: inset 0 0 0 1px var(--lbw-ring); }
+.lbw-pill.is-sent { padding-inline: 10px; }   /* the tick takes the space the padding gives up: the row doesn't reflow */
 .lbw-pill.is-sent::before { content: "✓ "; white-space: pre; }
 @media (hover: hover) { .lbw-pill:hover:not(:disabled) { filter: brightness(.96); } }
 .lbw-pill:active:not(:disabled) { transform: scale(.97); }
-.lbw button:focus-visible, .lbw a:focus-visible, .lbw [tabindex]:focus-visible { outline: 2px solid var(--lbw-accent); outline-offset: 2px; }
-.lbw-once.is-done .lbw-pill:not(.is-sent), .lbw-once.is-stale .lbw-pill { opacity: .4; }
+.lbw button:focus-visible, .lbw a:focus-visible, .lbw [tabindex]:focus-visible { outline: 2px solid var(--lbw-focus, var(--lbw-ink)); outline-offset: 2px; }
+.lbw-once.is-done .lbw-pill:not(.is-sent), .lbw-once.is-stale .lbw-pill { opacity: 1; background: transparent; color: var(--lbw-muted) !important; box-shadow: inset 0 0 0 1px var(--lbw-line); }
 .lbw-chips { display: flex; flex-wrap: wrap; gap: 8px; }
 /* toggles (multi-select) */
-.lbw-tog { min-height: 36px; padding: 7px 14px; border: 0; border-radius: 9999px; background: var(--lbw-pill-bg, #fff); box-shadow: inset 0 0 0 1px var(--lbw-ring); font: 500 13px/1.2 var(--lbw-font); color: var(--lbw-ink); cursor: pointer; }
+.lbw-tog { min-height: 44px; padding: 9px 14px; border: 0; border-radius: var(--lbw-radius-pill); background: var(--lbw-pill-bg, #fff); box-shadow: inset 0 0 0 1px var(--lbw-ring); font: 500 13px/1.2 var(--lbw-font); color: var(--lbw-ink); cursor: pointer; }
 .lbw-tog[aria-pressed="true"] { background: var(--lbw-accent); color: var(--lbw-accent-ink); box-shadow: none; }
+.lbw-tog[aria-pressed="true"] { padding-inline: 8px; }
 .lbw-tog[aria-pressed="true"]::before { content: "✓ "; white-space: pre; }
 /* carousel */
 .lbw-strip { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 2px 2px 10px; scrollbar-width: none; overscroll-behavior-x: contain; }
 .lbw-strip::-webkit-scrollbar { display: none; }
-.lbw-slide { flex: none; width: 80%; scroll-snap-align: start; display: flex; flex-direction: column; background: var(--lbw-card); border: 1px solid var(--lbw-line); border-radius: var(--lbw-radius); box-shadow: 0 4px 8px -2px rgba(0,0,0,.1); overflow: hidden; }
+.lbw-box > .lbw-strip { margin: 0 -16px; padding: 2px 16px 12px; scroll-padding-left: 16px; }   /* to the card's edge: the cut slide says "swipe", not "overflow" */
+.lbw-slide { flex: none; width: 80%; scroll-snap-align: start; display: flex; flex-direction: column; background: var(--lbw-card); border: 1px solid var(--lbw-line); border-radius: var(--lbw-radius-in); overflow: hidden; }
 .lbw-slide .lbw-img { aspect-ratio: 16 / 10; }
 .lbw-slide-body { display: flex; flex-direction: column; flex: 1; padding: 12px 14px 14px; }
 .lbw-slide .lbw-actions { margin-top: auto; padding-top: 10px; flex-wrap: nowrap; }
-.lbw-slide .lbw-pill { flex: 1; min-height: 34px; padding: 6px 10px; font-size: 13px; white-space: nowrap; }
-.lbw-name { font: 600 15px/20px var(--lbw-font); margin: 2px 0 6px; }
+.lbw-slide .lbw-pill { flex: 1; min-height: 40px; padding: 6px 10px; font-size: 13px; white-space: nowrap; }
+.lbw-name { font: 600 14px/20px var(--lbw-font); margin: 2px 0 6px; }
 .lbw-price { font: 700 18px/24px var(--lbw-font); color: var(--lbw-accent-text, var(--lbw-accent)); }
 /* split card: media + body (ui.card(lang, 'lbw-split')): stacked in a narrow chat, side by side when there is room */
 .lbw-split > .lbw-box { padding: 0; }
@@ -89,10 +101,11 @@
 @media (prefers-reduced-motion: reduce) { .lbw *, .lbw *::before { transition: none !important; } .lbw-pill { transform: none !important; } }
 /* v0.4 · forms (LBW.ui.form) and steppers (LBW.ui.stepper) */
 .lbw-form { display: flex; flex-direction: column; gap: 10px; }
-.lbw-form > .lbw-cta { align-self: flex-start; }
+.lbw-form > .lbw-cta { width: 100%; min-height: 44px; margin-top: 2px; }   /* one shape for "send this card" in every widget */
 .lbw-step { display: flex; align-items: center; gap: 8px; }
 .lbw-step-l { flex: 1; display: flex; flex-direction: column; font-size: 14px; line-height: 18px; min-width: 0; } .lbw-step-l .lbw-muted { font-size: 12px; }
-.lbw-step-b { width: 36px; height: 36px; flex: none; border: 0; border-radius: 50%; background: var(--lbw-pill-bg, #fff); box-shadow: inset 0 0 0 1px var(--lbw-ring); font: 600 18px/1 var(--lbw-font); color: var(--lbw-ink); cursor: pointer; }
-.lbw-step-b:disabled { opacity: .35; cursor: default; }
+.lbw-step-b { width: 44px; height: 44px; flex: none; border: 0; border-radius: 50%; background: var(--lbw-pill-bg, #fff); box-shadow: inset 0 0 0 1px var(--lbw-ring); font: 600 18px/1 var(--lbw-font); color: var(--lbw-ink); cursor: pointer; }
+.lbw-step-b:disabled { opacity: 1; background: var(--lbw-soft); color: var(--lbw-muted); box-shadow: none; cursor: default; }
 .lbw-step-n { min-width: 24px; text-align: center; font-weight: 700; }
-.lbw-form.is-done .lbw-step-b, .lbw-form.is-done .lbw-tog { opacity: .55; cursor: default; }
+.lbw-form.is-done .lbw-step-b, .lbw-form.is-done .lbw-tog { cursor: default; }
+.lbw-form.is-done .lbw-step-b, .lbw-form.is-done .lbw-tog:not([aria-pressed="true"]) { opacity: 1; background: transparent; color: var(--lbw-muted); box-shadow: inset 0 0 0 1px var(--lbw-line); }   /* answers stay readable: they are part of the record */

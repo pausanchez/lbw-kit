@@ -25,12 +25,13 @@
     confirm: 'type cls lang allowDup form status title rows steps note actions',
     review: 'type cls lang kicker title cta note collapse allowDup state tables compute money lines total discard send',
     chart: 'type cls lang kicker title sub note links allowDup kind height state tables compute money x series y mark summary',
-    compare: 'type cls lang kicker title titles param items rows min max empty note allowDup'
+    compare: 'type cls lang kicker title titles param items rows min max empty note allowDup',
+    season: 'type cls lang kicker ranges words rows note reply links allowDup'
   };
   var ITEM = { cards: 'kicker title who line points pointsCls pointsTitle rows note noteCls link'.split(' '), stats: 'kicker title stats source'.split(' '), people: 'name role img note'.split(' '),
     slide: 'id img badge kicker name sub price save status desc reply link gallery until'.split(' '), compare: 'name values reply link'.split(' ') };
   var NEED = { cards: [], form: ['steps', 'summary', 'cta'], contact: ['title'], chips: ['items'], carousel: [], calc: ['state', 'controls', 'result', 'send', 'cta'],
-    stats: [], people: ['items'], consent: ['title', 'yes', 'no'], slots: ['cta', 'say'], confirm: ['form', 'title'], review: ['state', 'lines', 'send', 'cta'], chart: ['title', 'x', 'series'], compare: ['items', 'rows'] };
+    stats: [], people: ['items'], consent: ['title', 'yes', 'no'], slots: ['cta', 'say'], confirm: ['form', 'title'], review: ['state', 'lines', 'send', 'cta'], chart: ['title', 'x', 'series'], compare: ['items', 'rows'], season: ['ranges'] };
   // check every language's copy; a problem that every language has is reported once, the others with their language
   function check(cfg) {
     if (!isObj(cfg)) return check1(cfg);
@@ -302,6 +303,15 @@
             T(w.summary, 'summary');
             ['title', 'sub', 'note'].forEach(function (k) { if (w[k] != null && typeof w[k] !== 'string') err('"' + k + '" must be text'); });
           }
+        }
+
+        if (w.type === 'season') {
+          if (!isStr(cfg.timeZone)) err('a season card needs "timeZone" in the config ("today" is the client\'s day)');
+          var nr = list(w.ranges, 'ranges', function (r, at) { if (!isArr(r) || r.length !== 2 || LBW.day.read(r[0]) == null || LBW.day.read(r[1]) == null) err(at + ' is [first open day, last open day], each D/M/YYYY'); else if (LBW.day.read(r[1]) < LBW.day.read(r[0])) err(at + ': the last day is before the first'); }).length;
+          if (isArr(w.ranges) && !nr) err('"ranges" is empty');
+          if (w.words != null) { if (!isObj(w.words)) err('"words" must be an object'); else { only(w.words, ['open', 'closed', 'until', 'opens', 'in', 'closes', 'unknown', 'day', 'days'], 'words'); if (isStr(w.words.days) && w.words.days.indexOf('{n}') < 0) err('words.days needs "{n}", as "{n} days"'); strs(w.words, Object.keys(w.words), 'words'); } }
+          list(w.rows, 'rows', function (r, at) { if (!isArr(r) || r.length < 2 || !isStr(r[0]) || !isStr(r[1])) err(at + ' is [label, value]'); });
+          strs(w, ['kicker', 'note']);
         }
 
         if (w.type === 'compare') {
