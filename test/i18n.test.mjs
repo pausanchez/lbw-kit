@@ -288,3 +288,27 @@ test('0.8.1.2: no chips row under a card that already has two actions of its own
   assert.deepEqual(texts(draw(c, 'Text [[t:list lang=en]] [[t:chips q=more lang=en]]'), '.kit-chips [data-say]'), ['More']); // a strip's own slide buttons don't count
   c = mk(0); assert.deepEqual(texts(draw(c, 'Text [[t:info id=a lang=en]] [[t:chips q=more lang=en]]'), '.kit-chips [data-say]'), ['More']);
 });
+
+// ── 0.8.1.3: what the third live critique found ──
+test('0.8.1.3: a phone number in a bubble stays on one line, once the text has settled; other numbers are left alone', async () => {
+  const c = chat();
+  c.w.LBW.init({ quietMs: 30 });
+  const m = c.bot(null, 'Llama a reservas al +34 977 38 16 41 o al 977-38-16-41. [[t:info id=a lang=es]]'); c.LBW.scan();
+  assert.equal(m.querySelector('[data-lb-part="message-text"] span'), null);                              // not while it may still be arriving
+  await wait(150); c.LBW.scan();
+  const sp = [...m.querySelectorAll('[data-lb-part="message-text"] span')].map((x) => x.textContent);
+  assert.deepEqual(sp, ['+34 977 38 16 41', '977-38-16-41']); assert.equal(m.widgets().length, 1);
+  const other = c.bot(null, 'Somos 2 adultos y 3 niños; el 11/11/2026 pagamos 1 234 €.'); c.LBW.scan(); await wait(150); c.LBW.scan();
+  assert.equal(other.querySelector('span'), null);
+});
+
+test('0.8.1.3: compare with same: "fold" lists equal rows in one line; {names} in a title', () => {
+  const cfg = CFG(); cfg.widgets.vs = { type: 'compare', title: { en: '{names}', es: '{names}' },  same: 'fold', rows: [['beds', 'Beds'], ['bbq', 'BBQ'], ['pets', 'Pets'], ['price', 'From', 'is-strong']],
+    items: { a: { name: 'Villa A', values: { beds: '2', bbq: 'Yes', pets: 'No', price: '10' } }, b: { name: 'Bali', values: { beds: '3', bbq: 'Yes', pets: 'No', price: '10' } } } };
+  const c = chat(cfg); assert.deepEqual(c.result.errors, []);
+  const m = draw(c, 'x [[t:vs ids=a,b lang=es]]');
+  assert.equal(m.querySelector('.lbw-title').textContent, 'Villa A · Bali');
+  assert.deepEqual([...m.querySelectorAll('.kit-cmp-label')].map((x) => x.textContent), ['Beds', 'From']);           // equal rows out of the table; the strong row stays
+  assert.equal(m.querySelector('.kit-cmp-same').textContent, 'Igual en las dos:\nBBQ: Yes\nPets: No');
+  const bad = CFG(); bad.widgets.vs = Object.assign({}, cfg.widgets.vs, { same: 'hide' }); assert.match(errors(bad), /"same" is "fold"/);
+});

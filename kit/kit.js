@@ -1,4 +1,4 @@
-/* AI Widgets kit v0.8.1.2 · on lbw.js v0.8.1.2 · the widgets every url-to-demo build rewrote, written once with options. Load it after lbw.js and before the
+/* AI Widgets kit v0.8.1.3 · on lbw.js v0.8.1.3 · the widgets every url-to-demo build rewrote, written once with options. Load it after lbw.js and before the
    client's widgets.js: custom_js = <script>lbw.js</script><script>kit.js</script><script>widgets.js</script>.
 
    Each maker registers a widget under the name you give it, from data you pass. Nothing here holds client facts.
@@ -29,32 +29,32 @@
     en: { copy: 'Copy', copied: 'Copied ✓', select: 'Select the text and copy it', summary: 'Your summary',
           open: 'Open now · until {t}', closed: 'Closed now · opens {d} at {t}', closedLong: 'Closed now', today: 'today', tomorrow: 'tomorrow',
           days: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'], localTime: 'Local time: {t}', sent: 'Sent', show: 'Show', hide: 'Hide', busy: 'Busy', pick: 'Pick a time', confirm: 'Confirm', yes: 'Yes', no: 'No',
-          close: 'Close', prev: 'Previous photo', next: 'Next photo', photos: 'Photos', enlarge: 'Enlarge on the page',
+          close: 'Close', prev: 'Previous photo', next: 'Next photo', photos: 'Photos', enlarge: 'Enlarge on the page', cSame: 'The same in all:', cSame2: 'The same in both:',
           sOpen: 'Open today', sClosed: 'Closed today', sUntil: 'Open until', sOpens: 'Opens', sIn: 'In', sCloses: 'Season', sDay: '1 day', sDays: '{n} days', sUnknown: 'The next dates aren’t published yet.' },
     es: { copy: 'Copiar', copied: 'Copiado ✓', select: 'Selecciona el texto y cópialo', summary: 'Tu resumen',
           open: 'Abierto ahora · hasta las {t}', closed: 'Cerrado ahora · abre {d} a las {t}', closedLong: 'Cerrado ahora', today: 'hoy', tomorrow: 'mañana',
           days: ['el domingo', 'el lunes', 'el martes', 'el miércoles', 'el jueves', 'el viernes', 'el sábado'], localTime: 'Hora local: {t}', sent: 'Enviado', show: 'Ver', hide: 'Ocultar', busy: 'Ocupado', pick: 'Elige una hora', confirm: 'Confirmar', yes: 'Sí', no: 'No',
-          close: 'Cerrar', prev: 'Foto anterior', next: 'Foto siguiente', photos: 'Fotos', enlarge: 'Ampliar en la página',
+          close: 'Cerrar', prev: 'Foto anterior', next: 'Foto siguiente', photos: 'Fotos', enlarge: 'Ampliar en la página', cSame: 'Igual en todas:', cSame2: 'Igual en las dos:',
           sOpen: 'Abierto hoy', sClosed: 'Cerrado hoy', sUntil: 'Abierto hasta', sOpens: 'Abre', sIn: 'En', sCloses: 'Temporada', sDay: '1 día', sDays: '{n} días', sUnknown: 'Las próximas fechas aún no están publicadas.' },
     it: { copy: 'Copia', copied: 'Copiato ✓', select: 'Seleziona il testo e copialo', summary: 'Il tuo riepilogo',
           open: 'Aperto ora · fino alle {t}', closed: 'Chiuso ora · apre {d} alle {t}', closedLong: 'Chiuso ora', today: 'oggi', tomorrow: 'domani',
           days: ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato'], localTime: 'Ora locale: {t}', sent: 'Inviato', show: 'Mostra', hide: 'Nascondi', busy: 'Occupato', pick: 'Scegli un orario', confirm: 'Conferma', yes: 'Sì', no: 'No',
-          close: 'Chiudi', prev: 'Foto precedente', next: 'Foto successiva', photos: 'Foto', enlarge: 'Ingrandisci nella pagina',
+          close: 'Chiudi', prev: 'Foto precedente', next: 'Foto successiva', photos: 'Foto', enlarge: 'Ingrandisci nella pagina', cSame: 'Uguale in tutte:', cSame2: 'Uguale in entrambe:',
           sOpen: 'Aperto oggi', sClosed: 'Chiuso oggi', sUntil: 'Aperto fino a', sOpens: 'Apre', sIn: 'Tra', sCloses: 'Stagione', sDay: '1 giorno', sDays: '{n} giorni', sUnknown: 'Le prossime date non sono ancora pubblicate.' },
     de: { copy: 'Kopieren', copied: 'Kopiert ✓', select: 'Text markieren und kopieren', summary: 'Deine Zusammenfassung',
           open: 'Jetzt geöffnet · bis {t} Uhr', closed: 'Jetzt geschlossen · öffnet {d} um {t} Uhr', closedLong: 'Jetzt geschlossen', today: 'heute', tomorrow: 'morgen',
           days: ['am Sonntag', 'am Montag', 'am Dienstag', 'am Mittwoch', 'am Donnerstag', 'am Freitag', 'am Samstag'], localTime: 'Ortszeit: {t}', sent: 'Gesendet', show: 'Anzeigen', hide: 'Ausblenden', busy: 'Belegt', pick: 'Uhrzeit wählen', confirm: 'Bestätigen', yes: 'Ja', no: 'Nein',
-          close: 'Schließen', prev: 'Vorheriges Foto', next: 'Nächstes Foto', photos: 'Fotos', enlarge: 'Auf der Seite vergrößern',
+          close: 'Schließen', prev: 'Vorheriges Foto', next: 'Nächstes Foto', photos: 'Fotos', enlarge: 'Auf der Seite vergrößern', cSame: 'Bei allen gleich:', cSame2: 'Bei beiden gleich:',
           sOpen: 'Heute geöffnet', sClosed: 'Heute geschlossen', sUntil: 'Geöffnet bis', sOpens: 'Öffnet', sIn: 'In', sCloses: 'Saison', sDay: '1 Tag', sDays: '{n} Tagen', sUnknown: 'Die nächsten Termine sind noch nicht veröffentlicht.' },
     fr: { copy: 'Copier', copied: 'Copié ✓', select: 'Sélectionnez le texte et copiez-le', summary: 'Votre résumé',
           open: 'Ouvert · jusqu’à {t}', closed: 'Fermé · ouvre {d} à {t}', closedLong: 'Fermé', today: 'aujourd’hui', tomorrow: 'demain',
           days: ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'], localTime: 'Heure locale : {t}', sent: 'Envoyé', show: 'Voir', hide: 'Masquer', busy: 'Occupé', pick: 'Choisissez une heure', confirm: 'Confirmer', yes: 'Oui', no: 'Non',
-          close: 'Fermer', prev: 'Photo précédente', next: 'Photo suivante', photos: 'Photos', enlarge: 'Agrandir sur la page',
+          close: 'Fermer', prev: 'Photo précédente', next: 'Photo suivante', photos: 'Photos', enlarge: 'Agrandir sur la page', cSame: 'Identique pour toutes :', cSame2: 'Identique pour les deux :',
           sOpen: 'Ouvert aujourd’hui', sClosed: 'Fermé aujourd’hui', sUntil: 'Ouvert jusqu’au', sOpens: 'Ouverture', sIn: 'Dans', sCloses: 'Saison', sDay: '1 jour', sDays: '{n} jours', sUnknown: 'Les prochaines dates ne sont pas encore publiées.' },
     ca: { copy: 'Copia', copied: 'Copiat ✓', select: 'Selecciona el text i copia’l', summary: 'El teu resum',
           open: 'Obert ara · fins a les {t}', closed: 'Tancat ara · obre {d} a les {t}', closedLong: 'Tancat ara', today: 'avui', tomorrow: 'demà',
           days: ['diumenge', 'dilluns', 'dimarts', 'dimecres', 'dijous', 'divendres', 'dissabte'], localTime: 'Hora local: {t}', sent: 'Enviat', show: 'Mostra', hide: 'Amaga', busy: 'Ocupat', pick: 'Tria una hora', confirm: 'Confirma', yes: 'Sí', no: 'No',
-          close: 'Tanca', prev: 'Foto anterior', next: 'Foto següent', photos: 'Fotos', enlarge: 'Amplia a la pàgina',
+          close: 'Tanca', prev: 'Foto anterior', next: 'Foto següent', photos: 'Fotos', enlarge: 'Amplia a la pàgina', cSame: 'Igual a totes:', cSame2: 'Igual a les dues:',
           sOpen: 'Obert avui', sClosed: 'Tancat avui', sUntil: 'Obert fins al', sOpens: 'Obre', sIn: 'D’aquí a', sCloses: 'Temporada', sDay: '1 dia', sDays: '{n} dies', sUnknown: 'Les properes dates encara no estan publicades.' }
   };
   function words(lang) { return L[lang] || L.en; }
@@ -295,7 +295,7 @@
         if (sm.flag) note(o.box, sm.flag(ls), 'is-flag');
       }
       if (cfg.hours) { var st = status(cfg.hours, lang); o.box.appendChild(st.node); if (cfg.hours.showNow !== false) note(o.box, fill(words(lang).localTime, { t: st.now }), 'is-muted'); }
-      if (cfg.big) o.box.appendChild(el('p', 'kit-big', cfg.big));
+      if (cfg.big) o.box.appendChild(el('p', 'kit-big', /^[+\d][\d\s().\-]{6,22}$/.test(cfg.big) ? cfg.big.replace(/ /g, '\u00a0') : cfg.big));   // a phone: no-break spaces
       var rows = val(cfg.rows, p, ctx, topic); if (rows && rows.length) U.rows(o.box, rows).classList.add('kit-lines');
       note(o.box, val(cfg.note, p, ctx, topic), 'is-muted');
       var bs = buttons(cfg.buttons && cfg.buttons(p, ctx, topic, withSummary)); if (bs.length) U.row(o, bs);
@@ -764,7 +764,8 @@
       if (!cfg.allowDup && dup(ctx, cls)) return null;
       var got = p.list(param, ids, max); if (got.length < (cfg.min || 2)) return null;
       var o = U.card(langOf(cfg, ctx), 'kit-compare ' + cls), grid = el('div', 'kit-cmp is-' + got.length); grid.setAttribute('role', 'table');
-      U.head(o.box, cfg.kicker || '', val(cfg.title, got, ctx) || '');
+      var names = got.map(function (id) { return cfg.items[id].name; });
+      U.head(o.box, cfg.kicker || '', String(val(cfg.title, got, ctx) || '').split('{names}').join(names.join(' · ')));
       function line(label, cells, c) {
         var r = el('div', 'kit-cmp-row' + (c ? ' ' + c : '')); r.setAttribute('role', 'row');
         if (label) { var h = el('div', 'kit-cmp-label', label); h.setAttribute('role', 'rowheader'); r.appendChild(h); }
@@ -772,13 +773,19 @@
         r.appendChild(cs); grid.appendChild(r);
       }
       line('', got.map(function (id) { return cfg.items[id].name; }), 'is-head');
+      var folded = [];
       (cfg.rows || []).forEach(function (row) {
         var cells = got.map(function (id) { var v = (cfg.items[id].values || {})[row[0]]; return v == null || v === '' ? empty : String(v); });
-        // a row where every column says the same isn't a difference: it is drawn quieter (v0.8.1.1)
+        // a row where every column says the same isn't a difference: it is drawn quieter (v0.8.1.1), or, with same: 'fold',
+        // left out of the table and listed in one line under it (v0.8.1.3: 4 of 7 rows were the same on a live demo)
         var same = cells.length > 1 && cells.every(function (t) { return t === cells[0]; });
-        if (cells.some(function (t) { return t !== empty; })) line(row[1], cells, (row[2] || '') + (same && !row[2] ? ' is-same' : ''));
+        if (!cells.some(function (t) { return t !== empty; })) return;
+        if (same && !row[2] && cfg.same === 'fold') { if (cells[0] !== empty) folded.push(row[1] + ': ' + cells[0]); return; }
+        line(row[1], cells, (row[2] || '') + (same && !row[2] ? ' is-same' : ''));
       });
-      o.box.appendChild(grid); note(o.box, cfg.note, 'is-muted');
+      o.box.appendChild(grid);
+      if (folded.length) { var Wl = words(langOf(cfg, ctx)); note(o.box, (got.length === 2 ? Wl.cSame2 : Wl.cSame) + '\n' + folded.join('\n'), 'kit-cmp-same'); }
+      note(o.box, cfg.note, 'is-muted');
       var g = U.once('kit-actions'), links = [];
       got.forEach(function (id, i) { var it = cfg.items[id]; if (it.reply) g.appendChild(U.reply(it.reply[0], it.reply[1], { primary: i === 0, fields: it.reply[2] })); if (it.link) links.push(U.link(it.link[0], it.link[1])); });
       var acts = (g.children.length ? [g] : []).concat(buttons(links)); if (acts.length) U.row(o, acts);
@@ -786,6 +793,6 @@
     });
   }
 
-  LBW.kit = { version: '0.8.1.2', dev: DEV, describe: describe, L: L, last: last, cards: cards, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent, compare: compare, season: season,
+  LBW.kit = { version: '0.8.1.3', dev: DEV, describe: describe, L: L, last: last, cards: cards, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent, compare: compare, season: season,
     h: { note: note, list: list, label: label, dup: dup, choice: choice, multiChoice: multiChoice, copyBox: copyBox, status: status, wa: wa, fill: fill, money: money, total: total, lightbox: lightbox, chart: chart, statusHead: statusHead } };
 })(typeof window !== 'undefined' ? window : this);

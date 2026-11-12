@@ -1,4 +1,4 @@
-/* AI Widgets kit v0.8.1.2 · the kit-* classes, from the --lbw-* tokens only (set them in the demo's theme.css).
+/* AI Widgets kit v0.8.1.3 · the kit-* classes, from the --lbw-* tokens only (set them in the demo's theme.css).
    Order in custom_css: @imports, lbw.css, kit.css, the demo's theme.css, the chat skin. */
 .kit-note { margin: 10px 0 0; font-size: 12px; line-height: 17px; color: var(--lbw-muted); }
 .kit-note:not(.is-safe):not(.is-flag), .kit-line, .kit-desc { max-width: 62ch; }
@@ -154,3 +154,6 @@
 .kit-cmp-row.is-head .kit-cmp-cell { font-weight: 700; font-size: 14px; color: var(--lbw-accent-text, var(--lbw-accent)); }
 .kit-cmp-row.is-strong .kit-cmp-cell { font-weight: 700; font-size: 14px; }
 .kit-cmp-row.is-same .kit-cmp-cell { color: var(--lbw-muted); }
+.kit-note.kit-cmp-same { color: var(--lbw-ink); white-space: pre-line; }   /* one equal row per line */
+.kit-cmp-row.is-key .kit-cmp-cell { font-weight: 600; }   /* a row that must stay in the table even when equal (a deal-breaker: pets) */
+.kit-big { overflow-wrap: anywhere; }   /* an email breaks where it must; a phone is kept whole by no-break spaces (kit.js) */

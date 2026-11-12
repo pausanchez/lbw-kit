@@ -25,7 +25,7 @@
     confirm: 'type cls lang allowDup form status title rows steps note actions',
     review: 'type cls lang kicker title cta note collapse allowDup state tables compute money lines total discard send',
     chart: 'type cls lang kicker title sub note links allowDup kind height state tables compute money x series y mark summary',
-    compare: 'type cls lang kicker title titles param items rows min max empty note allowDup',
+    compare: 'type cls lang kicker title titles param items rows min max empty note same allowDup',
     season: 'type cls lang kicker ranges words rows note reply links allowDup'
   };
   var ITEM = { cards: 'kicker title who line points pointsCls pointsTitle rows note noteCls link'.split(' '), stats: 'kicker title stats source'.split(' '), people: 'name role img note'.split(' '),
@@ -317,6 +317,7 @@
         }
 
         if (w.type === 'compare') {
+          if (w.same != null && w.same !== 'fold' && w.same !== 'mute') err('"same" is "fold" (equal rows go in one line under the table) or "mute" (the default: drawn quieter)');
           var rk = [];
           list(w.rows, 'rows', function (r, at) { if (!isArr(r) || !isStr(r[0]) || !isStr(r[1]) || (r[2] != null && !isStr(r[2]))) err(at + ' is [key, label] or [key, label, class]'); else rk.push(r[0]); });
           if (isArr(w.rows) && !w.rows.length) err('"rows" is empty');
