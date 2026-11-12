@@ -1,4 +1,4 @@
-/* AI Widgets kit v0.8.1.7 · on lbw.js v0.8.1.7 · the widgets every url-to-demo build rewrote, written once with options. Load it after lbw.js and before the
+/* AI Widgets kit v0.8.1.8 · on lbw.js v0.8.1.8 · the widgets every url-to-demo build rewrote, written once with options. Load it after lbw.js and before the
    client's widgets.js: custom_js = <script>lbw.js</script><script>kit.js</script><script>widgets.js</script>.
 
    Each maker registers a widget under the name you give it, from data you pass. Nothing here holds client facts.
@@ -417,7 +417,7 @@
   function slideEl(s) {
     var sl = el('article', 'lbw-slide kit-slide'); sl.setAttribute('role', 'listitem'); if (s.id) sl.setAttribute('data-id', s.id);
     // v0.8.1.7 · a slide's photo is drawn ~70 % of a phone's width, ~300 px on a wide column: ask for that, not the 90vw default
-    if (s.img) { var io = s.img.sizes ? s.img : Object.assign({}, s.img, { sizes: '(max-width: 480px) 72vw, 300px' }); var im = U.img(s.img.src, 'kit-img' + (s.img.cls ? ' ' + s.img.cls : ''), io); if (s.badge) im.appendChild(el('span', 'kit-badge', s.badge)); sl.appendChild(im);
+    if (s.img) { var io = s.img.sizes ? s.img : Object.assign({}, s.img, { sizes: '(max-width: 480px) 65vw, 300px' });   /* v0.8.1.8: 65vw keeps a 2× phone on a ~500 px copy (72vw sent it to the ~960 px one: 4× the bytes, H10 live) */ var im = U.img(s.img.src, 'kit-img' + (s.img.cls ? ' ' + s.img.cls : ''), io); if (s.badge) im.appendChild(el('span', 'kit-badge', s.badge)); sl.appendChild(im);
       if (s.gallery && s.gallery.photos && s.gallery.photos.length) zoomable(im, s.gallery, s.name); }   // v0.3: the photo opens LBW.kit.h.lightbox
     var b = el('div', 'lbw-slide-body'); sl.appendChild(b);
     if (s.kicker) b.appendChild(el('div', 'kit-slide-kicker', s.kicker));
@@ -558,6 +558,7 @@
     function show() {
       stage.textContent = ''; var p = g.photos[i];
       stage.appendChild(U.img(p.src, 'kit-ovl-img', { srcset: p.srcset, sizes: '100vw', alt: p.alt || g.title || '' }));
+      [i - 1, i + 1].forEach(function (k) { var q = g.photos[k]; if (q) U.img(q.src, '', { srcset: q.srcset, sizes: '100vw' }); });   // v0.8.1.8: the photos next to it load ahead (detached: the browser fetches, nothing is drawn)
       cap.textContent = (g.title ? g.title + ' · ' : '') + (i + 1) + ' / ' + g.photos.length;
       prev.disabled = i === 0; next.disabled = i === g.photos.length - 1;
     }
@@ -578,6 +579,10 @@
     }
     x.addEventListener('click', function () { close('x'); });
     prev.addEventListener('click', function () { if (i > 0) { i--; show(); } }); next.addEventListener('click', function () { if (i < g.photos.length - 1) { i++; show(); } });
+    // v0.8.1.8 · a horizontal swipe of 40 px or more pages (the touchmove guard below only stops the page behind from scrolling)
+    var sx = null, sy = 0; stage.addEventListener('touchstart', function (e) { var t = e.touches[0]; sx = t.clientX; sy = t.clientY; }, { passive: true });
+    stage.addEventListener('touchend', function (e) { if (sx == null) return; var t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy; sx = null;
+      if (Math.abs(dx) >= 40 && Math.abs(dx) > Math.abs(dy)) { if (dx < 0 && i < g.photos.length - 1) { i++; show(); } else if (dx > 0 && i > 0) { i--; show(); } } }, { passive: true });
     ov.addEventListener('click', function (e) { if (e.target === ov || e.target === stage) close('backdrop'); });
     // in a Livechat the wheel over the overlay scrolled the HOST page 700 px (the chat's scroller is locked, so it chains out of the iframe)
     var stop = function (e) { e.preventDefault(); }; ov.addEventListener('wheel', stop, { passive: false }); ov.addEventListener('touchmove', stop, { passive: false });
@@ -832,7 +837,7 @@
         line(row[1], cells, (row[2] || '') + (same && !row[2] ? ' is-same' : ''));
       });
       o.box.appendChild(grid);
-      if (folded.length) { var Wl = words(langOf(cfg, ctx)); note(o.box, (got.length === 2 ? Wl.cSame2 : Wl.cSame) + (folded.length === 1 ? ' ' : '\n') + folded.join('\n'), 'kit-cmp-same'); }   // one equal row stays on the label's line
+      if (folded.length) { var Wl = words(langOf(cfg, ctx)), lab = got.length === 2 ? Wl.cSame2 : Wl.cSame; note(o.box, folded.length === 1 ? lab.replace(/\s*:\s*$/, '') + ' · ' + folded[0] : lab + '\n' + folded.join('\n'), 'kit-cmp-same'); }   // v0.8.1.8: one equal row reads "The same in both · View: Sea" (not two colons)   // one equal row stays on the label's line
       note(o.box, cfg.note, 'is-muted');
       var g = U.once('kit-actions'), links = [];
       got.forEach(function (id, i) { var it = cfg.items[id]; if (it.reply) g.appendChild(U.reply(it.reply[0], it.reply[1], { primary: i === 0 && cfg.primary !== false, fields: it.reply[2] }));   /* v0.8.1.7: "primary": false when the items are equals */ if (it.link) links.push(U.link(it.link[0], it.link[1])); });
@@ -887,7 +892,7 @@
     });
   }
 
-  LBW.kit = { version: '0.8.1.7', dev: DEV, describe: describe, L: L, last: last, cards: cards, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent, compare: compare, season: season, rating: rating,
+  LBW.kit = { version: '0.8.1.8', dev: DEV, describe: describe, L: L, last: last, cards: cards, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent, compare: compare, season: season, rating: rating,
     h: { note: note, list: list, label: label, dup: dup, choice: choice, multiChoice: multiChoice, copyBox: copyBox, status: status, wa: wa, fill: fill, money: money, total: total, lightbox: lightbox, chart: chart, statusHead: statusHead,
       icon: icon, withIcon: withIcon, icons: Object.keys(ICONS), badge: badge, tones: TONES.slice() } };
 })(typeof window !== 'undefined' ? window : this);

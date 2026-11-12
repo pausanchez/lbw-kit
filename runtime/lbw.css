@@ -1,4 +1,4 @@
-/* lbw.css · base look for Landbot AI Widgets (v0.8.1.7)
+/* lbw.css · base look for Landbot AI Widgets (v0.8.1.8)
    The ChatKit-gallery language measured in retos 16-19: white cards, 18px radius, a hairline and a soft shadow; a small
    kicker above an 18px title; pill buttons (primary filled, secondary an inset ring) under the card. Re-skin it by
    overriding the variables below in your Custom CSS; keep the class names, the test harness reads some of them. */
@@ -54,7 +54,7 @@
 .lbw-pill.is-primary { background: var(--lbw-accent); color: var(--lbw-accent-ink) !important; box-shadow: none; }
 /* disabled: readable (it was the accent at 40 %: white on it read 1.9:1), and plainly not a button */
 .lbw-pill:disabled { opacity: 1; background: var(--lbw-soft); color: var(--lbw-muted) !important; box-shadow: none; cursor: default; }
-.lbw-pill.is-sent { opacity: 1; background: var(--lbw-tint); color: var(--lbw-accent-text, var(--lbw-accent)) !important; box-shadow: inset 0 0 0 1px var(--lbw-ring); }
+.lbw-pill.is-sent { opacity: 1; background: var(--lbw-tint); color: var(--lbw-accent-text, var(--lbw-accent)) !important; box-shadow: inset 0 0 0 1.5px var(--lbw-accent-text, var(--lbw-accent)); }   /* v0.8.1.8: the accent ring and ✓: a used choice never looks like a disabled one */
 .lbw-pill.is-sent { padding-inline: max(4px, calc(clamp(10px, 4.2cqi, 16px) - 8px)); }   /* the tick takes the space the padding gives up: the row doesn't reflow (v0.8.1.5: from the pill's own padding; a fixed 10 px left it 9 px wider on a phone) */
 .lbw-pill.is-sent::before { content: "✓ "; white-space: pre; }
 @media (hover: hover) { .lbw-pill:hover:not(:disabled) { filter: brightness(.96); } }

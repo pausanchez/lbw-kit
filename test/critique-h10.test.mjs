@@ -21,7 +21,7 @@ test('0.8.1.7: an email in a row may break after @; other values are plain text'
 test('0.8.1.7: slides ask for their drawn size; a gallery of one shows no count and speaks the card\'s language', () => {
   const c = setup({ r: { type: 'carousel', items: [{ id: 'a', name: 'A', img: { src: 'https://img.example/a.jpg', srcset: [['https://img.example/a.jpg', 495]], width: 495, height: 371 }, gallery: { photos: [{ src: 'https://img.example/a.jpg' }] } }, { id: 'b', name: 'B' }] } });
   const m = draw(c, '[[t:r lang=es]]'), img = m.querySelector('.kit-slide img');
-  assert.equal(img.getAttribute('sizes'), '(max-width: 480px) 72vw, 300px');
+  assert.equal(img.getAttribute('sizes'), '(max-width: 480px) 65vw, 300px');
   assert.equal(m.querySelector('.kit-zoom-n').textContent, '⤢');
   assert.match(m.querySelector('.kit-zoom').getAttribute('aria-label'), /^Fotos · A/);
   c.close();
@@ -33,6 +33,20 @@ test('0.8.1.7: compare with "primary": false draws equals; one equal row stays o
   assert.equal(c.result.ok, true, JSON.stringify(c.result.errors));
   const m = draw(c, '[[t:v ids=a,b lang=en]]');
   assert.equal(m.querySelectorAll('.lbw-pill.is-primary').length, 0);
-  assert.equal(m.querySelector('.kit-cmp-same').textContent, 'The same in both: View: Sea');
+  assert.equal(m.querySelector('.kit-cmp-same').textContent, 'The same in both · View: Sea');
   c.close();
+});
+
+test('0.8.1.8: a swipe pages the lightbox; a vertical or short one does not', () => {
+  const c = boot({ kit: true }), K = c.w.LBW.kit;
+  c.w.LBW.init({ prefix: 't', langs: ['en'], links: ['https://img.example/'] });
+  const opener = c.d.createElement('button'); c.d.body.appendChild(opener);
+  const lb = K.h.lightbox({ photos: [{ src: 'https://img.example/1.jpg' }, { src: 'https://img.example/2.jpg' }, { src: 'https://img.example/3.jpg' }], title: 'R', lang: 'en' }, 0, opener);
+  const stage = lb.el.querySelector('.kit-ovl-stage'), cur = () => stage.querySelector('img').getAttribute('src');
+  const swipe = (x0, x1, y1 = 0) => { const s = new c.w.Event('touchstart'); s.touches = [{ clientX: x0, clientY: 0 }]; stage.dispatchEvent(s); const e = new c.w.Event('touchend'); e.changedTouches = [{ clientX: x1, clientY: y1 }]; stage.dispatchEvent(e); };
+  swipe(200, 100); assert.equal(cur(), 'https://img.example/2.jpg');
+  swipe(200, 180); assert.equal(cur(), 'https://img.example/2.jpg', 'a short move');
+  swipe(200, 100, 300); assert.equal(cur(), 'https://img.example/2.jpg', 'mostly vertical');
+  swipe(100, 220); assert.equal(cur(), 'https://img.example/1.jpg');
+  lb.close(); c.close();
 });
