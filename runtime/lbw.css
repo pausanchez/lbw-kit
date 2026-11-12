@@ -1,4 +1,4 @@
-/* lbw.css · base look for Landbot AI Widgets (v0.8.1.12)
+/* lbw.css · base look for Landbot AI Widgets (v0.8.1.13)
    The ChatKit-gallery language measured in retos 16-19: white cards, 18px radius, a hairline and a soft shadow; a small
    kicker above an 18px title; pill buttons (primary filled, secondary an inset ring) under the card. Re-skin it by
    overriding the variables below in your Custom CSS; keep the class names, the test harness reads some of them. */
@@ -106,7 +106,8 @@
 .lbw-form { display: flex; flex-direction: column; gap: 10px; }
 .lbw-form > .lbw-cta { width: 100%; min-height: 44px; margin-top: 2px; }   /* one shape for "send this card" in every widget */
 .lbw-form > .lbw-cta.is-sent { width: auto; align-self: flex-start; }   /* v0.8.1.9: a sent CTA reads as the visitor's answer (tint, accent ring, ✓), not a disabled full-width bar */
-.lbw-form > .lbw-cta:disabled:not(.is-sent) { background: transparent; color: var(--lbw-muted) !important; box-shadow: inset 0 0 0 1px var(--lbw-line); font-weight: 400; }   /* v0.8.1.7: 400 (house weights). Not ready yet: a faint ring and a label that says what is missing; a pale full-width bar read as a dead end (v0.8.1.3) */
+.lbw-form > .lbw-cta:disabled:not(.is-sent) { background: var(--lbw-soft, #F5F5F7); color: var(--lbw-muted) !important; box-shadow: none; font-weight: 400; }
+.lbw-form > .lbw-cta:disabled:not(.is-sent)::before { content: "↑ "; white-space: pre; }   /* v0.8.1.13 · a ring and a question read as a text box (Callan critique): a soft fill and an arrow up to what is missing */   /* v0.8.1.7: 400 (house weights). Not ready yet: a faint ring and a label that says what is missing; a pale full-width bar read as a dead end (v0.8.1.3) */
 .lbw-step { display: flex; align-items: center; gap: 8px; }
 .lbw-step-l { flex: 1; display: flex; flex-direction: column; font-size: 14px; line-height: 18px; min-width: 0; } .lbw-step-l .lbw-muted { font-size: 12px; }
 .lbw-step-b { width: 44px; height: 44px; flex: none; border: 0; border-radius: 50%; background: var(--lbw-pill-bg, #fff); box-shadow: inset 0 0 0 1px var(--lbw-pill-ring, var(--lbw-ring)); font: 600 18px/1 var(--lbw-font); color: var(--lbw-ink); cursor: pointer; }

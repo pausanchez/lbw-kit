@@ -1,4 +1,4 @@
-/* AI Widgets kit v0.8.1.12 · on lbw.js v0.8.1.12 · the widgets every url-to-demo build rewrote, written once with options. Load it after lbw.js and before the
+/* AI Widgets kit v0.8.1.13 · on lbw.js v0.8.1.13 · the widgets every url-to-demo build rewrote, written once with options. Load it after lbw.js and before the
    client's widgets.js: custom_js = <script>lbw.js</script><script>kit.js</script><script>widgets.js</script>.
 
    Each maker registers a widget under the name you give it, from data you pass. Nothing here holds client facts.
@@ -293,19 +293,21 @@
       var scrolls = function () { var on = wrap.scrollWidth > wrap.clientWidth + 1; if (on) { wrap.setAttribute('tabindex', '0'); wrap.setAttribute('role', 'region'); wrap.setAttribute('aria-label', t.title || ''); } else { wrap.removeAttribute('tabindex'); wrap.removeAttribute('role'); wrap.removeAttribute('aria-label'); } };
       if (root.ResizeObserver) new root.ResizeObserver(scrolls).observe(wrap); else setTimeout(scrolls, 0);
       var cap = el('caption', 'kit-sr', t.title || ''); tb.appendChild(cap);
-      cols.forEach(function (c) { var th = el('th', c[2] === 'end' ? 'is-end' : '', c[1]); th.setAttribute('scope', 'col'); hr.appendChild(th); });
+      // v0.8.1.13 · a column with no value in any row is left out (Callan: the online timetable's empty "Rate"); pick still reads it
+      var shown = cols.map(function (c, j) { return rows.some(function (r) { return r[j] != null && String(r[j]).trim() !== ''; }); });
+      cols.forEach(function (c, j) { if (!shown[j]) return; var th = el('th', c[2] === 'end' ? 'is-end' : '', c[1]); th.setAttribute('scope', 'col'); hr.appendChild(th); });
       if (cfg.pick) { var thp = el('th', 'kit-tbl-act', ''); thp.appendChild(el('span', 'kit-sr', cfg.pick.label || w.tPick)); hr.appendChild(thp); }
       head.appendChild(hr); tb.appendChild(head); tb.appendChild(body);
       var g = cfg.pick ? U.once('kit-tbl-once') : null, more = null;
       rows.forEach(function (r, i) {
         var tr = el('tr', i >= fold && rows.length > fold + 1 ? 'is-folded' : '');
-        cols.forEach(function (c, j) { var td = el(j ? 'td' : 'th', c[2] === 'end' ? 'is-end' : '', r[j] == null ? '' : String(r[j])); if (!j) td.setAttribute('scope', 'row'); tr.appendChild(td); });
+        var first = true; cols.forEach(function (c, j) { if (!shown[j]) return; var td = el(first ? 'th' : 'td', c[2] === 'end' ? 'is-end' : '', r[j] == null ? '' : String(r[j])); if (first) td.setAttribute('scope', 'row'); first = false; tr.appendChild(td); });
         if (cfg.pick) {
           var row = {}; cols.forEach(function (c, j) { row[c[0]] = r[j] == null ? '' : String(r[j]); });
           var say = cfg.pick.say(row, id); var td2 = el('td', 'kit-tbl-act');
           // the verb on a bordered button, not a bare ›: in a chat › reads as "open details" (critique 0.8.1.11). Its label
           // names the whole row ("Elegir: Hora 12:00, Plazas 4, Precio 14 €"); once sent it says it was chosen.
-          var whole = cols.map(function (c, j) { return c[1] + ' ' + (r[j] == null ? '' : r[j]); }).join(', ');
+          var whole = cols.filter(function (c, j) { return shown[j]; }).map(function (c) { var j = cols.indexOf(c); return c[1] + ' ' + (r[j] == null ? '' : r[j]); }).join(', ');
           if (say) { var b = U.reply(cfg.pick.label || w.tPick, say, { fields: cfg.pick.fields ? cfg.pick.fields(row, id) : undefined, cls: 'kit-tbl-b', onSent: function (x) {
               var t2 = x.closest('tr'); if (t2) t2.classList.add('is-picked');
               x.textContent = w.tPicked; x.setAttribute('aria-label', w.tPicked + ': ' + x.getAttribute('data-row')); x.setAttribute('aria-pressed', 'true');
@@ -997,7 +999,7 @@
     });
   }
 
-  LBW.kit = { version: '0.8.1.12', dev: DEV, describe: describe, L: L, last: last, cards: cards, table: table, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent, compare: compare, season: season, rating: rating,
+  LBW.kit = { version: '0.8.1.13', dev: DEV, describe: describe, L: L, last: last, cards: cards, table: table, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent, compare: compare, season: season, rating: rating,
     h: { note: note, list: list, label: label, dup: dup, choice: choice, multiChoice: multiChoice, copyBox: copyBox, status: status, wa: wa, fill: fill, money: money, total: total, lightbox: lightbox, chart: chart, statusHead: statusHead,
       icon: icon, withIcon: withIcon, icons: Object.keys(ICONS), badge: badge, tones: TONES.slice() } };
 })(typeof window !== 'undefined' ? window : this);

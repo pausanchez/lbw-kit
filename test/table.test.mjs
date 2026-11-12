@@ -88,3 +88,14 @@ test('check: a table says what is wrong', () => {
   assert.deepEqual(c.check(W), []);
   c.close();
 });
+
+test('table 0.8.1.13 (Callan critique): a column empty in every row is left out; pick still reads it', async () => {
+  const c = setup({ h: { type: 'table', item: { title: 'Online', cols: [['hora', 'Hora'], ['nota', 'Tarifa']], rows: [['11.00', ''], ['12.30', '']] }, pick: { say: 'Quiero {hora}{nota}', fields: { f: '{hora}' } } } });
+  const m = draw(c, '[[t:h]]');
+  assert.deepEqual([...m.querySelectorAll('thead th:not(.kit-tbl-act)')].map((x) => x.textContent), ['Hora']);
+  assert.equal(m.querySelector('tbody tr').firstElementChild.tagName, 'TH');
+  assert.equal(m.querySelector('.kit-tbl-b').getAttribute('aria-label'), 'Elegir: Hora 11.00');
+  m.querySelector('.kit-tbl-b').click(); await wait(300);
+  assert.equal(c.sent[1][1].message, 'Quiero 11.00');
+  c.close();
+});

@@ -1,4 +1,4 @@
-/* AI Widgets kit v0.8.1.12 · the kit-* classes, from the --lbw-* tokens only (set them in the demo's theme.css).
+/* AI Widgets kit v0.8.1.13 · the kit-* classes, from the --lbw-* tokens only (set them in the demo's theme.css).
    Order in custom_css: @imports, lbw.css, kit.css, the demo's theme.css, the chat skin. */
 .kit-note { margin: 10px 0 0; font-size: 12px; line-height: 17px; color: var(--lbw-muted); }
 .kit-note:not(.is-safe):not(.is-flag), .kit-line, .kit-desc { max-width: 62ch; }
@@ -250,6 +250,7 @@
 .kit-tbl .is-end + .is-end { padding-inline-start: 6px; }
 .kit-tbl thead th { padding-top: 0; border-top: 0; font-size: 12px; font-weight: 600; letter-spacing: 0; color: var(--lbw-muted); white-space: nowrap; }
 .kit-tbl tbody th { font-weight: 600; min-width: 7.5em; hyphens: auto; position: sticky; inset-inline-start: 0; background: var(--lbw-card, #fff); }
+.kit-tbl tbody th.is-end { min-width: 0; }   /* v0.8.1.13 · a number as the first column (a stage, a year) takes its own width, not a name's (Callan: 7.5em squeezed the names)*/
 .kit-tbl .is-end { text-align: end; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .kit-tbl tr.is-folded { display: none; }
 .kit-tbl.is-open tr.is-folded, .kit-tbl tr.is-folded.is-picked { display: table-row; }
