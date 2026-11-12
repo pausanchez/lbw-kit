@@ -1,4 +1,4 @@
-/* lbw.css · base look for Landbot AI Widgets (v0.8.1)
+/* lbw.css · base look for Landbot AI Widgets (v0.8.1.1)
    The ChatKit-gallery language measured in retos 16-19: white cards, 18px radius, a hairline and a soft shadow; a small
    kicker above an 18px title; pill buttons (primary filled, secondary an inset ring) under the card. Re-skin it by
    overriding the variables below in your Custom CSS; keep the class names, the test harness reads some of them. */
@@ -49,7 +49,7 @@
 .lbw-img.is-empty { display: none; }
 .lbw-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 0; }
 .lbw button { font-family: inherit; }
-.lbw-pill { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 9px 16px; border: 0; border-radius: var(--lbw-radius-pill); background: var(--lbw-pill-bg, #fff); color: var(--lbw-accent-text, var(--lbw-accent)) !important;
+.lbw-pill { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 9px 16px; padding-inline: clamp(10px, 4.2cqi, 16px); border: 0; border-radius: var(--lbw-radius-pill); background: var(--lbw-pill-bg, #fff); color: var(--lbw-accent-text, var(--lbw-accent)) !important;
   box-shadow: inset 0 0 0 1px var(--lbw-pill-ring, var(--lbw-ring)); font: 600 14px/1.25 var(--lbw-font); text-decoration: none; cursor: pointer; transition: background-color 150ms ease, transform 120ms ease, opacity 150ms ease; }
 .lbw-pill.is-primary { background: var(--lbw-accent); color: var(--lbw-accent-ink) !important; box-shadow: none; }
 /* disabled: readable (it was the accent at 40 %: white on it read 1.9:1), and plainly not a button */
@@ -60,11 +60,13 @@
 @media (hover: hover) { .lbw-pill:hover:not(:disabled) { filter: brightness(.96); } }
 .lbw-pill:active:not(:disabled) { transform: scale(.97); }
 .lbw button:focus-visible, .lbw a:focus-visible, .lbw [tabindex]:focus-visible { outline: 2px solid var(--lbw-focus, var(--lbw-ink)); outline-offset: 2px; }
-.lbw-once.is-done .lbw-pill:not(.is-sent), .lbw-once.is-stale .lbw-pill { opacity: 1; background: transparent; color: var(--lbw-muted) !important; box-shadow: inset 0 0 0 1px var(--lbw-line); }
+/* three states that must not look alike (a live critique, v0.8.1.1): a live button has a ring or a fill; a DISABLED one a soft fill and no ring;
+   an answer that can no longer be given (another was sent, or the visitor wrote after it) has no box at all: plain muted text */
+.lbw-once.is-done .lbw-pill:not(.is-sent), .lbw-once.is-stale .lbw-pill { opacity: 1; background: transparent !important; color: var(--lbw-muted) !important; box-shadow: none !important; cursor: default; }   /* same height, padding and font as before: older cards must not change size when the visitor writes */
 .lbw-chips { display: flex; flex-wrap: wrap; gap: 8px; }
 /* toggles (multi-select) */
 .lbw-tog { min-height: 44px; padding: 9px 14px; border: 0; border-radius: var(--lbw-radius-pill); background: var(--lbw-pill-bg, #fff); box-shadow: inset 0 0 0 1px var(--lbw-ring); font: 500 13px/1.2 var(--lbw-font); color: var(--lbw-ink); cursor: pointer; }
-.lbw-tog[aria-pressed="true"] { background: var(--lbw-accent); color: var(--lbw-accent-ink); box-shadow: none; }
+.lbw-tog[aria-pressed="true"] { background: var(--lbw-tint); color: var(--lbw-ink); box-shadow: inset 0 0 0 2px var(--lbw-accent-text, var(--lbw-accent)); }   /* a selection: tint, ring and tick. The filled accent is for the card's one primary action */
 .lbw-tog[aria-pressed="true"] { padding-inline: 8px; }
 .lbw-tog[aria-pressed="true"]::before { content: "✓ "; white-space: pre; }
 /* carousel */
@@ -75,7 +77,7 @@
 .lbw-slide .lbw-img { aspect-ratio: 16 / 10; }
 .lbw-slide-body { display: flex; flex-direction: column; flex: 1; padding: 12px 14px 14px; }
 .lbw-slide .lbw-actions { margin-top: auto; padding-top: 10px; flex-wrap: nowrap; }
-.lbw-slide .lbw-pill { flex: 1; min-height: 40px; padding: 6px 10px; font-size: 13px; white-space: nowrap; }
+.lbw-slide .lbw-pill { flex: 1; min-height: 44px; padding: 6px 10px; font-size: 13px; white-space: nowrap; }
 .lbw-name { font: 600 14px/20px var(--lbw-font); margin: 2px 0 6px; }
 .lbw-price { font: 700 18px/24px var(--lbw-font); color: var(--lbw-accent-text, var(--lbw-accent)); }
 /* split card: media + body (ui.card(lang, 'lbw-split')): stacked in a narrow chat, side by side when there is room */
@@ -104,8 +106,9 @@
 .lbw-form > .lbw-cta { width: 100%; min-height: 44px; margin-top: 2px; }   /* one shape for "send this card" in every widget */
 .lbw-step { display: flex; align-items: center; gap: 8px; }
 .lbw-step-l { flex: 1; display: flex; flex-direction: column; font-size: 14px; line-height: 18px; min-width: 0; } .lbw-step-l .lbw-muted { font-size: 12px; }
-.lbw-step-b { width: 44px; height: 44px; flex: none; border: 0; border-radius: 50%; background: var(--lbw-pill-bg, #fff); box-shadow: inset 0 0 0 1px var(--lbw-ring); font: 600 18px/1 var(--lbw-font); color: var(--lbw-ink); cursor: pointer; }
+.lbw-step-b { width: 44px; height: 44px; flex: none; border: 0; border-radius: 50%; background: var(--lbw-pill-bg, #fff); box-shadow: inset 0 0 0 1px var(--lbw-pill-ring, var(--lbw-ring)); font: 600 18px/1 var(--lbw-font); color: var(--lbw-ink); cursor: pointer; }
 .lbw-step-b:disabled { opacity: 1; background: var(--lbw-soft); color: var(--lbw-muted); box-shadow: none; cursor: default; }
 .lbw-step-n { min-width: 24px; text-align: center; font-weight: 700; }
 .lbw-form.is-done .lbw-step-b, .lbw-form.is-done .lbw-tog { cursor: default; }
-.lbw-form.is-done .lbw-step-b, .lbw-form.is-done .lbw-tog:not([aria-pressed="true"]) { opacity: 1; background: transparent; color: var(--lbw-muted); box-shadow: inset 0 0 0 1px var(--lbw-line); }   /* answers stay readable: they are part of the record */
+.lbw-form.is-done .lbw-step-b, .lbw-form.is-done .lbw-tog:not([aria-pressed="true"]) { opacity: 1; background: transparent; color: var(--lbw-muted); box-shadow: none; }
+.lbw-form.is-done .lbw-tog[aria-pressed="true"] { box-shadow: inset 0 0 0 1px var(--lbw-ring); }   /* answers stay readable: they are part of the record */

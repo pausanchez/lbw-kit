@@ -10,7 +10,7 @@
       HOLE = I.HOLE, SLOT = I.SLOT, compile = I.compile, loc = I.loc, langsOf = I.langsOf, dfltOf = I.dfltOf, resolve = I.resolve, reply = I.reply, timeOf = I.timeOf;
 
   // ── checking a config: every problem as a sentence, nothing drawn, never a throw ─────────────────
-  var TOP = '$schema version prefix langs defaultLang timeZone maxPerMessage links labels quietMs maxWaitMs actions replies widgets'.split(' ');
+  var TOP = '$schema version prefix langs defaultLang timeZone maxPerMessage links labels quietMs maxWaitMs reveal actions replies widgets'.split(' ');
   var KEYS = {
     cards: 'type cls param items item kicker disclaimer single fallback pointsCls allowDup lang reply links',
     form: 'type cls lang kicker title cta note preset steps summary fields allowDup collapse',
@@ -61,6 +61,7 @@
     if (!/^[a-z][a-z0-9_]*$/i.test(cfg.prefix || '')) top('"prefix" is missing or not a plain word');
     var links = isArr(cfg.links) ? cfg.links.filter(isStr) : [];
     if (cfg.links != null && !isArr(cfg.links)) top('"links" must be a list');
+    if (cfg.reveal != null && cfg.reveal !== true && cfg.reveal !== false) top('"reveal" is true or false');
     links.forEach(function (l) { if (/^https?:/.test(l) && !/\/$/.test(l)) top('link "' + l + '" must end in "/"'); });
     var linkOK = function (url) { return isStr(url) && !/[\s"'<>]/.test(url) && links.some(function (o) { return /^https?:/.test(o) && url.indexOf(/\/$/.test(o) ? o : o + '/') === 0; }); };
     ['actions', 'replies'].forEach(function (k) { if (cfg[k] != null && !isObj(cfg[k])) top('"' + k + '" must be an object'); });

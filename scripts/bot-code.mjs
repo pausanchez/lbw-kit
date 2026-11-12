@@ -22,7 +22,7 @@ for (let i = 0; i < args.length; i++) {
   else if (/^--(out|widgets|theme|skin)$/.test(args[i])) opt[args[i].slice(2)] = args[++i];
   else files.push(args[i]);
 }
-if (files.length !== 1 || !opt.out) { console.error('usage: node scripts/bot-code.mjs <config.json> --out <dir> [--widgets own.js] [--theme theme.css] [--skin chat-skin.css] [--all | --inline] [--lib X.Y.Z | --lib keep] [--css-only]  (--lib: load that released version instead of the newest, or keep the one in <dir>/custom_js.html; --css-only: write custom_css.css and leave custom_js.html as it is; --all: one file with its CSS, for a bot on a client\'s page; --inline: no outside host)'); process.exit(2); }
+if (files.length !== 1 || !opt.out) { console.error('usage: node scripts/bot-code.mjs <config.json> --out <dir> [--widgets own.js] [--theme theme.css] [--skin chat-skin.css] [--all | --inline] [--lib 0.8.1 | --lib 0.8.1.1 | --lib keep] [--css-only]  (--lib: load that released version instead of the newest, or keep the one in <dir>/custom_js.html; --css-only: write custom_css.css and leave custom_js.html as it is; --all: one file with its CSS, for a bot on a client\'s page; --inline: no outside host)'); process.exit(2); }
 
 let config;
 try { config = JSON.parse(fs.readFileSync(files[0], 'utf8')); } catch (e) { console.error(`${files[0]}: not valid JSON (${e.message})`); process.exit(1); }
@@ -42,7 +42,7 @@ let libVersion = pkg.version, libManifest = manifest, libFallback = null;
 if (opt.cssOnly) {
   let old = ''; try { old = fs.readFileSync(path.join(opt.out, 'custom_js.html'), 'utf8'); } catch (e) {}
   if (!old) { console.error('--css-only: no ' + path.join(opt.out, 'custom_js.html') + ' to go with (build once without --css-only)'); process.exit(1); }
-  const byUrl = /@v\d+\.\d+\.\d+\/dist\/lbw-kit(\.all)?\.min\.js/.exec(old);
+  const byUrl = /@v\d+(?:\.\d+){2,3}\/dist\/lbw-kit(\.all)?\.min\.js/.exec(old);
   if (byUrl) { opt.inline = false; opt.all = !!byUrl[1]; opt.lib = opt.lib || 'keep'; }
   else { opt.inline = true; opt.all = false; if (opt.lib) { console.error('--css-only: the custom_js.html there is inline (no library URL): --lib has nothing to pin'); process.exit(1); }
     console.error('⚠ --css-only on an inline build: the CSS is written from the CURRENT library (v' + pkg.version + '); the inline JS there may be older.'); }
@@ -50,9 +50,9 @@ if (opt.cssOnly) {
 if (opt.lib && opt.inline) { console.error('--lib and --inline don\'t go together: an inline build carries the current library\'s code'); process.exit(1); }
 if (opt.lib && !opt.inline) {
   let v = opt.lib;
-  if (v === 'keep') { let old = ''; try { old = fs.readFileSync(path.join(opt.out, 'custom_js.html'), 'utf8'); } catch (e) {} const m = /@v(\d+\.\d+\.\d+)\/dist\//.exec(old); if (!m) { console.error('--lib keep: no library version found in ' + path.join(opt.out, 'custom_js.html')); process.exit(1); } v = m[1]; if (/lbw-kit\.all\.min\.js/.test(old)) opt.all = true; }
+  if (v === 'keep') { let old = ''; try { old = fs.readFileSync(path.join(opt.out, 'custom_js.html'), 'utf8'); } catch (e) {} const m = /@v(\d+(?:\.\d+){2,3})\/dist\//.exec(old); if (!m) { console.error('--lib keep: no library version found in ' + path.join(opt.out, 'custom_js.html')); process.exit(1); } v = m[1]; if (/lbw-kit\.all\.min\.js/.test(old)) opt.all = true; }
   v = String(v).replace(/^v/, '');
-  if (!/^\d+\.\d+\.\d+$/.test(v)) { console.error('--lib takes a released version, as 0.7.5'); process.exit(1); }
+  if (!/^\d+(?:\.\d+){2,3}$/.test(v)) { console.error('--lib takes a released version, as 0.7.5'); process.exit(1); }
   if (v !== pkg.version) {
     const show = (f) => { try { return execFileSync('git', ['show', `v${v}:${f}`], { cwd: new URL('..', import.meta.url), encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }); } catch (e) { return null; } };
     const m = show('dist/manifest.json'); if (!m) { console.error(`--lib ${v}: no tag v${v} with a dist/manifest.json in this repo`); process.exit(1); }

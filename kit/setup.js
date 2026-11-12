@@ -428,7 +428,7 @@
     errs.forEach(function (e) { if (e.widget != null) bad.push(e.widget); LBW.drop('setup: ' + e.message); try { console.error('[kit] setup: ' + e.message); } catch (x) {} });
     if (errs.some(function (e) { return e.widget == null; })) return { ok: false, errors: root.__kitSetupErrors, widgets: made };
     var langs = langsOf(cfg), dflt = dfltOf(cfg, langs);
-    LBW.init(merge(pick(cfg, ['prefix', 'langs', 'timeZone', 'maxPerMessage', 'links', 'labels', 'quietMs', 'maxWaitMs']), { langs: langs, defaultLang: dflt }));   // the runtime's default must be the config's
+    LBW.init(merge(pick(cfg, ['prefix', 'langs', 'timeZone', 'maxPerMessage', 'links', 'labels', 'quietMs', 'maxWaitMs', 'reveal']), { langs: langs, defaultLang: dflt }));   // the runtime's default must be the config's
     Object.keys(cfg.widgets).forEach(function (name) {
       if (bad.indexOf(name) >= 0) return;
       // a text may be { en: …, es: … }: the maker runs once per language on a copy with that language's texts, and the

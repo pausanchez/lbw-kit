@@ -251,3 +251,30 @@ test('review 3: seasons that overlap or touch are one season; day words can be s
   assert.match(draw(c, 'x [[t:season lang=en]]').widgets()[0].textContent, /Em128 dias|Em\s*128 dias/);
   c = mk([['19/3/2027', '1/11/2027']], '18/3/2027'); assert.match(draw(c, 'x [[t:season lang=es]]').widgets()[0].textContent, /En1 día|En\s*1 día/);
 });
+
+// ── 0.8.1.1: what a design critique of the live chat found ──
+test('0.8.1.1: a carousel with several slides says "1 / n"; one slide has no count', async () => {
+  const cfg = CFG(); cfg.widgets.list.items = [{ id: 'a', name: 'A' }, { id: 'b', name: 'B' }, { id: 'c', name: 'C' }];
+  const c = chat(cfg), m = draw(c, 'x [[t:list lang=en]]');
+  assert.match(m.querySelector('.kit-count').textContent, /^(1 \/ 3)?$/);   // jsdom has no layout: the count shows when the strip overflows
+  assert.equal(draw(c, 'y [[t:list ids=b lang=en]]').querySelector('.kit-count'), null);
+});
+
+test('0.8.1.1: a compare row where every column says the same is marked; the reply is revealed without throwing', async () => {
+  const cfg = CFG(); cfg.widgets.vs = { type: 'compare', title: 'Two', rows: [['beds', 'Beds'], ['bbq', 'BBQ'], ['price', 'From', 'is-strong']],
+    items: { a: { name: 'A', values: { beds: '2', bbq: 'Yes', price: '10' } }, b: { name: 'B', values: { beds: '3', bbq: 'Yes', price: '10' } } } };
+  const c = chat(cfg); assert.deepEqual(c.result.errors, []);
+  let raf = 0; c.w.requestAnimationFrame = (f) => { raf++; f(); };
+  const m = draw(c, 'x [[t:vs ids=a,b lang=en]]');
+  const rows = [...m.querySelectorAll('.kit-cmp-row')].map((r) => r.className);
+  assert.ok(rows.some((r) => /is-same/.test(r))); assert.equal(rows.filter((r) => /is-same/.test(r)).length, 1);   // BBQ only: beds differ, the strong row keeps its own class
+  await wait(30); assert.ok(raf >= 1);                                             // after a 0 ms timer: forms have drawn by then
+  const bad = CFG(); bad.reveal = 'false'; assert.match(errors(bad), /"reveal" is true or false/);
+});
+
+test('review 4: closed → the days left and the whole next season, not a lone "Closes" row', () => {
+  const cfg = CFG(); cfg.widgets.season = { type: 'season', ranges: [['19/3/2027', '14/11/2027']] };
+  const c = boot({ kit: true, scripts: ['kit/setup.js', 'kit/setup-check.js'] }); c.w.__lbwToday = '12/11/2026'; c.w.__lbwNow = '10:30'; c.w.LBW.kit.setup(JSON.parse(JSON.stringify(cfg)));
+  const t = draw(c, 'x [[t:season lang=es]]').widgets()[0].textContent;
+  assert.match(t, /Temporada/); assert.match(t, /19 mar.* 2027 – 14 nov.* 2027/); assert.ok(!/Cierra|Hasta el/.test(t));
+});

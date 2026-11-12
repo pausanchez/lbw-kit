@@ -1,4 +1,4 @@
-/* lbw.js · Landbot AI Widgets runtime · v0.8.1
+/* lbw.js · Landbot AI Widgets runtime · v0.8.1.1
    Turns tags that an AI agent (or a flow message) writes at the end of a bot message, e.g. [[shop:card id=boots lang=en]],
    into interactive widgets inside the Landbot v4 web chat. Distilled from four production experiments (retos 16-19).
    You write: your data, your labels and one function per widget. The runtime does the rest:
@@ -364,7 +364,9 @@
     function settle() { o.classList.remove('is-loading'); o.removeAttribute('aria-busy'); var s = o.querySelector('.lbw-skel'); if (s) s.remove(); }
     function gone(why) { drop((o.getAttribute('data-tag') || 'widget') + ' (' + why + ')'); o.remove(); }
     Promise.resolve(promise).then(function (data) {
+      var hostMsg = o.closest && o.closest('[data-lb-part="message"]'), near = null; try { var sc1 = hostMsg && scroller(hostMsg); near = sc1 ? atEnd(sc1, 240) : null; } catch (e) {}
       settle(); var r; try { r = fill(data); } catch (e) { return gone('error: ' + e.message); }
+      if (r !== false && hostMsg) reveal(hostMsg, near);   // a card that grew from its skeleton
       if (r === false) gone('nothing to show');
     }, function (e) {
       settle(); if (fallback) { try { o.box.textContent = ''; fallback(e); drop((o.getAttribute('data-tag') || 'widget') + ' (data unavailable: fallback)'); return; } catch (x) {} }
@@ -421,6 +423,31 @@
     });
     return t;
   }
+  // v0.8.1.1 · the chat scrolls to the end when a message arrives, and the cards are added after that: a tall card (a
+  // finder, a compare table) landed below the fold, with only its first lines in view. Once the cards of the LAST message
+  // are in, the chat's scroller is moved so the reply starts at the top when it is taller than the window, or ends at the
+  // bottom when it fits. Only when the visitor was at the end of the chat (someone who scrolled up to read is left
+  // alone), measured after forms have drawn, and again when a card that loads its data grows. reveal: false turns it off.
+  function scroller(host) {
+    var sc = host && host.parentNode;
+    while (sc && sc !== document.body && sc.nodeType === 1) { var cs = getComputedStyle(sc); if (/(auto|scroll)/.test(cs.overflowY) && sc.scrollHeight > sc.clientHeight + 1) return sc; sc = sc.parentNode; }
+    return null;   // the page itself scrolling (a mock, a full-page embed) is left alone
+  }
+  function atEnd(sc, slack) { return !!sc && sc.scrollHeight - sc.scrollTop - sc.clientHeight <= (slack || 96); }
+  function reveal(host, was) {
+    if (cfg.reveal === false || !host || typeof requestAnimationFrame !== 'function') return;
+    if (was === false) return;                                            // the visitor wasn't at the end: don't move them
+    setTimeout(function () { requestAnimationFrame(function () {          // after a form's first update (it runs on a 0 ms timer)
+      try {
+        var all = document.querySelectorAll('[data-lb-part="message"]'); if (!all.length || all[all.length - 1] !== host) return;
+        var sc = scroller(host); if (!sc) return;
+        var a = host.getBoundingClientRect(), b = sc.getBoundingClientRect(), calm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (a.bottom <= b.bottom + 1 && a.top >= b.top - 1) return;                       // all in view already
+        var to = Math.max(0, a.height > b.height - 16 ? sc.scrollTop + (a.top - b.top) - 8 : sc.scrollTop + (a.bottom - b.bottom) + 12);
+        if (typeof sc.scrollTo === 'function') sc.scrollTo({ top: to, behavior: calm ? 'auto' : 'smooth' }); else sc.scrollTop = to;
+      } catch (e) {}
+    }); }, 0);
+  }
   function scan() {
     var re = tagRe(), sel = '[data-lb-part="message"][data-lb-author="bot"] [data-lb-part="message-text"]:not([data-lbw])';
     [].forEach.call(document.querySelectorAll(sel), function (box) {
@@ -463,8 +490,10 @@
       }
       if (made.length && !box.textContent.trim() && !box.querySelector(MEDIA)) { var top = box; while (top.parentNode && top.parentNode !== host && top.parentNode.children.length === 1) top = top.parentNode; top.setAttribute('data-lbw-empty', '1'); host.classList.add('lbw-only'); }
       made.sort(function (a, b) { return (a.getAttribute('data-last') ? 1 : 0) - (b.getAttribute('data-last') ? 1 : 0); });
+      var wasAtEnd = (function () { try { var sc0 = scroller(host); return sc0 ? atEnd(sc0) : null; } catch (e) { return null; } })();   // before the cards add height
       made.forEach(function (w) { host.appendChild(w); emit('render', { widget: w.getAttribute('data-widget'), tag: w.getAttribute('data-tag'), lang: w.getAttribute('lang'), el: w, message: host }); });
       if (made.length) host.classList.add('has-lbw');
+      if (made.length) reveal(host, wasAtEnd);
     });
     // one-shot groups nobody used go quiet once the visitor has written after them
     var all = document.querySelectorAll('[data-lb-part="message"]'), lastU = -1;
@@ -482,7 +511,7 @@
   }
 
   root.LBW = {
-    version: '0.8.1',
+    version: '0.8.1.1',
     // LBW.init({ prefix, langs, defaultLang, labels: {en:{…}}, links: ['https://shop.example/', 'tel:', 'mailto:', 'https://calendar.google.com/'], maxPerMessage, quietMs, timeZone: 'Europe/Madrid' })
     init: function (o) { for (var k in o) cfg[k] = o[k]; start(); return root.LBW; },
     // LBW.on('render', function (e) { e.widget, e.tag, e.lang, e.el, e.message }) · 'say' → { text, fields } · 'drop' → the reason
