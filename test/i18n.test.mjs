@@ -162,3 +162,17 @@ test('languages: rows of [label, value] may be a whole list per language; choice
   const bad = CFG(); bad.widgets.plan.steps[0].items.es = [['x', 'Tejado'], ['b', 'Jardín']];
   assert.match(errors(bad), /plan: steps\[0\]\.items has different keys in each language/);
 });
+
+test('0.7.8: ids= in a carousel tag shows only those slides, in that order; an unknown id draws nothing', () => {
+  const cfg = CFG(); cfg.widgets.list.items = [{ id: 'stripe', name: 'Stripe', kind: 'pay' }, { id: 'xero-sync', name: 'Xero', kind: 'acc' }, { id: 'old', name: 'Old', kind: 'pay', until: '10/11/2026' }, { id: 'paypal', name: 'PayPal', kind: 'pay' }];
+  cfg.widgets.list.filter = { by: 'kind' };
+  const c = chat(cfg);
+  assert.deepEqual(c.result.errors, []);
+  assert.deepEqual(texts(draw(c, 'a [[t:list ids=paypal,stripe lang=en]]'), '.lbw-name'), ['PayPal', 'Stripe']);
+  assert.deepEqual(texts(draw(c, 'b [[t:list ids=Xero-Sync kind=pay lang=en]]'), '.lbw-name'), ['Xero']);           // ids win over the filter; case and dashes forgiven
+  assert.equal(draw(c, 'c [[t:list ids=sage lang=en]]').widgets().length, 0);                                        // invented: nothing
+  assert.equal(draw(c, 'd [[t:list ids=old lang=en]]').widgets().length, 0);                                         // expired: nothing
+  assert.deepEqual(texts(draw(c, 'e [[t:list kind=pay lang=en]]'), '.lbw-name'), ['Stripe', 'PayPal']);              // no ids: as before
+  const bad = CFG(); bad.widgets.list.filter = { by: 'kind', param: 'ids' }; bad.widgets.list.items.forEach((it) => { it.kind = 'a'; });
+  assert.match(errors(bad), /can't be "ids"/);
+});

@@ -219,7 +219,7 @@
               if (isObj(w.filter) && isStr(w.filter.by) && !(isArr(w.filter.values) && w.filter.values.length && w.filter.values.every(isStr))) err('with a "source", filter.values lists the values the tag may carry (the rows aren\'t known yet)');
             }
           }
-          if (w.filter != null) { if (!isObj(w.filter) || !isStr(w.filter.by)) err('filter is { "by": a key of the items, "param": the tag key }'); else param(w.filter.param || w.filter.by, 'filter.param'); }
+          if (w.filter != null) { if (!isObj(w.filter) || !isStr(w.filter.by)) err('filter is { "by": a key of the items, "param": the tag key }'); else param(w.filter.param || w.filter.by, 'filter.param'); if ((w.filter.param || w.filter.by) === 'ids') err('filter.param can\'t be "ids": a carousel reads ids= as the slides to show'); }
           if (w.titles != null && !isObj(w.titles)) err('"titles" must be an object');
         }
 

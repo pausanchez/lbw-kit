@@ -230,9 +230,14 @@
       K.carousel(name, merge(pick(w, ['cls', 'lang', 'allowDup']), {
         select: function (p) {
           var k = by ? p.one(param, vals) : null, today = LBW.day.today();
+          // v0.7.8 · ids=a,b in the tag: only those slides, in that order ("does it work with X?"). Saved items only: a live
+          // source's ids aren't known when the tag is read. An ids value that names no slide draws nothing.
+          var want = !src && p.has('ids') ? p.list('ids', (w.items || []).map(function (r) { return String(r.id); }).filter(Boolean), w.max || 12) : null;
+          if (want && !want.length) return null;
           // an item with "until": "D/M/YYYY" is left out from the day after: a list that doesn't go stale
           var mk = function (items) {
-            var rows = (items || []).filter(function (r) { return (!k || r[by] === k) && (r.until == null || LBW.day.read(r.until) >= today); });
+            var rows = (items || []).filter(function (r) { return (want || !k || r[by] === k) && (r.until == null || LBW.day.read(r.until) >= today); });
+            if (want) rows = want.map(function (id) { return rows.filter(function (r) { return String(r.id) === id; })[0]; }).filter(Boolean);
             return { items: w.max ? rows.slice(0, w.max) : rows, kicker: w.kicker, title: (k && w.titles && own(w.titles, k) && w.titles[k]) || w.title, lead: w.lead, note: w.note,
               reply: reply(cfg, w.reply), links: actions(cfg, w.links) };
           };
