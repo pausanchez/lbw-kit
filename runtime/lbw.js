@@ -1,4 +1,4 @@
-/* lbw.js · Landbot AI Widgets runtime · v0.8.1.1
+/* lbw.js · Landbot AI Widgets runtime · v0.8.1.2
    Turns tags that an AI agent (or a flow message) writes at the end of a bot message, e.g. [[shop:card id=boots lang=en]],
    into interactive widgets inside the Landbot v4 web chat. Distilled from four production experiments (retos 16-19).
    You write: your data, your labels and one function per widget. The runtime does the rest:
@@ -364,7 +364,7 @@
     function settle() { o.classList.remove('is-loading'); o.removeAttribute('aria-busy'); var s = o.querySelector('.lbw-skel'); if (s) s.remove(); }
     function gone(why) { drop((o.getAttribute('data-tag') || 'widget') + ' (' + why + ')'); o.remove(); }
     Promise.resolve(promise).then(function (data) {
-      var hostMsg = o.closest && o.closest('[data-lb-part="message"]'), near = null; try { var sc1 = hostMsg && scroller(hostMsg); near = sc1 ? atEnd(sc1, 240) : null; } catch (e) {}
+      var hostMsg = o.closest && o.closest('[data-lb-part="message"]'), near = null; try { var sc1 = hostMsg && scroller(hostMsg); near = sc1 ? atEnd(sc1, 240, null) : null; } catch (e) {}
       settle(); var r; try { r = fill(data); } catch (e) { return gone('error: ' + e.message); }
       if (r !== false && hostMsg) reveal(hostMsg, near);   // a card that grew from its skeleton
       if (r === false) gone('nothing to show');
@@ -433,23 +433,60 @@
     while (sc && sc !== document.body && sc.nodeType === 1) { var cs = getComputedStyle(sc); if (/(auto|scroll)/.test(cs.overflowY) && sc.scrollHeight > sc.clientHeight + 1) return sc; sc = sc.parentNode; }
     return null;   // the page itself scrolling (a mock, a full-page embed) is left alone
   }
-  function atEnd(sc, slack) { return !!sc && sc.scrollHeight - sc.scrollTop - sc.clientHeight <= (slack || 96); }
+  function atEnd(sc, slack, host) { return !!sc && sc.scrollHeight - sc.scrollTop - sc.clientHeight - (host ? host.offsetHeight : 0) <= (slack || 96); }
+  var HOLD = null;   // the reveal in progress: { host, touched }
   function reveal(host, was) {
     if (cfg.reveal === false || !host || typeof requestAnimationFrame !== 'function') return;
-    if (was === false) return;                                            // the visitor wasn't at the end: don't move them
-    setTimeout(function () { requestAnimationFrame(function () {          // after a form's first update (it runs on a 0 ms timer)
+    if (host.__lbwTouched) return;                                        // the visitor already took over this reply
+    // the visitor wasn't at the end: don't move them. Two cases still count as "at the end": a reply that is still being
+    // placed, and a tall reply left where we put it (nobody scrolled up since: its end is below the fold by design)
+    var kept = HOLD && !HOLD.touched && (!HOLD.done || (HOLD.sc && HOLD.endTop != null && HOLD.sc.scrollTop >= HOLD.endTop - 2));
+    if (was === false && !kept) return;
+    if (HOLD && HOLD.host === host && !HOLD.done) return;                 // already being held (a card that filled later)
+    if (HOLD && HOLD.end) HOLD.end();
+    // v0.8.1.2 · one scroll was not enough on a live chat: the chat goes to the end again when the reply changes after it
+    // is drawn (a form's first result, photos loading, the chat's own late scroll). For 2.5 s the reply is put back each
+    // time it or the scroller moves away, at once (no animation: a smooth one loses the race), and the visitor's first
+    // touch, wheel, press or key ends it for good.
+    var sc = null, ro = null, timers = [], t0 = Date.now(), raf = 0, upT = 0, lastTop = null, me = { host: host, touched: false, done: false };
+    var EV = ['wheel', 'touchstart', 'pointerdown'];
+    function end(ev) {
+      if (me.done) return; me.done = true; if (ev && ev.type) { me.touched = true; host.__lbwTouched = true; }
+      if (upT) clearTimeout(upT); me.sc = sc; me.endTop = sc ? sc.scrollTop : null;
+      timers.forEach(clearTimeout); if (ro) { try { ro.disconnect(); } catch (e) {} }
+      if (sc) { EV.forEach(function (n) { sc.removeEventListener(n, end); }); sc.removeEventListener('scroll', later); }
+      document.removeEventListener('keydown', end, true);
+    }
+    // a scroll toward the END is the chat's own (it is undone); a scroll toward the start that we didn't make is the visitor's,
+    // whatever made it (a scrollbar, a key the page didn't report): it ends the hold
+    // (it must still be above after 150 ms: a chat that jumps to the top and then to the end isn't the visitor)
+    function later() {
+      if (me.done) return;
+      if (lastTop != null && sc && sc.scrollTop < lastTop - 0.5) { if (!upT) { var from = sc.scrollTop; upT = setTimeout(function () { upT = 0; if (me.done) return; if (sc.scrollTop < lastTop - 0.5 && sc.scrollTop <= from + 0.5) end({ type: 'scroll' }); else place(); }, 150); } return; }   // still above AND not on its way back down (a tween that overshoots)
+      if (upT) return;
+      if (raf) return; raf = requestAnimationFrame(function () { raf = 0; place(); });
+    }
+    function place() {
+      if (me.done || upT) return;                                         // not while an upward move is being judged
       try {
-        var all = document.querySelectorAll('[data-lb-part="message"]'); if (!all.length || all[all.length - 1] !== host) return;
-        var sc = scroller(host); if (!sc) return;
-        var a = host.getBoundingClientRect(), b = sc.getBoundingClientRect(), calm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        if (a.bottom <= b.bottom + 1 && a.top >= b.top - 1) return;                       // all in view already
-        var to = Math.max(0, a.height > b.height - 16 ? sc.scrollTop + (a.top - b.top) - 8 : sc.scrollTop + (a.bottom - b.bottom) + 12);
-        if (typeof sc.scrollTo === 'function') sc.scrollTo({ top: to, behavior: calm ? 'auto' : 'smooth' }); else sc.scrollTop = to;
+        var all = document.querySelectorAll('[data-lb-part="message"]'); if (!all.length || all[all.length - 1] !== host) return end();
+        if (!sc) { sc = scroller(host); if (!sc) return; EV.forEach(function (n) { sc.addEventListener(n, end, { passive: true }); }); sc.addEventListener('scroll', later, { passive: true }); document.addEventListener('keydown', end, true); }
+        var a = host.getBoundingClientRect(), b = sc.getBoundingClientRect();
+        var tall = a.height > b.height - 16, to = Math.max(0, Math.round(tall ? sc.scrollTop + (a.top - b.top) - 8 : sc.scrollTop + (a.bottom - b.bottom) + 12));
+        var off = tall ? Math.abs(a.top - b.top - 8) : (a.bottom > b.bottom + 1 || a.top < b.top - 1 ? 1e3 : 0);
+        if (off < 2 || Math.abs(to - sc.scrollTop) < 1) { if (lastTop == null) lastTop = sc.scrollTop; return; }   // where it should be (or as far as the scroller goes)
+        try { sc.scrollTo({ top: to, behavior: 'instant' }); } catch (e) { sc.scrollTop = to; }
+        lastTop = sc.scrollTop;
       } catch (e) {}
-    }); }, 0);
+    }
+    me.end = end; HOLD = me;
+    setTimeout(function () { requestAnimationFrame(place); }, 0);        // after a form's first update (it runs on a 0 ms timer)
+    [350, 800, 1400, 2100].forEach(function (ms) { timers.push(setTimeout(place, ms)); });
+    timers.push(setTimeout(end, 2500));
+    if (typeof ResizeObserver === 'function') { try { ro = new ResizeObserver(function () { if (Date.now() - t0 > 60) place(); }); ro.observe(host); } catch (e) { ro = null; } }
   }
   function scan() {
-    var re = tagRe(), sel = '[data-lb-part="message"][data-lb-author="bot"] [data-lb-part="message-text"]:not([data-lbw])';
+    var re = tagRe(), sel = '[data-lb-part="message"][data-lb-author="bot"] [data-lb-part="message-text"]:not([data-lbw])', passWas;
     [].forEach.call(document.querySelectorAll(sel), function (box) {
       if (box.textContent.indexOf('[[') < 0) return;
       box.setAttribute('data-lbw', '1');
@@ -490,7 +527,11 @@
       }
       if (made.length && !box.textContent.trim() && !box.querySelector(MEDIA)) { var top = box; while (top.parentNode && top.parentNode !== host && top.parentNode.children.length === 1) top = top.parentNode; top.setAttribute('data-lbw-empty', '1'); host.classList.add('lbw-only'); }
       made.sort(function (a, b) { return (a.getAttribute('data-last') ? 1 : 0) - (b.getAttribute('data-last') ? 1 : 0); });
-      var wasAtEnd = (function () { try { var sc0 = scroller(host); return sc0 ? atEnd(sc0) : null; } catch (e) { return null; } })();   // before the cards add height
+      // measured once per pass, before any card adds height: on a chat that loads with its history every message is
+      // scanned in one go, and only the last one is revealed. The message's own text doesn't count against "at the end"
+      // (a chat that scrolls a frame late, or smoothly, hasn't reached the end yet when the text is already in).
+      if (passWas === undefined) passWas = (function () { try { var ms = document.querySelectorAll('[data-lb-part="message"]'), lastM = ms[ms.length - 1], sc0 = lastM && scroller(lastM); return sc0 ? atEnd(sc0, 96, lastM) : null; } catch (e) { return null; } })();
+      var wasAtEnd = passWas;
       made.forEach(function (w) { host.appendChild(w); emit('render', { widget: w.getAttribute('data-widget'), tag: w.getAttribute('data-tag'), lang: w.getAttribute('lang'), el: w, message: host }); });
       if (made.length) host.classList.add('has-lbw');
       if (made.length) reveal(host, wasAtEnd);
@@ -511,7 +552,7 @@
   }
 
   root.LBW = {
-    version: '0.8.1.1',
+    version: '0.8.1.2',
     // LBW.init({ prefix, langs, defaultLang, labels: {en:{…}}, links: ['https://shop.example/', 'tel:', 'mailto:', 'https://calendar.google.com/'], maxPerMessage, quietMs, timeZone: 'Europe/Madrid' })
     init: function (o) { for (var k in o) cfg[k] = o[k]; start(); return root.LBW; },
     // LBW.on('render', function (e) { e.widget, e.tag, e.lang, e.el, e.message }) · 'say' → { text, fields } · 'drop' → the reason

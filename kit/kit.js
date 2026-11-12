@@ -1,4 +1,4 @@
-/* AI Widgets kit v0.8.1.1 · on lbw.js v0.8.1.1 · the widgets every url-to-demo build rewrote, written once with options. Load it after lbw.js and before the
+/* AI Widgets kit v0.8.1.2 · on lbw.js v0.8.1.2 · the widgets every url-to-demo build rewrote, written once with options. Load it after lbw.js and before the
    client's widgets.js: custom_js = <script>lbw.js</script><script>kit.js</script><script>widgets.js</script>.
 
    Each maker registers a widget under the name you give it, from data you pass. Nothing here holds client facts.
@@ -337,7 +337,7 @@
   }
 
   // ── chips: next questions, last ─────────────────────────────────────────────────────────────────
-  // cfg = { cls, lang, max: 3, items: { key: [label, say] }, own: { key: 'widget' } (skip when that widget is in the reply),
+  // cfg = { cls, lang, max: 3, crowd: 2, items: { key: [label, say] }, own: { key: 'widget' } (skip when that widget is in the reply),
   //         carriedBy: { key: ['widget', …] } (skip when a card in the reply has the same button) }
   function chips(name, cfg) {
     var cls = cfg.cls || ('kit-' + name), keys = Object.keys(cfg.items);
@@ -347,6 +347,11 @@
       var g = U.once('lbw-chips'), tags = ctx.tags || [];
       var norm = function (x) { return String(x || '').replace(/[\s\u00a0]+/g, ' ').replace(/^[¿¡\s]+|[.!?…\s]+$/g, '').trim().toLowerCase(); }, offered = {};
       (ctx.others || []).forEach(function (w) { [].forEach.call(w.querySelectorAll('[data-say]'), function (b) { var k = norm(b.getAttribute('data-say')); if (k) offered[k] = 1; }); });
+      // v0.8.1.2 · a card with two actions of its own (a reply and a link) plus a row of chips was three rows of buttons in
+      // three styles. With `crowd` actions or more already under the message's cards (2 by default; 0 = never), chips stay out.
+      var crowd = cfg.crowd == null ? 2 : cfg.crowd, acts = 0;
+      (ctx.others || []).forEach(function (w) { [].forEach.call(w.querySelectorAll('.lbw-actions .lbw-pill'), function (b) { if (!b.closest('.lbw-slide') && !b.closest('.lbw-form')) acts++; }); });
+      if (crowd && acts >= crowd) return null;
       p.list('q', keys, cfg.max || 3).forEach(function (k) {
         var c = cfg.items[k]; if (c[1].toLowerCase() === ctx.prev) return;
         if (cfg.own && cfg.own[k] && tags.indexOf(cfg.own[k]) >= 0) return;
@@ -781,6 +786,6 @@
     });
   }
 
-  LBW.kit = { version: '0.8.1.1', dev: DEV, describe: describe, L: L, last: last, cards: cards, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent, compare: compare, season: season,
+  LBW.kit = { version: '0.8.1.2', dev: DEV, describe: describe, L: L, last: last, cards: cards, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent, compare: compare, season: season,
     h: { note: note, list: list, label: label, dup: dup, choice: choice, multiChoice: multiChoice, copyBox: copyBox, status: status, wa: wa, fill: fill, money: money, total: total, lightbox: lightbox, chart: chart, statusHead: statusHead } };
 })(typeof window !== 'undefined' ? window : this);

@@ -193,7 +193,7 @@ test('0.8.1: no blank last line and no empty bubble once the tags are gone', () 
 });
 
 test('0.8.1: chips leave out what a card of the same message already offers', () => {
-  const cfg = CFG(); cfg.widgets.chips = { type: 'chips', items: { plan: { en: ['Plan it', 'I want a plan'], es: ['Planificar', 'Quiero un plan'] }, more: { en: ['More', 'Tell me more'], es: ['Más', 'Cuéntame más'] } } };
+  const cfg = CFG(); cfg.widgets.chips = { type: 'chips', crowd: 0, items: { plan: { en: ['Plan it', 'I want a plan'], es: ['Planificar', 'Quiero un plan'] }, more: { en: ['More', 'Tell me more'], es: ['Más', 'Cuéntame más'] } } };
   const c = chat(cfg);
   assert.deepEqual(c.result.errors, []);
   const m = draw(c, 'Text [[t:info id=a lang=en]] [[t:chips q=plan,more lang=en]]');                                    // the info card has the "plan" reply
@@ -234,7 +234,7 @@ test('review 3: the clean-up removes only what held a tag: images, rules, cells 
 });
 
 test('review 3: chips written BEFORE the card still leave out what the card offers; a final full stop doesn\'t hide a repeat', () => {
-  const cfg = CFG(); cfg.widgets.chips = { type: 'chips', items: { plan: { en: ['Plan it', 'I want a plan.'], es: ['Planificar', 'Quiero un plan'] }, more: { en: ['More', 'Tell me more'], es: ['Más', 'Cuéntame más'] } } };
+  const cfg = CFG(); cfg.widgets.chips = { type: 'chips', crowd: 0, items: { plan: { en: ['Plan it', 'I want a plan.'], es: ['Planificar', 'Quiero un plan'] }, more: { en: ['More', 'Tell me more'], es: ['Más', 'Cuéntame más'] } } };
   const c = chat(cfg), m = draw(c, 'Text [[t:chips q=plan,more lang=en]] [[t:info id=a lang=en]]');
   assert.deepEqual(texts(m, '.kit-chips [data-say]'), ['More']);
   assert.deepEqual([...m.querySelectorAll('.lbw')].map((w) => w.getAttribute('data-widget')), ['info', 'chips']);   // and the chips sit last
@@ -277,4 +277,14 @@ test('review 4: closed → the days left and the whole next season, not a lone "
   const c = boot({ kit: true, scripts: ['kit/setup.js', 'kit/setup-check.js'] }); c.w.__lbwToday = '12/11/2026'; c.w.__lbwNow = '10:30'; c.w.LBW.kit.setup(JSON.parse(JSON.stringify(cfg)));
   const t = draw(c, 'x [[t:season lang=es]]').widgets()[0].textContent;
   assert.match(t, /Temporada/); assert.match(t, /19 mar.* 2027 – 14 nov.* 2027/); assert.ok(!/Cierra|Hasta el/.test(t));
+});
+
+// ── 0.8.1.2: what the second live critique found ──
+test('0.8.1.2: no chips row under a card that already has two actions of its own; "crowd": 0 keeps them', () => {
+  const mk = (crowd) => { const cfg = CFG(); cfg.widgets.chips = Object.assign({ type: 'chips', items: { more: { en: ['More', 'Tell me more'], es: ['Más', 'Cuéntame más'] } } }, crowd == null ? {} : { crowd }); return chat(cfg); };
+  let c = mk(); assert.deepEqual(c.result.errors, []);
+  assert.equal(draw(c, 'Text [[t:info id=a lang=en]] [[t:chips q=more lang=en]]').querySelector('.kit-chips'), null);        // the card has a reply and two links
+  assert.deepEqual(texts(draw(c, 'Text [[t:chips q=more lang=en]]'), '.kit-chips [data-say]'), ['More']);                   // alone: drawn
+  assert.deepEqual(texts(draw(c, 'Text [[t:list lang=en]] [[t:chips q=more lang=en]]'), '.kit-chips [data-say]'), ['More']); // a strip's own slide buttons don't count
+  c = mk(0); assert.deepEqual(texts(draw(c, 'Text [[t:info id=a lang=en]] [[t:chips q=more lang=en]]'), '.kit-chips [data-say]'), ['More']);
 });

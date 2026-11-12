@@ -170,7 +170,7 @@
       if (w.compact) o.compact = { label: w.compact.label, buttons: function () { return actions(cfg, w.compact.buttons); } };
       K.contact(name, o);
     },
-    chips: function (cfg, name, w, lang) { K.chips(name, pick(w, ['cls', 'lang', 'max', 'items', 'own', 'carriedBy'])); },
+    chips: function (cfg, name, w, lang) { K.chips(name, pick(w, ['cls', 'lang', 'max', 'crowd', 'items', 'own', 'carriedBy'])); },
     carousel: function (cfg, name, w, lang) {
       var by = w.filter && w.filter.by, param = (w.filter && w.filter.param) || by, vals = (w.filter && w.filter.values) ? w.filter.values.slice() : [], src = w.source;
       if (by) (w.items || []).forEach(function (r) { if (r[by] != null && vals.indexOf(r[by]) < 0) vals.push(r[by]); });

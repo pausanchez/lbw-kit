@@ -1,4 +1,4 @@
-/* lbw.css · base look for Landbot AI Widgets (v0.8.1.1)
+/* lbw.css · base look for Landbot AI Widgets (v0.8.1.2)
    The ChatKit-gallery language measured in retos 16-19: white cards, 18px radius, a hairline and a soft shadow; a small
    kicker above an 18px title; pill buttons (primary filled, secondary an inset ring) under the card. Re-skin it by
    overriding the variables below in your Custom CSS; keep the class names, the test harness reads some of them. */
@@ -62,10 +62,10 @@
 .lbw button:focus-visible, .lbw a:focus-visible, .lbw [tabindex]:focus-visible { outline: 2px solid var(--lbw-focus, var(--lbw-ink)); outline-offset: 2px; }
 /* three states that must not look alike (a live critique, v0.8.1.1): a live button has a ring or a fill; a DISABLED one a soft fill and no ring;
    an answer that can no longer be given (another was sent, or the visitor wrote after it) has no box at all: plain muted text */
-.lbw-once.is-done .lbw-pill:not(.is-sent), .lbw-once.is-stale .lbw-pill { opacity: 1; background: transparent !important; color: var(--lbw-muted) !important; box-shadow: none !important; cursor: default; }   /* same height, padding and font as before: older cards must not change size when the visitor writes */
+.lbw-once.is-done .lbw-pill:not(.is-sent), .lbw-once.is-stale .lbw-pill { opacity: 1; background: transparent !important; color: var(--lbw-muted) !important; box-shadow: none !important; cursor: default; font-weight: 500; }   /* same height, padding and font size as before: older cards must not change size when the visitor writes */
 .lbw-chips { display: flex; flex-wrap: wrap; gap: 8px; }
 /* toggles (multi-select) */
-.lbw-tog { min-height: 44px; padding: 9px 14px; border: 0; border-radius: var(--lbw-radius-pill); background: var(--lbw-pill-bg, #fff); box-shadow: inset 0 0 0 1px var(--lbw-ring); font: 500 13px/1.2 var(--lbw-font); color: var(--lbw-ink); cursor: pointer; }
+.lbw-tog { min-height: 44px; padding: 9px 14px; border: 0; border-radius: var(--lbw-radius-pill); background: var(--lbw-pill-bg, #fff); box-shadow: inset 0 0 0 1px var(--lbw-pill-ring, var(--lbw-ring)); font: 500 13px/1.2 var(--lbw-font); color: var(--lbw-ink); cursor: pointer; }
 .lbw-tog[aria-pressed="true"] { background: var(--lbw-tint); color: var(--lbw-ink); box-shadow: inset 0 0 0 2px var(--lbw-accent-text, var(--lbw-accent)); }   /* a selection: tint, ring and tick. The filled accent is for the card's one primary action */
 .lbw-tog[aria-pressed="true"] { padding-inline: 8px; }
 .lbw-tog[aria-pressed="true"]::before { content: "✓ "; white-space: pre; }

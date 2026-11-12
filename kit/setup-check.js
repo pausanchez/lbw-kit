@@ -15,7 +15,7 @@
     cards: 'type cls param items item kicker disclaimer single fallback pointsCls allowDup lang reply links',
     form: 'type cls lang kicker title cta note preset steps summary fields allowDup collapse',
     contact: 'type cls lang kicker title big rows hours note buttons buttonsWithSummary summary compact allowDup',
-    chips: 'type cls lang max items own carriedBy',
+    chips: 'type cls lang max items own carriedBy crowd',
     carousel: 'type cls lang allowDup items source filter kicker title titles lead note reply links max',
     calc: 'type cls lang kicker title cta state controls tables compute money result send notes links allowDup collapse',
     stats: 'type cls lang allowDup items item reply links',
@@ -175,6 +175,7 @@
         if (w.type === 'chips') {
           if (!isObj(w.items)) err('"items" must be an object of [label, sentence] by key'); else Object.keys(w.items).forEach(function (k) { if (!isPair(w.items[k])) err('items.' + k + ' is [label, sentence]'); });
           if (w.max != null && !(Number.isInteger(w.max) && w.max >= 1)) err('"max" must be a whole number, 1 or more');
+          if (w.crowd != null && !(typeof w.crowd === 'number' && w.crowd >= 0 && w.crowd % 1 === 0)) err('"crowd" is a whole number: with that many actions already under the message\'s cards the chips stay out (2 by default, 0 = never)');
           if (w.own != null && !isObj(w.own)) err('"own" must be an object');
           if (w.carriedBy != null && !isObj(w.carriedBy)) err('"carriedBy" must be an object'); else Object.keys(w.carriedBy || {}).forEach(function (k) { if (!isArr(w.carriedBy[k])) err('carriedBy.' + k + ' must be a list of widget names'); });
         }
