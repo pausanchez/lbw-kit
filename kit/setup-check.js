@@ -73,6 +73,17 @@
     ['langs', 'defaultLang'].forEach(function (k) { var v = cfg[k]; if (v != null && !(k === 'langs' ? isArr(v) && v.length && v.every(isStr) : isStr(v))) top('"' + k + '" must be ' + (k === 'langs' ? 'a list of language codes' : 'a language code')); });
     var acts = isObj(cfg.actions) ? cfg.actions : {}, reps = isObj(cfg.replies) ? cfg.replies : {};
 
+    // v0.8.1.5 · the fields a reply writes in Landbot: { field: value }, names as Landbot takes them (a-z, 0-9, _), values text
+    // keys: the placeholders its values may hold ({id}, {title}…); null: none (those widgets save their values as written)
+    function fieldsCheck(f, where, say, keys) {
+      if (f == null) return; if (!isObj(f) || !Object.keys(f).length) { say(where + ': the third element is the fields it saves, { "field": "value" }'); return; }
+      Object.keys(f).forEach(function (k) {
+        if (!/^[a-z0-9_]{1,100}$/.test(k)) say(where + ': field "' + k + '" must be a Landbot field name (a-z, 0-9, _)');
+        else if (['id', 'uuid', 'date_registred'].indexOf(k) >= 0) say(where + ': field "' + k + '" is Landbot\'s own and can\'t be written');
+        if (typeof f[k] !== 'string' && typeof f[k] !== 'number' && typeof f[k] !== 'boolean') say(where + ': the value of "' + k + '" must be text');
+        else String(f[k]).replace(/\{([A-Za-z0-9_]*)[^}]*\}/g, function (m, n) { if (!keys || keys.indexOf(n) < 0) say(where + ': "' + k + '" holds ' + m + (keys ? ', which isn\'t one of ' + keys.map(function (x) { return '{' + x + '}'; }).join(' ') : ': this widget saves its values as written, with no placeholders')); return m; });
+      });
+    }
     // an action, by name or written out: one kind, a label, and a link the allow-list lets through
     function act(a, say, where, templated) {
       var use = typeof a === 'string' ? a : isObj(a) ? a.use : null;
@@ -84,7 +95,7 @@
       if (r.icon != null && ICONS.indexOf(r.icon) < 0) say(where + ': icon "' + r.icon + '" is not one of the kit\'s icons. Known: ' + ICONS.join(', '));
       if (r.danger != null && typeof r.danger !== 'boolean') say(where + ': "danger" is true or false');
       if (r.danger === true && r.primary) say(where + ': "danger" and "primary" together: the primary is the card\'s one main action, never a destructive one');
-      if (r.reply) { if (!isPair(r.reply)) say(where + ': "reply" is [label, sentence]'); return; }
+      if (r.reply) { if (!isPair(r.reply)) say(where + ': "reply" is [label, sentence] or [label, sentence, { field: value }]'); else fieldsCheck(r.reply[2], where + '.reply', say, ['text', 'id', 'title']); return; }
       if (!isStr(r.label)) say(where + ': the action has no "label"');
       if (r.tel && links.indexOf('tel:') < 0) say(where + ': a tel action needs "tel:" in "links"');
       if (r.wa && !linkOK('https://wa.me/')) say(where + ': a wa action needs "https://wa.me/" in "links"');
@@ -94,7 +105,7 @@
       if (r.mail && !(typeof r.mail === 'string' && /^[^@\s?\/,;]+@[a-z0-9.-]+\.[a-z]{2,}$/i.test(r.mail))) say(where + ': "mail" is one plain address (a@b.co), with no subject or text');
     }
     Object.keys(acts).forEach(function (k) { act(acts[k], top, 'actions.' + k); });
-    Object.keys(reps).forEach(function (k) { if (!isPair(reps[k])) top('replies.' + k + ' is [label, sentence]'); });
+    Object.keys(reps).forEach(function (k) { if (!isPair(reps[k])) top('replies.' + k + ' is [label, sentence]'); else fieldsCheck(reps[k][2], 'replies.' + k, top, ['id', 'title', 'name', 'role']); });
     if (!isObj(cfg.widgets)) { top('"widgets" is missing'); return errs; }
 
     Object.keys(cfg.widgets).forEach(function (name) {
@@ -123,7 +134,7 @@
       function only(o, known, where) { Object.keys(o).forEach(function (k) { if (known.indexOf(k) < 0) err(where + ': unknown key "' + k + '"' + (k === 'links' || k === 'buttons' ? ' (buttons go on the widget; an item has one "link": [label, url])' : '') + '. Known: ' + known.join(', ')); }); }
       function list(l, where, each) { if (l == null) return []; if (!isArr(l)) { err(where + ' must be a list'); return []; } l.forEach(function (x, i) { each(x, where + '[' + i + ']'); }); return l; }
       function pairs(l, where) { list(l, where, function (x, at) { if (!isPair(x)) err(at + ' is [text, text]'); }); }
-      function rep(r, where) { if (r == null) return; if (typeof r === 'string') { if (!own(reps, r)) err(where + ': reply "' + r + '" is not in "replies"'); } else if (!isPair(r)) err(where + ' is a name in "replies" or [label, sentence]'); }
+      function rep(r, where, keys) { if (r == null) return; if (typeof r === 'string') { if (!own(reps, r)) err(where + ': reply "' + r + '" is not in "replies"'); } else if (!isPair(r)) err(where + ' is a name in "replies" or [label, sentence]'); else fieldsCheck(r[2], where, err, keys || null); }
       function param(v, where) { if (v != null && !WORD.test(v)) err(where + ' "' + v + '" must be lower-case (a tag\'s keys are read lower-cased)'); }
       // v0.8.1.4 · a status ({ text, tone }) or a badge ('text' or { text, tone }); the tone one of LBW.kit.h.tones
       function slideStatus(v, where) { if (v == null) return; if (!isObj(v) || !isStr(v.text)) { err(where + ' is { "text": "…", "tone": "…" } (or "ok": true)'); return; } only(v, ['text', 'tone', 'ok'], where); if (v.tone != null && TONES.indexOf(v.tone) < 0) err(where + '.tone "' + v.tone + '" is not a tone. Known: ' + TONES.join(', ')); }
@@ -142,7 +153,7 @@
         Object.keys(w).forEach(function (k) { if (known.indexOf(k) < 0) err('unknown option "' + k + '" for ' + w.type + '. Known: ' + known.join(', ')); });
         NEED[w.type].forEach(function (k) { if (w[k] == null) err('missing "' + k + '"'); });
         ['links', 'buttons', 'buttonsWithSummary', 'actions'].forEach(function (k) { list(w[k], k, function (a, at) { act(a, err, at, w.type === 'calc' && k === 'links'); }); });
-        rep(w.reply, 'reply');
+        rep(w.reply, 'reply', { cards: ['id', 'title'], stats: ['id', 'title'], people: ['id', 'name', 'role'] }[w.type] || null);
         strs(w, ['cls', 'lang', 'kicker', 'title', 'cta', 'note', 'text', 'big', 'sub', 'disclaimer', 'lead'], '');
         if (w.item != null && !isObj(w.item)) err('"item" must be an object');
 
@@ -153,7 +164,10 @@
           Object.keys(cs).forEach(function (id) { var it = cs[id]; if (!isObj(it) || !isStr(it.title)) { err('card "' + id + '" has no "title"'); return; } strs(it, ['kicker', 'who', 'line', 'note', 'pointsTitle'], id); only(it, ITEM.cards, id); toned(it.status, id + '.status', true); toned(it.badge, id + '.badge', false); url(it.link, id + '.link'); pairs(it.rows, id + '.rows'); list(it.points, id + '.points', function (x, at) { if (!isStr(x)) err(at + ' must be text'); }); });
           param(w.param, 'param'); if (w.fallback != null && !own(cs, w.fallback)) err('fallback "' + w.fallback + '" is not one of the items');
           // v0.8.1.4 · "status": { param, items: { key: { text, tone } } }: a status the tag names from a closed list (a flow's @{field})
-          if (w.status != null) { if (!isObj(w.status) || !isObj(w.status.items) || !Object.keys(w.status.items).length) err('"status" is { "param": "…", "items": { key: { "text", "tone" } } }'); else { if (!isStr(w.status.param)) err('status.param names the tag\'s key, as "estado"'); param(w.status.param, 'status.param'); if (w.status.param === (w.param || 'id')) err('status.param must differ from the card\'s own param'); only(w.status, ['param', 'items'], 'status'); Object.keys(w.status.items).forEach(function (k) { if (!WORD.test(k)) err('status.items key "' + k + '" must be a plain word (a-z, 0-9, _)'); toned(w.status.items[k], 'status.items.' + k, true); }); } }
+          if (w.status != null) { if (!isObj(w.status) || !isObj(w.status.items) || !Object.keys(w.status.items).length) err('"status" is { "param": "…", "items": { key: { "text", "tone" } } }'); else { if (!isStr(w.status.param)) err('status.param names the tag\'s key, as "estado"'); param(w.status.param, 'status.param'); if (w.status.param === (w.param || 'id')) err('status.param must differ from the card\'s own param'); only(w.status, ['param', 'items'], 'status'); Object.keys(w.status.items).forEach(function (k) { var si = w.status.items[k]; if (!WORD.test(k)) err('status.items key "' + k + '" must be a plain word (a-z, 0-9, _)');
+            // v0.8.1.5 · its own reply and links replace the card's while that status shows
+            var sv = isObj(si) ? pick(si, ['text', 'tone']) : si; toned(sv, 'status.items.' + k, true);
+            if (isObj(si)) { only(si, ['text', 'tone', 'reply', 'links'], 'status.items.' + k); if (si.reply != null) { rep(si.reply, 'status.items.' + k + '.reply', ['id', 'title']); var sr = reply({ replies: reps }, si.reply); if (isPair(sr)) { text(sr[0], 'status.items.' + k + '.reply', ['id', 'title'], [], []); text(sr[1], 'status.items.' + k + '.reply', ['id', 'title'], [], []); } } if (si.links != null) list(si.links, 'status.items.' + k + '.links', function (x, at) { act(x, err, at); }); } }); } }
           var r = reply({ replies: reps }, w.reply); if (isPair(r)) { text(r[0], 'reply', ['id', 'title'], [], []); text(r[1], 'reply', ['id', 'title'], [], []); }
         }
 

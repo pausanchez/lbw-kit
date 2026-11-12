@@ -8,7 +8,7 @@
 "Tu bici ya está. [[tn:repair id=revision estado=lista]]"
 ],
 [
-"repair-pieza",
+"repair-retraso",
 "Va con retraso. [[tn:repair id=revision estado=retraso]]"
 ],
 [
@@ -22,6 +22,10 @@
 [
 "booking",
 "Tu cita. [[tn:booking]]"
+],
+[
+"booking-anulada",
+"Tu cita queda anulada. [[tn:booking estado=anulada]]"
 ],
 [
 "contact",

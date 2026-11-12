@@ -1,4 +1,4 @@
-/* AI Widgets kit v0.8.1.4 · the kit-* classes, from the --lbw-* tokens only (set them in the demo's theme.css).
+/* AI Widgets kit v0.8.1.5 · the kit-* classes, from the --lbw-* tokens only (set them in the demo's theme.css).
    Order in custom_css: @imports, lbw.css, kit.css, the demo's theme.css, the chat skin. */
 .kit-note { margin: 10px 0 0; font-size: 12px; line-height: 17px; color: var(--lbw-muted); }
 .kit-note:not(.is-safe):not(.is-flag), .kit-line, .kit-desc { max-width: 62ch; }
@@ -48,8 +48,8 @@
 .kit-unit, .kit-list { font-size: 13px; color: var(--lbw-muted); }
 .kit-save { font-size: 12px; font-weight: 600; margin-top: 2px; }
 .kit-stock { margin-top: 4px; font-size: 12px; color: var(--lbw-muted); }
-.kit-stock.is-ok { color: var(--kit-ok-c); font-weight: 600; }
-.kit-stock.is-warn { color: var(--kit-warn-c); font-weight: 600; } .kit-stock.is-danger { color: var(--kit-danger-c); font-weight: 600; } .kit-stock.is-info { color: var(--kit-info-c); font-weight: 600; }
+.kit-stock.is-ok, .kit-stock.is-warn, .kit-stock.is-danger, .kit-stock.is-info { color: var(--lbw-ink); font-weight: 600; }   /* v0.8.1.5: the tone on the icon */
+.kit-stock.is-ok .kit-ico { color: var(--kit-ok-c); } .kit-stock.is-warn .kit-ico { color: var(--kit-warn-c); } .kit-stock.is-danger .kit-ico { color: var(--kit-danger-c); } .kit-stock.is-info .kit-ico { color: var(--kit-info-c); }
 .kit-stock.has-ico { display: flex; align-items: center; gap: 4px; } .kit-stock .kit-ico { width: 14px; height: 14px; }   /* v0.8.1.4: a slide's status takes a tone */
 .kit-desc { margin: 4px 0 8px; font-size: 13px; line-height: 18px; }
 .kit-out { margin-top: 12px; }
@@ -86,8 +86,8 @@
 /* v0.8.1.4 · tones, one set for status lines, badges and a slide's status. A theme (a dark chat) may set them on :root:
    --kit-ok / --kit-info / --kit-warn / --kit-danger (text and icon, each ≥ 4.5:1 on its soft fill and on the card) and
    --kit-ok-soft / --kit-info-soft / --kit-warn-soft / --kit-danger-soft (a badge's fill) */
-.kit-statusbar { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-size: 13px; line-height: 18px; font-weight: 600; color: var(--kit-ok-c); }
-.kit-statusbar.is-info { color: var(--kit-info-c); } .kit-statusbar.is-neutral { color: var(--lbw-ink); } .kit-statusbar.is-warn { color: var(--kit-warn-c); } .kit-statusbar.is-danger { color: var(--kit-danger-c); }
+.kit-statusbar { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-size: 13px; line-height: 18px; font-weight: 600; color: var(--lbw-ink); }   /* v0.8.1.5: the words in ink, the tone on the circle (a live critique: green text read as the accent, i.e. tappable) */
+.kit-statusbar-i { color: var(--kit-ok-c); } .kit-statusbar.is-info .kit-statusbar-i { color: var(--kit-info-c); } .kit-statusbar.is-neutral .kit-statusbar-i { color: var(--lbw-muted); } .kit-statusbar.is-warn .kit-statusbar-i { color: var(--kit-warn-c); } .kit-statusbar.is-danger .kit-statusbar-i { color: var(--kit-danger-c); }
 .kit-statusbar-i { width: 18px; height: 18px; border-radius: 50%; background: currentColor; display: grid; place-items: center; flex: none; }
 .kit-statusbar-i .kit-ico { width: 12px; height: 12px; color: var(--lbw-card, #fff); } .kit-statusbar-i .kit-ico svg { stroke-width: 3; }
 /* the tones as each widget sees them: a theme's --kit-* token, or the default mixed with the theme's ink (text) and card
@@ -165,7 +165,7 @@
 .lbw-pill.kit-person-b { min-height: 40px; padding: 4px 12px; font-size: 13px; flex: none; }
 /* consent */
 .lbw.kit-consent .lbw-box { text-align: center; }
-.kit-consent-i { display: grid; place-items: center; width: 52px; height: 52px; margin: 4px auto 10px; border-radius: 50%; background: var(--kit-ok-c); color: var(--lbw-card, #fff); }
+.kit-consent-i { display: grid; place-items: center; width: 52px; height: 52px; margin: 4px auto 10px; border-radius: 50%; background: var(--kit-ok-s); color: var(--kit-ok-c); }   /* v0.8.1.5: a soft fill: a filled circle in the accent read as a button */
 .kit-consent-i .kit-ico { width: 26px; height: 26px; } .kit-consent-i .kit-ico svg { stroke-width: 2.4; }   /* v0.8.1.4: an SVG, not an emoji */
 .kit-consent-t { margin: 0; font: 600 18px/24px var(--lbw-display); } .kit-consent-x { margin: 4px 0 0; font-size: 14px; line-height: 20px; color: var(--lbw-muted); }
 .kit-consent-b { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px; } .kit-consent-b .lbw-pill { width: 100%; min-height: 44px; justify-content: center; }

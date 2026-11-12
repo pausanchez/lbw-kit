@@ -8,8 +8,8 @@
   "actions": {
     "call": { "tel": "600 000 000", "cc": "34", "label": { "es": "Llamar", "en": "Call" }, "icon": "phone" },
     "mail": { "mail": "hola@tallernorte.example", "label": { "es": "Escribir", "en": "Email us" }, "icon": "mail" },
-    "book": { "reply": [{ "es": "Pedir cita", "en": "Book a slot" }, { "es": "Quiero pedir cita para el taller", "en": "I'd like to book a workshop slot" }], "icon": "calendar", "primary": true },
-    "cancel": { "reply": [{ "es": "Anular la cita", "en": "Cancel the booking" }, { "es": "Quiero anular mi cita", "en": "I want to cancel my booking" }], "danger": true }
+    "book": { "reply": [{ "es": "Pedir cita", "en": "Book a slot" }, { "es": "Quiero pedir cita para el taller", "en": "I'd like to book a workshop slot" }, { "estado": "pedida" }], "icon": "calendar", "primary": true },
+    "cancel": { "reply": [{ "es": "Anular la cita", "en": "Cancel the booking" }, { "es": "Quiero anular mi cita", "en": "I want to cancel my booking" }, { "estado": "anulada" }], "danger": true }
   },
 
   "widgets": {
@@ -18,12 +18,15 @@
       "status": { "param": "estado", "items": {
         "recibida": { "text": { "es": "Bici recibida en el taller", "en": "Bike received at the workshop" }, "tone": "info" },
         "pieza": { "text": { "es": "Esperando una pieza", "en": "Waiting for a part" }, "tone": "warn" },
-        "lista": { "text": { "es": "Lista para recoger", "en": "Ready to collect" }, "tone": "ok" },
-        "retraso": { "text": { "es": "La pieza no llega esta semana", "en": "The part won't arrive this week" }, "tone": "danger" } } },
+        "lista": { "text": { "es": "Lista para recoger", "en": "Ready to collect" }, "tone": "ok",
+          "links": [{ "reply": [{ "es": "Voy a recogerla", "en": "I'll collect it" }, { "es": "Voy a recoger la bici hoy", "en": "I'll collect the bike today" }, { "estado": "recogida" }], "icon": "check", "primary": true }] },
+        "recogida": { "text": { "es": "Recogida: gracias", "en": "Collected: thank you" }, "tone": "ok", "links": [] },
+        "retraso": { "text": { "es": "La pieza no llega esta semana", "en": "The part won't arrive this week" }, "tone": "warn",
+          "links": [{ "reply": [{ "es": "Avisadme cuando llegue", "en": "Tell me when it arrives" }, { "es": "Avisadme cuando llegue la pieza", "en": "Tell me when the part arrives" }, { "aviso_pieza": "si" }], "icon": "bell", "primary": true }] } } },
       "items": {
         "revision": { "title": { "es": "Revisión completa", "en": "Full service" }, "badge": { "text": { "es": "La más pedida", "en": "Most booked" }, "tone": "info" },
           "rows": [[{ "es": "Plazo", "en": "Time" }, { "es": "2 días", "en": "2 days" }], [{ "es": "Desde", "en": "From" }, "45 €"]] },
-        "pinchazo": { "title": { "es": "Pinchazo", "en": "Puncture" }, "badge": { "text": { "es": "Sin cita", "en": "No booking" }, "tone": "ok" },
+        "pinchazo": { "title": { "es": "Pinchazo", "en": "Puncture" }, "badge": { "text": { "es": "En 20 min", "en": "In 20 min" }, "tone": "ok" },
           "status": { "text": { "es": "Se arregla en el momento", "en": "Fixed while you wait" }, "tone": "ok" },
           "rows": [[{ "es": "Plazo", "en": "Time" }, { "es": "20 min", "en": "20 min" }], [{ "es": "Desde", "en": "From" }, "12 €"]] }
       }
@@ -31,6 +34,7 @@
 
     "booking": {
       "type": "cards", "kicker": { "es": "Tu cita", "en": "Your booking" }, "links": ["cancel"],
+      "status": { "param": "estado", "items": { "anulada": { "text": { "es": "Cita anulada", "en": "Booking cancelled" }, "tone": "danger", "links": ["book"] }, "pedida": { "text": { "es": "Cita pedida: te confirmamos la hora", "en": "Booking requested: we'll confirm the time" }, "tone": "info" } } },
       "item": { "title": { "es": "Martes 17, 10:00", "en": "Tuesday 17, 10:00" }, "status": { "text": { "es": "Cita confirmada", "en": "Booking confirmed" }, "tone": "ok" }, "rows": [[{ "es": "Servicio", "en": "Service" }, { "es": "Revisión completa", "en": "Full service" }]] }
     },
 

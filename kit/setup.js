@@ -102,16 +102,20 @@
     if (isObj(spec) && spec.use != null) { var acts = cfg.actions || {}; if (!own(acts, spec.use) || !isObj(acts[spec.use])) return null; var o = merge(acts[spec.use], spec); delete o.use; return o; }
     return isObj(spec) ? spec : null;
   }
-  function action(cfg, spec, text) {
+  function action(cfg, spec, text, extra) {   // extra: the card's own values for a reply's fields ({id}, {title})
     var a = resolve(cfg, spec); if (!a) return null; var cls = (a.primary ? 'is-primary' : '') + (a.danger ? ' is-danger' : ''), n = null;   // v0.8.1.4: "danger", "icon"
     if (a.tel) n = U.tel(a.label, a.tel, cls, a.cc);
     else if (a.wa) n = H.wa(a.label, a.wa, a.text == null ? '' : tpl(a.text, plain({ text: text || '' })), cls);
     else if (a.link) n = U.link(a.label, a.link, cls);
     else if (a.mail) n = U.link(a.label, 'mailto:' + a.mail, cls);
-    else if (a.reply) n = U.reply(a.reply[0], a.reply[1], { primary: !!a.primary, cls: a.danger ? 'is-danger' : '' });
+    else if (a.reply) n = U.reply(a.reply[0], a.reply[1], { primary: !!a.primary, cls: a.danger ? 'is-danger' : '', fields: fieldsOf(a.reply[2], plain(merge(extra, { text: text || '' }))) });
     return n && a.icon ? H.withIcon(n, a.icon) : n;
   }
-  function actions(cfg, list, text) { return (list || []).map(function (a) { return action(cfg, a, text); }); }
+  // v0.8.1.5 · a reply's third element: the Landbot fields it writes with its sentence ({ "estado": "anulada" }). Values are
+  // templates over the same scope as the sentence ({id}, {title}…), so a card's button can save which item it was.
+  // a value whose placeholders came out empty is left out: an empty string would wipe what Landbot already holds in that field
+  function fieldsOf(f, sc) { if (!isObj(f)) return undefined; var o = {}; Object.keys(f).forEach(function (k) { if (k === '__proto__' || f[k] == null) return; var raw = String(f[k]), v = tpl(raw, sc); if (v === '' && raw !== '') { LBW.drop('setup: field "' + k + '" left out: "' + raw + '" has nothing to fill it here'); return; } o[k] = v; }); return o; }
+  function actions(cfg, list, text, extra) { return (list || []).map(function (a) { return action(cfg, a, text, extra); }); }
   function reply(cfg, spec) { return typeof spec === 'string' ? (own(cfg.replies || {}, spec) ? cfg.replies[spec] : null) : spec || null; }
 
   // state from the tag, tables and compute lines, for review and chart (calc has its own, with steppers)
@@ -138,8 +142,10 @@
     cards: function (cfg, name, w, lang) {
       var o = pick(w, ['cls', 'param', 'items', 'kicker', 'disclaimer', 'single', 'fallback', 'pointsCls', 'allowDup', 'lang', 'status']), r = reply(cfg, w.reply);
       if (w.item) { o.items = { _: w.item }; o.single = true; }
-      if (r) o.reply = function (id, it) { var sc = plain({ id: id, title: it.title }); return [tpl(r[0], sc), tpl(r[1], sc)]; };
-      if (w.links) o.links = function () { return actions(cfg, w.links); };
+      // v0.8.1.5 · a status the tag names may bring its own "reply" and "links" (null or [] = none): they replace the card's
+      var sItem = function (sk) { return sk && isObj(w.status) && isObj(w.status.items) && own(w.status.items, sk) ? w.status.items[sk] : null; };
+      o.reply = function (id, it, ctx, sk) { var st = sItem(sk), rr = st && own(st, 'reply') ? reply(cfg, st.reply) : r; if (!rr) return null; var sc = plain({ id: id, title: it.title }); return [tpl(rr[0], sc), tpl(rr[1], sc), fieldsOf(rr[2], sc)]; };
+      o.links = function (id, it, ctx, sk) { var st = sItem(sk); return actions(cfg, st && own(st, 'links') ? st.links || [] : w.links, '', { id: id, title: it.title }); };
       K.cards(name, o);
     },
     form: function (cfg, name, w, lang) {
@@ -299,7 +305,7 @@
     stats: function (cfg, name, w, lang) {
       var o = pick(w, ['cls', 'lang', 'items', 'allowDup']), r = reply(cfg, w.reply);
       if (w.item) { o.items = { _: w.item }; o.single = true; }
-      if (r) o.reply = function (id, it) { var sc = plain({ id: id, title: it.title }); return [tpl(r[0], sc), tpl(r[1], sc)]; };
+      if (r) o.reply = function (id, it) { var sc = plain({ id: id, title: it.title }); return [tpl(r[0], sc), tpl(r[1], sc), fieldsOf(r[2], sc)]; };
       if (w.links) o.links = function () { return actions(cfg, w.links); };
       K.stats(name, o);
     },
@@ -307,7 +313,7 @@
       var o = pick(w, ['cls', 'lang', 'kicker', 'title', 'note', 'items', 'allowDup']), r = reply(cfg, w.reply), ids = Object.keys(w.items);
       // [[p:team who=ana,ben]] shows those; no `who` shows everyone; a `who` that names nobody known shows nothing
       if (w.filter) o.select = function (p) { var l = p.list(w.filter.param, ids, 4); return l.length ? l : p.has(w.filter.param) ? [] : ids; };
-      if (r) o.reply = function (id, x) { var sc = plain({ id: id, name: x.name, role: x.role }); return [tpl(r[0], sc), tpl(r[1], sc)]; };
+      if (r) o.reply = function (id, x) { var sc = plain({ id: id, name: x.name, role: x.role }); return [tpl(r[0], sc), tpl(r[1], sc), fieldsOf(r[2], sc)]; };
       K.people(name, o);
     },
     consent: function (cfg, name, w, lang) { K.consent(name, pick(w, ['cls', 'lang', 'icon', 'title', 'text', 'yes', 'no', 'link', 'allowDup'])); },
@@ -396,7 +402,7 @@
   function isText(v) { return typeof v === 'string' || isArr(v); }
   // the copy of x for one language. L = { lang, langs, dflt }; rep collects [path, problem] when given (check)
   function loc(x, L, path, asMap, rep) {
-    if (isArr(x)) { var fieldsAt = /\.(yes|no)$/.test(path) ? 2 : -1; return x.map(function (y, i) { return loc(y, L, path + '[' + i + ']', i === fieldsAt, rep); }); }
+    if (isArr(x)) { var fieldsAt = /\.(yes|no|reply|discard)$|^replies\.[^.\[]+$/.test(path) ? 2 : -1;   /* v0.8.1.5: a reply's fields are a map, even keyed "en" */ return x.map(function (y, i) { return loc(y, L, path + '[' + i + ']', i === fieldsAt, rep); }); }
     if (!isObj(x)) return x;
     var ks = Object.keys(x);
     if (!asMap && ks.length && ks.every(function (k) { return /^[a-z]{2}(-[a-z]{2})?$/i.test(k); }) && ks.some(function (k) { return L.langs.indexOf(k) >= 0; })) {

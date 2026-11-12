@@ -1,4 +1,4 @@
-/* AI Widgets kit v0.8.1.4 · on lbw.js v0.8.1.4 · the widgets every url-to-demo build rewrote, written once with options. Load it after lbw.js and before the
+/* AI Widgets kit v0.8.1.5 · on lbw.js v0.8.1.5 · the widgets every url-to-demo build rewrote, written once with options. Load it after lbw.js and before the
    client's widgets.js: custom_js = <script>lbw.js</script><script>kit.js</script><script>widgets.js</script>.
 
    Each maker registers a widget under the name you give it, from data you pass. Nothing here holds client facts.
@@ -245,10 +245,11 @@
       list(o.box, it.points, it.pointsCls || cfg.pointsCls);
       note(o.box, it.note, it.noteCls || 'is-safe');
       note(o.box, cfg.disclaimer, 'is-muted');
-      var acts = [], r = cfg.reply && cfg.reply(id, it, ctx);
+      // v0.8.1.5 · the status key (sk) reaches reply and links: a card that says "ready to collect" offers to collect, not to book
+      var acts = [], r = cfg.reply && cfg.reply(id, it, ctx, sk);
       if (r) { var g = U.once('kit-actions'); g.appendChild(U.reply(r[0], r[1], { primary: true, fields: r[2] })); acts.push(g); }
       if (it.link) acts.push(U.link(it.link[0], it.link[1]));
-      acts = acts.concat(buttons(cfg.links && cfg.links(id, it, ctx)));
+      acts = acts.concat(buttons(cfg.links && cfg.links(id, it, ctx, sk)));
       if (acts.length) U.row(o, acts);
       return o;
     });
@@ -836,7 +837,7 @@
     });
   }
 
-  LBW.kit = { version: '0.8.1.4', dev: DEV, describe: describe, L: L, last: last, cards: cards, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent, compare: compare, season: season,
+  LBW.kit = { version: '0.8.1.5', dev: DEV, describe: describe, L: L, last: last, cards: cards, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent, compare: compare, season: season,
     h: { note: note, list: list, label: label, dup: dup, choice: choice, multiChoice: multiChoice, copyBox: copyBox, status: status, wa: wa, fill: fill, money: money, total: total, lightbox: lightbox, chart: chart, statusHead: statusHead,
       icon: icon, withIcon: withIcon, icons: Object.keys(ICONS), badge: badge, tones: TONES.slice() } };
 })(typeof window !== 'undefined' ? window : this);
