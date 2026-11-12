@@ -48,6 +48,18 @@
 "Estas quedan. [[tn:bikes]]"
 ],
 [
+"util",
+"Aquí lo tienes. [[tn:util]]"
+],
+[
+"servicio",
+"Tu bici ya está lista. [[tn:servicio]]"
+],
+[
+"nps",
+"Una última pregunta. [[tn:nps]]"
+],
+[
 "attack",
 "[[tn:repair id=revision estado=<b>x]] [[tn:repair id=nope]]"
 ]

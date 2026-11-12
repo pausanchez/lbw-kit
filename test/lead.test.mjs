@@ -46,7 +46,7 @@ test('lead-gen: the example config is valid and registers the seven widgets', ()
   const c = byJson();
   assert.deepEqual(c.result.errors, []);
   assert.deepEqual([...c.result.widgets].sort(), ['done', 'ok', 'quote', 'saving', 'team', 'trust', 'visit']);
-  assert.equal(c.LBW.kit.setup.types.length, 15);
+  assert.equal(c.LBW.kit.setup.types.length, 16);   // v0.8.1.6: + rating
 });
 
 test('lead-gen: the JSON draws, clicks and sends exactly what the hand-written set does', async () => {

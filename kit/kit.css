@@ -1,4 +1,4 @@
-/* AI Widgets kit v0.8.1.5 · the kit-* classes, from the --lbw-* tokens only (set them in the demo's theme.css).
+/* AI Widgets kit v0.8.1.6 · the kit-* classes, from the --lbw-* tokens only (set them in the demo's theme.css).
    Order in custom_css: @imports, lbw.css, kit.css, the demo's theme.css, the chat skin. */
 .kit-note { margin: 10px 0 0; font-size: 12px; line-height: 17px; color: var(--lbw-muted); }
 .kit-note:not(.is-safe):not(.is-flag), .kit-line, .kit-desc { max-width: 62ch; }
@@ -187,3 +187,23 @@
 .kit-note.kit-cmp-same { color: var(--lbw-ink); white-space: pre-line; }   /* one equal row per line */
 .kit-cmp-row.is-key .kit-cmp-cell { font-weight: 600; }   /* a row that must stay in the table even when equal (a deal-breaker: pets) */
 .kit-big { overflow-wrap: anywhere; }   /* an email breaks where it must; a phone is kept whole by no-break spaces (kit.js) */
+/* v0.8.1.6 · rating: thumbs, stars or a scale. Every target 44 px; a scale of 11 wraps to two rows on a phone */
+.kit-rate { display: grid; gap: 6px; margin-top: 10px; }
+.kit-rate.is-thumbs { grid-template-columns: 1fr 1fr; }
+.kit-rate.is-scale { gap: 4px; grid-template-columns: repeat(var(--kit-cols, 6), minmax(0, 1fr)); }   /* 0–10 is 6 + 5 on a phone, never a lone 10 */
+@container lbw (min-width: 520px) { .kit-rate.is-scale { grid-template-columns: repeat(var(--kit-n, 11), minmax(0, 1fr)); } }   /* one row where it fits */
+.kit-rate.is-stars { display: flex; gap: 2px; }
+.kit-rate .lbw-pill.kit-rate-b { min-width: 44px; padding-inline: 0; }
+.kit-rate.is-thumbs .lbw-pill.kit-rate-b { padding-inline: 12px; }
+.kit-rate.is-thumbs .is-down .kit-ico svg { transform: rotate(180deg); }
+.kit-rate.is-stars .lbw-pill.kit-rate-b { width: 44px; background: transparent; box-shadow: none; }
+.kit-rate.is-stars .kit-ico { width: 30px; height: 30px; }
+.kit-rate.is-stars .kit-rate-b.is-hot .kit-ico svg, .kit-rate .kit-rate-b.is-on .kit-ico svg { fill: currentColor; }
+.kit-rate .lbw-pill.kit-rate-b.is-sent::before, .kit-rate .lbw-pill.kit-rate-b.is-on::before { content: none; }   /* no ✓: the marked value says it was sent */
+.kit-rate.is-rated .lbw-pill.kit-rate-b.is-on { color: var(--lbw-accent-text, var(--lbw-accent)) !important; background: var(--lbw-tint) !important; box-shadow: inset 0 0 0 1.5px var(--lbw-accent-text, var(--lbw-accent)) !important; font-weight: 700; }
+.kit-rate.is-rated.is-stars .lbw-pill.kit-rate-b.is-on { background: transparent !important; box-shadow: none !important; }
+.kit-rate.is-rated.is-stars .lbw-pill.kit-rate-b.is-on .kit-ico { color: var(--lbw-accent-text, var(--lbw-accent)) !important; }   /* only the chosen ones: the rest go quiet like any used button */
+.kit-rate.is-rated .lbw-pill.kit-rate-b.is-on .kit-ico { display: inline-flex; }   /* the icon stays: it is the value, not a "send" icon */
+.kit-rate.is-rated .lbw-pill.kit-rate-b.is-on .kit-ico svg { display: block; }
+.kit-rate.is-rated .lbw-pill.kit-rate-b.is-on .kit-ico::before { content: none; }
+.kit-rate-ends { display: flex; justify-content: space-between; gap: 12px; margin-top: 6px; font-size: 12px; line-height: 16px; color: var(--lbw-muted); }

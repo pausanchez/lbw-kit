@@ -11,7 +11,7 @@
 
   // v0.8.1.4 · the kit's icon and tone names, here too: the command-line checker runs without kit.js (scripts/lib.mjs).
   // test/status.test.mjs keeps them equal to LBW.kit.h.icons and LBW.kit.h.tones.
-  var ICONS = 'check x info alert phone mail chat calendar clock pin external star user shield bell doc'.split(' '), TONES = 'neutral ok info warn danger'.split(' ');
+  var ICONS = 'check x info alert phone mail chat calendar clock pin external star user shield bell doc thumb'.split(' '), TONES = 'neutral ok info warn danger'.split(' ');
   K.setup._.icons = ICONS; K.setup._.tones = TONES;
   // ── checking a config: every problem as a sentence, nothing drawn, never a throw ─────────────────
   var TOP = '$schema version prefix langs defaultLang timeZone maxPerMessage links labels quietMs maxWaitMs reveal actions replies widgets'.split(' ');
@@ -30,12 +30,13 @@
     review: 'type cls lang kicker title cta note collapse allowDup state tables compute money lines total discard send',
     chart: 'type cls lang kicker title sub note links allowDup kind height state tables compute money x series y mark summary',
     compare: 'type cls lang kicker title titles param items rows min max empty note same allowDup',
-    season: 'type cls lang kicker ranges words rows note reply links allowDup'
+    season: 'type cls lang kicker ranges words rows note reply links allowDup',
+    rating: 'type cls lang kicker title text kind min max labels bands send note allowDup'
   };
   var ITEM = { cards: 'kicker title who line points pointsCls pointsTitle rows note noteCls link status badge'.split(' '), stats: 'kicker title stats source'.split(' '), people: 'name role img note'.split(' '),
     slide: 'id img badge kicker name sub price save status desc reply link gallery until'.split(' '), compare: 'name values reply link'.split(' ') };
   var NEED = { cards: [], form: ['steps', 'summary', 'cta'], contact: ['title'], chips: ['items'], carousel: [], calc: ['state', 'controls', 'result', 'send', 'cta'],
-    stats: [], people: ['items'], consent: ['title', 'yes', 'no'], slots: ['cta', 'say'], confirm: ['form', 'title'], review: ['state', 'lines', 'send', 'cta'], chart: ['title', 'x', 'series'], compare: ['items', 'rows'], season: ['ranges'] };
+    stats: [], people: ['items'], consent: ['title', 'yes', 'no'], slots: ['cta', 'say'], confirm: ['form', 'title'], review: ['state', 'lines', 'send', 'cta'], chart: ['title', 'x', 'series'], compare: ['items', 'rows'], season: ['ranges'], rating: ['title', 'send'] };
   // check every language's copy; a problem that every language has is reported once, the others with their language
   function check(cfg) {
     if (!isObj(cfg)) return check1(cfg);
@@ -385,6 +386,25 @@
           var pr = reply({ replies: reps }, w.reply); if (isPair(pr)) { text(pr[0], 'reply', ['id', 'name', 'role']); text(pr[1], 'reply', ['id', 'name', 'role']); }
         }
 
+        if (w.type === 'rating') {   // v0.8.1.6
+          var kd = w.kind == null ? 'stars' : w.kind;
+          if (['thumbs', 'stars', 'scale'].indexOf(kd) < 0) err('"kind" is thumbs, stars or scale');
+          ['min', 'max'].forEach(function (k) { if (w[k] != null && !(typeof w[k] === 'number' && w[k] === Math.floor(w[k]))) err('"' + k + '" must be a whole number'); });
+          if (kd === 'thumbs' && (w.min != null || w.max != null)) err('a thumbs rating has no "min" or "max": it is 1 (up) or 0 (down)');
+          if (kd === 'stars' && (w.min != null || (w.max != null && (w.max < 3 || w.max > 10)))) err('stars go from 1 to "max", 3 to 10 (5 by default); no "min"');
+          var smin = w.min == null ? 0 : w.min, smax = w.max == null ? 10 : w.max;
+          if (kd === 'scale' && !(smax > smin && smax - smin <= 10)) err('a scale holds 2 to 11 values (min ' + smin + ', max ' + smax + ')');
+          if (w.labels != null && !(isArr(w.labels) && w.labels.length === 2 && w.labels.every(function (x) { return typeof x === 'string'; }))) err('"labels" is [' + (kd === 'thumbs' ? 'no, yes' : 'low end, high end') + ']');
+          if (kd === 'stars' && w.labels != null) err('stars have no "labels"');
+          if (w.bands != null) { var prev = -Infinity; list(w.bands, 'bands', function (b, at) { if (!(isArr(b) && b.length === 2 && typeof b[0] === 'number' && isStr(b[1]))) { err(at + ' is [top value, name]'); return; } if (b[0] <= prev) err(at + ': bands go up'); prev = b[0]; }); }
+          // {label} only where it has words: thumbs, or a scale with labels (its ends); {band} only with bands that cover the range
+          var keysR = ['value', 'max'].concat(kd === 'thumbs' || (kd === 'scale' && w.labels != null) ? ['label'] : [], w.bands != null ? ['band'] : []);
+          if (isArr(w.bands) && w.bands.length) { var lastTop = (w.bands[w.bands.length - 1] || [])[0], rmax = kd === 'thumbs' ? 1 : kd === 'stars' ? (w.max || 5) : smax, rmin = kd === 'thumbs' ? 0 : kd === 'stars' ? 1 : smin;
+            if (typeof lastTop === 'number' && lastTop < rmax) err('bands: the last top (' + lastTop + ') is below the highest value (' + rmax + '): values above it would have no {band}');
+            if (typeof (w.bands[0] || [])[0] === 'number' && w.bands[0][0] < rmin) err('bands: the first top (' + w.bands[0][0] + ') is below the lowest value (' + rmin + ')'); }
+          if (!isObj(w.send) || !isStr(w.send.text)) err('"send" is { "text": "…{value}…", "fields": { field: "{value}" } }');
+          else { text(w.send.text, 'send.text', keysR, [], []); only(w.send, ['text', 'fields'], 'send'); if (w.send.fields != null) fieldsCheck(w.send.fields, 'send.fields', err, keysR); if (w.send.fields == null) err('send.fields is missing: a rating that saves nothing in Landbot is only a picture'); }
+        }
         if (w.type === 'consent') {
           if (!isStr(w.title)) err('"title" must be text');
           ['yes', 'no'].forEach(function (k) { var a = w[k]; if (a == null) return; if (!isPair(a)) err('"' + k + '" is [label, sentence, { field: value }]'); else if (a[2] != null && !isObj(a[2])) err(k + '[2] must be an object of fields'); });

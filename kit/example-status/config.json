@@ -61,8 +61,25 @@
     },
 
     "ok": {
-      "type": "consent", "icon": "shield", "title": { "es": "¿Te avisamos por SMS?", "en": "Shall we text you?" }, "text": { "es": "Solo cuando la bici esté lista. Es una demo: tu respuesta se guarda en un campo de prueba, no se envía nada.", "en": "Only when the bike is ready. A demo: your answer is saved in a test field; nothing is sent." },
+      "type": "consent", "icon": "shield", "title": { "es": "¿Te avisamos por SMS?", "en": "Shall we text you?" }, "text": { "es": "Solo cuando esté lista. Demo: tu respuesta se guarda en un campo de prueba.", "en": "Only when it is ready. A demo: your answer is saved in a test field." },
       "yes": [{ "es": "Sí", "en": "Yes" }, { "es": "Sí, avisadme por SMS", "en": "Yes, text me" }, { "tn_sms": "yes" }], "no": [{ "es": "No", "en": "No" }, { "es": "No, gracias", "en": "No, thanks" }, { "tn_sms": "no" }]
+    },
+
+    "util": {
+      "type": "rating", "kind": "thumbs", "title": { "es": "¿Te ha servido?", "en": "Was this useful?" }, "labels": [{ "es": "No", "en": "No" }, { "es": "Sí", "en": "Yes" }],
+      "send": { "text": { "es": "Valoro la respuesta: {label}", "en": "I rate the answer: {label}" }, "fields": { "tn_util": "{value}" } }
+    },
+
+    "servicio": {
+      "type": "rating", "kind": "stars", "kicker": { "es": "Tu reparación", "en": "Your repair" }, "title": { "es": "¿Qué tal el servicio?", "en": "How was the service?" },
+      "send": { "text": { "es": "Le doy {value} de {max} estrellas", "en": "I give it {value} of {max} stars" }, "fields": { "tn_estrellas": "{value}" } }
+    },
+
+    "nps": {
+      "type": "rating", "kind": "scale", "title": { "es": "¿Recomendarías el taller a un amigo?", "en": "Would you recommend us to a friend?" },
+      "labels": [{ "es": "Nada probable", "en": "Not likely" }, { "es": "Muy probable", "en": "Very likely" }],
+      "bands": [[6, "detractor"], [8, "pasivo"], [10, "promotor"]],
+      "send": { "text": { "es": "Mi nota: {value} de 10", "en": "My score: {value} of 10" }, "fields": { "tn_nps": "{value}", "tn_nps_grupo": "{band}" } }
     },
 
     "bikes": {

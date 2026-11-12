@@ -316,6 +316,21 @@
       if (r) o.reply = function (id, x) { var sc = plain({ id: id, name: x.name, role: x.role }); return [tpl(r[0], sc), tpl(r[1], sc), fieldsOf(r[2], sc)]; };
       K.people(name, o);
     },
+    // v0.8.1.6 · rating: "send": { text, fields } over {value}, {label} (thumbs, or a scale's end), {band} and {max};
+    // "bands": [[6, "detractor"], [8, "pasivo"], [10, "promotor"]] names the value's group (the first whose top it doesn't pass)
+    rating: function (cfg, name, w, lang) {
+      var o = pick(w, ['cls', 'lang', 'kicker', 'title', 'text', 'kind', 'min', 'max', 'labels', 'note', 'allowDup']), kind = w.kind || 'stars';
+      var top = kind === 'thumbs' ? 1 : kind === 'stars' ? Math.max(3, Math.min(10, +w.max || 5)) : (w.max == null ? 10 : +w.max);
+      o.say = function (v) {
+        var band = ''; (w.bands || []).some(function (b) { if (v <= +b[0]) { band = b[1]; return true; } return false; });
+        // {label}: a thumb's word (the kit's own Sí/No when no labels), or a scale's end label on its first and last value
+        var lbs = w.labels || [], lo = kind === 'scale' ? (w.min == null ? 0 : +w.min) : 1, kw = (K.L[lang] || K.L.en);
+        var label = kind === 'thumbs' ? (lbs[v] || (v ? kw.yes : kw.no)) : kind === 'scale' ? (v === lo ? lbs[0] || '' : v === top ? lbs[1] || '' : '') : '';
+        var sc = plain({ value: String(v), label: label, band: band, max: String(top) });
+        return [tpl(w.send.text, sc), fieldsOf(w.send.fields, sc) || {}];
+      };
+      K.rating(name, o);
+    },
     consent: function (cfg, name, w, lang) { K.consent(name, pick(w, ['cls', 'lang', 'icon', 'title', 'text', 'yes', 'no', 'link', 'allowDup'])); },
     slots: function (cfg, name, w, lang) {
       var o = pick(w, ['cls', 'lang', 'kicker', 'title', 'cta', 'note', 'sep', 'h12', 'collapse', 'allowDup', 'ics']), D = LBW.day;
