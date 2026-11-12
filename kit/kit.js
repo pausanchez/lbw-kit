@@ -1,4 +1,4 @@
-/* AI Widgets kit v0.8.1.11 · on lbw.js v0.8.1.11 · the widgets every url-to-demo build rewrote, written once with options. Load it after lbw.js and before the
+/* AI Widgets kit v0.8.1.12 · on lbw.js v0.8.1.12 · the widgets every url-to-demo build rewrote, written once with options. Load it after lbw.js and before the
    client's widgets.js: custom_js = <script>lbw.js</script><script>kit.js</script><script>widgets.js</script>.
 
    Each maker registers a widget under the name you give it, from data you pass. Nothing here holds client facts.
@@ -31,32 +31,32 @@
           open: 'Open now · until {t}', closed: 'Closed now · opens {d} at {t}', closedLong: 'Closed now', today: 'today', tomorrow: 'tomorrow',
           days: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'], localTime: 'Local time: {t}', sent: 'Sent', show: 'Show', hide: 'Hide', busy: 'Busy', pick: 'Pick a time', confirm: 'Confirm', yes: 'Yes', no: 'No',
           close: 'Close', prev: 'Previous photo', next: 'Next photo', photos: 'Photos', enlarge: 'Enlarge on the page', cSame: 'The same in all:', cSame2: 'The same in both:',
-          sOpen: 'Open today', sClosed: 'Closed today', sUntil: 'Open until', sOpens: 'Opens', sIn: 'Opens in', sCloses: 'Season', sDay: '1 day', sDays: '{n} days', sUnknown: 'The next dates aren’t published yet.' , rateOf: '{n} of {max}', tMore: 'See all {n} rows', tLess: 'See fewer', tPick: 'Choose', tPicked: 'Chosen' },
+          sOpen: 'Open today', sClosed: 'Closed today', sUntil: 'Open until', sOpens: 'Opens', sIn: 'Opens in', sCloses: 'Season', sDay: '1 day', sDays: '{n} days', sUnknown: 'The next dates aren’t published yet.' , rateOf: '{n} of {max}', tMore: 'See all {n} rows', tLess: 'See fewer', tPick: 'Choose', tPicked: 'Chosen', tTotal: 'Total' },
     es: { copy: 'Copiar', copied: 'Copiado ✓', select: 'Selecciona el texto y cópialo', summary: 'Tu resumen',
           open: 'Abierto ahora · hasta las {t}', closed: 'Cerrado ahora · abre {d} a las {t}', closedLong: 'Cerrado ahora', today: 'hoy', tomorrow: 'mañana',
           days: ['el domingo', 'el lunes', 'el martes', 'el miércoles', 'el jueves', 'el viernes', 'el sábado'], localTime: 'Hora local: {t}', sent: 'Enviado', show: 'Ver', hide: 'Ocultar', busy: 'Ocupado', pick: 'Elige una hora', confirm: 'Confirmar', yes: 'Sí', no: 'No',
           close: 'Cerrar', prev: 'Foto anterior', next: 'Foto siguiente', photos: 'Fotos', enlarge: 'Ampliar en la página', cSame: 'Igual en todas:', cSame2: 'Igual en las dos:',
-          sOpen: 'Abierto hoy', sClosed: 'Cerrado hoy', sUntil: 'Abierto hasta', sOpens: 'Abre', sIn: 'Abre en', sCloses: 'Temporada', sDay: '1 día', sDays: '{n} días', sUnknown: 'Las próximas fechas aún no están publicadas.' , rateOf: '{n} de {max}', tMore: 'Ver las {n} filas', tLess: 'Ver menos', tPick: 'Elegir', tPicked: 'Elegido' },
+          sOpen: 'Abierto hoy', sClosed: 'Cerrado hoy', sUntil: 'Abierto hasta', sOpens: 'Abre', sIn: 'Abre en', sCloses: 'Temporada', sDay: '1 día', sDays: '{n} días', sUnknown: 'Las próximas fechas aún no están publicadas.' , rateOf: '{n} de {max}', tMore: 'Ver las {n} filas', tLess: 'Ver menos', tPick: 'Elegir', tPicked: 'Elegido', tTotal: 'Total' },
     it: { copy: 'Copia', copied: 'Copiato ✓', select: 'Seleziona il testo e copialo', summary: 'Il tuo riepilogo',
           open: 'Aperto ora · fino alle {t}', closed: 'Chiuso ora · apre {d} alle {t}', closedLong: 'Chiuso ora', today: 'oggi', tomorrow: 'domani',
           days: ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato'], localTime: 'Ora locale: {t}', sent: 'Inviato', show: 'Mostra', hide: 'Nascondi', busy: 'Occupato', pick: 'Scegli un orario', confirm: 'Conferma', yes: 'Sì', no: 'No',
           close: 'Chiudi', prev: 'Foto precedente', next: 'Foto successiva', photos: 'Foto', enlarge: 'Ingrandisci nella pagina', cSame: 'Uguale in tutte:', cSame2: 'Uguale in entrambe:',
-          sOpen: 'Aperto oggi', sClosed: 'Chiuso oggi', sUntil: 'Aperto fino a', sOpens: 'Apre', sIn: 'Apre tra', sCloses: 'Stagione', sDay: '1 giorno', sDays: '{n} giorni', sUnknown: 'Le prossime date non sono ancora pubblicate.' , rateOf: '{n} su {max}', tMore: 'Vedi tutte le {n} righe', tLess: 'Vedi meno', tPick: 'Scegli', tPicked: 'Scelto' },
+          sOpen: 'Aperto oggi', sClosed: 'Chiuso oggi', sUntil: 'Aperto fino a', sOpens: 'Apre', sIn: 'Apre tra', sCloses: 'Stagione', sDay: '1 giorno', sDays: '{n} giorni', sUnknown: 'Le prossime date non sono ancora pubblicate.' , rateOf: '{n} su {max}', tMore: 'Vedi tutte le {n} righe', tLess: 'Vedi meno', tPick: 'Scegli', tPicked: 'Scelto', tTotal: 'Totale' },
     de: { copy: 'Kopieren', copied: 'Kopiert ✓', select: 'Text markieren und kopieren', summary: 'Deine Zusammenfassung',
           open: 'Jetzt geöffnet · bis {t} Uhr', closed: 'Jetzt geschlossen · öffnet {d} um {t} Uhr', closedLong: 'Jetzt geschlossen', today: 'heute', tomorrow: 'morgen',
           days: ['am Sonntag', 'am Montag', 'am Dienstag', 'am Mittwoch', 'am Donnerstag', 'am Freitag', 'am Samstag'], localTime: 'Ortszeit: {t}', sent: 'Gesendet', show: 'Anzeigen', hide: 'Ausblenden', busy: 'Belegt', pick: 'Uhrzeit wählen', confirm: 'Bestätigen', yes: 'Ja', no: 'Nein',
           close: 'Schließen', prev: 'Vorheriges Foto', next: 'Nächstes Foto', photos: 'Fotos', enlarge: 'Auf der Seite vergrößern', cSame: 'Bei allen gleich:', cSame2: 'Bei beiden gleich:',
-          sOpen: 'Heute geöffnet', sClosed: 'Heute geschlossen', sUntil: 'Geöffnet bis', sOpens: 'Öffnet', sIn: 'Öffnet in', sCloses: 'Saison', sDay: '1 Tag', sDays: '{n} Tagen', sUnknown: 'Die nächsten Termine sind noch nicht veröffentlicht.' , rateOf: '{n} von {max}', tMore: 'Alle {n} Zeilen anzeigen', tLess: 'Weniger anzeigen', tPick: 'Wählen', tPicked: 'Gewählt' },
+          sOpen: 'Heute geöffnet', sClosed: 'Heute geschlossen', sUntil: 'Geöffnet bis', sOpens: 'Öffnet', sIn: 'Öffnet in', sCloses: 'Saison', sDay: '1 Tag', sDays: '{n} Tagen', sUnknown: 'Die nächsten Termine sind noch nicht veröffentlicht.' , rateOf: '{n} von {max}', tMore: 'Alle {n} Zeilen anzeigen', tLess: 'Weniger anzeigen', tPick: 'Wählen', tPicked: 'Gewählt', tTotal: 'Gesamt' },
     fr: { copy: 'Copier', copied: 'Copié ✓', select: 'Sélectionnez le texte et copiez-le', summary: 'Votre résumé',
           open: 'Ouvert · jusqu’à {t}', closed: 'Fermé · ouvre {d} à {t}', closedLong: 'Fermé', today: 'aujourd’hui', tomorrow: 'demain',
           days: ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'], localTime: 'Heure locale : {t}', sent: 'Envoyé', show: 'Voir', hide: 'Masquer', busy: 'Occupé', pick: 'Choisissez une heure', confirm: 'Confirmer', yes: 'Oui', no: 'Non',
           close: 'Fermer', prev: 'Photo précédente', next: 'Photo suivante', photos: 'Photos', enlarge: 'Agrandir sur la page', cSame: 'Identique pour toutes :', cSame2: 'Identique pour les deux :',
-          sOpen: 'Ouvert aujourd’hui', sClosed: 'Fermé aujourd’hui', sUntil: 'Ouvert jusqu’au', sOpens: 'Ouverture', sIn: 'Ouvre dans', sCloses: 'Saison', sDay: '1 jour', sDays: '{n} jours', sUnknown: 'Les prochaines dates ne sont pas encore publiées.' , rateOf: '{n} sur {max}', tMore: 'Voir les {n} lignes', tLess: 'Voir moins', tPick: 'Choisir', tPicked: 'Choisi' },
+          sOpen: 'Ouvert aujourd’hui', sClosed: 'Fermé aujourd’hui', sUntil: 'Ouvert jusqu’au', sOpens: 'Ouverture', sIn: 'Ouvre dans', sCloses: 'Saison', sDay: '1 jour', sDays: '{n} jours', sUnknown: 'Les prochaines dates ne sont pas encore publiées.' , rateOf: '{n} sur {max}', tMore: 'Voir les {n} lignes', tLess: 'Voir moins', tPick: 'Choisir', tPicked: 'Choisi', tTotal: 'Total' },
     ca: { copy: 'Copia', copied: 'Copiat ✓', select: 'Selecciona el text i copia’l', summary: 'El teu resum',
           open: 'Obert ara · fins a les {t}', closed: 'Tancat ara · obre {d} a les {t}', closedLong: 'Tancat ara', today: 'avui', tomorrow: 'demà',
           days: ['diumenge', 'dilluns', 'dimarts', 'dimecres', 'dijous', 'divendres', 'dissabte'], localTime: 'Hora local: {t}', sent: 'Enviat', show: 'Mostra', hide: 'Amaga', busy: 'Ocupat', pick: 'Tria una hora', confirm: 'Confirma', yes: 'Sí', no: 'No',
           close: 'Tanca', prev: 'Foto anterior', next: 'Foto següent', photos: 'Fotos', enlarge: 'Amplia a la pàgina', cSame: 'Igual a totes:', cSame2: 'Igual a les dues:',
-          sOpen: 'Obert avui', sClosed: 'Tancat avui', sUntil: 'Obert fins al', sOpens: 'Obre', sIn: 'Obre d’aquí a', sCloses: 'Temporada', sDay: '1 dia', sDays: '{n} dies', sUnknown: 'Les properes dates encara no estan publicades.' , rateOf: '{n} de {max}', tMore: 'Veure les {n} files', tLess: 'Veure’n menys', tPick: 'Tria', tPicked: 'Triat' }
+          sOpen: 'Obert avui', sClosed: 'Tancat avui', sUntil: 'Obert fins al', sOpens: 'Obre', sIn: 'Obre d’aquí a', sCloses: 'Temporada', sDay: '1 dia', sDays: '{n} dies', sUnknown: 'Les properes dates encara no estan publicades.' , rateOf: '{n} de {max}', tMore: 'Veure les {n} files', tLess: 'Veure’n menys', tPick: 'Tria', tPicked: 'Triat', tTotal: 'Total' }
   };
   function words(lang) { return L[lang] || L.en; }
   function fill(s, o) { return String(s).replace(/\{(\w+)\}/g, function (m, k) { return o[k] == null ? '' : o[k]; }); }
@@ -690,22 +690,37 @@
   function statusHead(box, st) { if (!st || !st.text) return null; var b = statusLine(st); box.appendChild(b); return b; }
   // chart(box, spec): an inline SVG from numbers YOUR code computed (never the agent's). spec = { type: 'line' | 'area' | 'bar',
   //   x: ['1', '2', …], series: [{ label, values: [n…] }] (1 or 2; the 2nd is drawn in --kit-series-2), y: { format(v), ticks: 4 },
-  //   mark: { at: index, label } (a dashed vertical line, e.g. the break-even year), height: 170, summary: 'text for screen readers' }
+  //   mark: { at: index, label } (a dashed vertical line, e.g. the break-even year), height: 170, summary: 'text for screen readers',
+  //   stack: true (v0.8.1.12, bars only: 2–4 series piled per point, from 0 up, with each bar's total above it while there are 8 points or fewer) }
   // The values also go into a visually hidden list, so the numbers are readable without the picture.
   var NS = 'http://www.w3.org/2000/svg';
   function sv(tag, attrs, parent) { var n = document.createElementNS(NS, tag); for (var k in attrs) n.setAttribute(k, attrs[k]); if (parent) parent.appendChild(n); return n; }
   function chart(box, spec) {
     var W = 320, H = spec.height || 170, L = 44, R = 8, T = 10, B = 24, all = [];
-    spec.series.forEach(function (s) { all = all.concat(s.values); });
+    var stack = spec.type === 'bar' && !!spec.stack, tots = stack ? spec.x.map(function (_, i) { return spec.series.reduce(function (a, s) { return a + Math.max(0, s.values[i] || 0); }, 0); }) : null;
+    if (stack) all = tots.slice(); else spec.series.forEach(function (s) { all = all.concat(s.values); });
     var max = Math.max.apply(null, all.concat([0])), min = Math.min.apply(null, all.concat([0])), ticks = (spec.y && spec.y.ticks) || 4;
     var span = max - min || 1, stepRaw = span / ticks, mag = Math.pow(10, Math.floor(Math.log(stepRaw) / Math.LN10)), step = [1, 2, 2.5, 5, 10].map(function (k) { return k * mag; }).filter(function (k) { return k >= stepRaw; })[0];
     var lo = Math.floor(min / step) * step, hi = Math.ceil(max / step) * step, fmt = (spec.y && spec.y.format) || String, n = spec.x.length;
+    var labelAll = stack && n <= 6;   // past 6 points totals would touch (critique 0.8.1.12): then only the tallest is written
+    if (stack) { var Y0 = function (v) { return T + (hi - v) * (H - T - B) / (hi - lo || 1); }; if (Y0(max) - T < 16) hi += step; }   // room above the tallest total
     var X = function (i) { return spec.type === 'bar' ? L + (i + 0.5) * (W - L - R) / n : L + (n === 1 ? 0 : i * (W - L - R) / (n - 1)); };
     var Y = function (v) { return T + (hi - v) * (H - T - B) / (hi - lo || 1); };
     var wrap = el('figure', 'kit-chart'), svg = sv('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': spec.summary || '' }); wrap.appendChild(svg);
     for (var v = lo; v <= hi + 1e-9; v += step) { var y = Y(v); sv('line', { x1: L, x2: W - R, y1: y, y2: y, 'class': 'kit-grid' + (Math.abs(v) < 1e-9 ? ' is-zero' : '') }, svg); var t = sv('text', { x: L - 6, y: y + 4, 'text-anchor': 'end', 'class': 'kit-tick' }, svg); t.textContent = fmt(v); }
-    var every = Math.ceil(n / 6); spec.x.forEach(function (lab, i) { if (i % every && i !== n - 1) return; var t = sv('text', { x: X(i), y: H - 6, 'text-anchor': 'middle', 'class': 'kit-tick' }, svg); t.textContent = lab; });
-    spec.series.forEach(function (s, k) {
+    var every = spec.x.every(function (s) { return String(s).length <= 2; }) ? 1 : Math.ceil(n / 6);   // single letters: all twelve months fit
+    spec.x.forEach(function (lab, i) { if (i % every && !(i === n - 1 && (n - 1) % every === 0)) return; var t = sv('text', { x: X(i), y: H - 6, 'text-anchor': 'middle', 'class': 'kit-tick' }, svg); t.textContent = lab; });
+    if (stack) {   // one bar per point, the series piled bottom-up in their order; a 1 px gap between parts built into the
+      // geometry (a stroke ate thin parts and the baseline), parts never under 2 px, square corners (a stack has no single top)
+      var sw = Math.min(28, (W - L - R) / n * 0.62), base = spec.x.map(function () { return 0; });
+      spec.series.forEach(function (s, k) { s.values.forEach(function (val, i) { val = Math.max(0, val || 0); if (!val) return; var y0 = Y(base[i]), y1 = Y(base[i] + val), gap = base[i] > 0 ? 1 : 0; base[i] += val;
+        sv('rect', { x: X(i) - sw / 2, y: Math.min(y1, y0 - gap - 2), width: sw, height: Math.max(2, y0 - y1 - gap), 'class': 'kit-s' + (k + 1) + ' is-bar is-stack' }, svg); }); });
+      var top = tots.indexOf(max); tots.forEach(function (t, i) { if (!labelAll && i !== top) return; var tt = sv('text', { x: X(i), y: Y(t) - 5, 'text-anchor': 'middle', 'class': 'kit-stack-total' }, svg); tt.textContent = fmt(t); });
+      if (DEV) setTimeout(function () { var seen = {}; [].forEach.call(svg.querySelectorAll('.is-stack'), function (r) { var c = getComputedStyle(r).fill, k = r.getAttribute('class').split(' ')[0]; seen[k] = c; });
+        var rgb = function (c) { var m = /(\d+)\D+(\d+)\D+(\d+)/.exec(c || ''); return m ? [+m[1], +m[2], +m[3]] : null; }, ks = Object.keys(seen);
+        ks.forEach(function (a, i) { ks.slice(i + 1).forEach(function (b) { var p = rgb(seen[a]), q = rgb(seen[b]); if (p && q && Math.sqrt(Math.pow(p[0] - q[0], 2) + Math.pow(p[1] - q[1], 2) + Math.pow(p[2] - q[2], 2)) < 60) warn('chart', a + ' and ' + b + ' are nearly the same colour (' + seen[a] + ', ' + seen[b] + '): set --kit-series-n in the theme'); }); }); }, 0);
+    }
+    if (!stack) spec.series.forEach(function (s, k) {
       var c = 'kit-s' + (k + 1);
       if (spec.type === 'bar') { var bw = (W - L - R) / n / (spec.series.length + 1); s.values.forEach(function (val, i) { var x = X(i) - bw * spec.series.length / 2 + k * bw, y0 = Y(Math.max(0, lo)), y1 = Y(val); sv('rect', { x: x, y: Math.min(y0, y1), width: bw - 2, height: Math.abs(y0 - y1), rx: 2, 'class': c + ' is-bar' }, svg); }); return; }
       var d = s.values.map(function (val, i) { return (i ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(val).toFixed(1); }).join(' ');
@@ -715,7 +730,12 @@
     });
     if (spec.mark && spec.mark.at != null && spec.mark.at >= 0 && spec.mark.at < n) { var mx = X(spec.mark.at); sv('line', { x1: mx, x2: mx, y1: T, y2: H - B, 'class': 'kit-mark' }, svg); if (spec.mark.label) { var mt = sv('text', { x: Math.min(mx + 4, W - R - 2), y: T + 10, 'text-anchor': mx > W - 90 ? 'end' : 'start', 'class': 'kit-mark-l' }, svg); mt.textContent = spec.mark.label; } }
     if (spec.series.length > 1) { var lg = el('div', 'kit-legend'); spec.series.forEach(function (s, k) { var it = el('span', 'kit-legend-i'); it.appendChild(el('i', 'kit-s' + (k + 1))); it.appendChild(document.createTextNode(s.label)); lg.appendChild(it); }); wrap.appendChild(lg); }
-    var sr = el('ul', 'kit-sr'); spec.series.forEach(function (s) { s.values.forEach(function (val, i) { sr.appendChild(el('li', null, s.label + ' · ' + spec.x[i] + ': ' + fmt(val))); }); }); wrap.appendChild(sr);
+    var sr = el('ul', 'kit-sr');
+    if (stack) spec.x.forEach(function (x, i) { sr.appendChild(el('li', null, x + ': ' + words(spec.lang).tTotal + ' ' + fmt(tots[i]) + ' (' + spec.series.map(function (s) { return s.label + ' ' + fmt(s.values[i] || 0); }).join(', ') + ')')); });   // one line per point (critique 0.8.1.12)
+    else spec.series.forEach(function (s) { s.values.forEach(function (val, i) { sr.appendChild(el('li', null, s.label + ' · ' + spec.x[i] + ': ' + fmt(val))); }); });
+    if (!spec.summary) svg.setAttribute('aria-hidden', 'true');
+
+    wrap.appendChild(sr);
     box.appendChild(wrap); return wrap;
   }
 
@@ -819,7 +839,7 @@
       if (!cfg.allowDup && dup(ctx, cls)) return null;
       var spec = cfg.data(p, ctx); if (!spec || !spec.series || !spec.series.length) return null;
       var o = U.card(langOf(cfg, ctx), 'kit-chartcard ' + cls); U.head(o.box, cfg.kicker || '', cfg.title, cfg.sub ? el('span', 'kit-chart-sub', val(cfg.sub, p, ctx, spec)) : null);
-      chart(o.box, spec); note(o.box, val(cfg.note, p, ctx, spec), 'is-muted');
+      if (!spec.lang) spec.lang = langOf(cfg, ctx); chart(o.box, spec); note(o.box, val(cfg.note, p, ctx, spec), 'is-muted');
       var a = buttons(cfg.links && cfg.links(p, ctx, spec)); if (a.length) U.row(o, a);
       return o;
     });
@@ -977,7 +997,7 @@
     });
   }
 
-  LBW.kit = { version: '0.8.1.11', dev: DEV, describe: describe, L: L, last: last, cards: cards, table: table, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent, compare: compare, season: season, rating: rating,
+  LBW.kit = { version: '0.8.1.12', dev: DEV, describe: describe, L: L, last: last, cards: cards, table: table, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent, compare: compare, season: season, rating: rating,
     h: { note: note, list: list, label: label, dup: dup, choice: choice, multiChoice: multiChoice, copyBox: copyBox, status: status, wa: wa, fill: fill, money: money, total: total, lightbox: lightbox, chart: chart, statusHead: statusHead,
       icon: icon, withIcon: withIcon, icons: Object.keys(ICONS), badge: badge, tones: TONES.slice() } };
 })(typeof window !== 'undefined' ? window : this);

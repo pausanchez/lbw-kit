@@ -1,4 +1,4 @@
-/* AI Widgets kit v0.8.1.11 · the kit-* classes, from the --lbw-* tokens only (set them in the demo's theme.css).
+/* AI Widgets kit v0.8.1.12 · the kit-* classes, from the --lbw-* tokens only (set them in the demo's theme.css).
    Order in custom_css: @imports, lbw.css, kit.css, the demo's theme.css, the chat skin. */
 .kit-note { margin: 10px 0 0; font-size: 12px; line-height: 17px; color: var(--lbw-muted); }
 .kit-note:not(.is-safe):not(.is-flag), .kit-line, .kit-desc { max-width: 62ch; }
@@ -123,12 +123,20 @@
 .kit-grid { stroke: var(--lbw-line); stroke-width: 1; stroke-dasharray: 3 3; } .kit-grid.is-zero { stroke: var(--lbw-ring); stroke-dasharray: none; }
 .kit-tick { fill: var(--lbw-muted); font: 12px var(--lbw-font); font-variant-numeric: tabular-nums; }
 .kit-s1 { --c: var(--lbw-accent); } .kit-s2 { --c: var(--kit-series-2, #B26A00); }   /* was #E0A100: 2.3:1 on white */
+.kit-s3 { --c: var(--kit-series-3, #5EA3D6); } .kit-s4 { --c: var(--kit-series-4, #D6CFC2); }
+/* v0.8.1.12 · a stack's 3rd and 4th step down a lightness ladder (dark accent, orange, light blue, pale warm grey): four
+   mid-tones that each reach 3:1 on white end up the same lightness and can't be told apart (critique: teal and plum 1.10:1,
+   1.01:1 to a deuteranope). Neighbours differ in lightness and hue, with a 1 px gap; the numbers are text in the totals,
+   the legend and the screen-reader list. A brand whose accent is near one of them: set --kit-series-n (dev mode warns) */
+.is-bar.is-stack { shape-rendering: crispEdges; }
+.kit-stack-total { fill: var(--lbw-ink); font: 600 11px var(--lbw-font); font-variant-numeric: tabular-nums; }
+.kit-legend { flex-wrap: wrap; row-gap: 4px; }
 .is-line { fill: none; stroke: var(--c); stroke-width: 2.25; stroke-linejoin: round; stroke-linecap: round; }
 .is-area { fill: var(--c); opacity: .16; stroke: none; } .is-bar { fill: var(--c); } .is-end { fill: var(--c); stroke: var(--lbw-card); stroke-width: 2; }
 .kit-mark { stroke: var(--lbw-ink); stroke-width: 1; stroke-dasharray: 4 3; opacity: .55; } .kit-mark-l { fill: var(--lbw-ink); font: 600 12px var(--lbw-font); }
 .kit-legend { display: flex; gap: 14px; justify-content: center; margin-top: 4px; font-size: 12px; color: var(--lbw-muted); }
-.kit-legend-i { display: inline-flex; align-items: center; gap: 6px; } .kit-legend-i i { width: 10px; height: 10px; border-radius: 3px; background: var(--c); display: inline-block; }
-.kit-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: 0; padding: 0; }
+.kit-legend-i { display: inline-flex; align-items: center; gap: 6px; } .kit-legend-i i { width: 12px; height: 12px; border-radius: 3px; background: var(--c); display: inline-block; }
+.kit-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; margin: 0; padding: 0; }
 /* slots */
 .kit-slotlist { display: grid; grid-template-columns: repeat(auto-fill, minmax(136px, 1fr)); gap: 8px; margin-top: 12px; }
 .kit-slot { min-height: 44px; border-radius: var(--lbw-radius-in); border: 1px solid var(--lbw-ring); background: var(--lbw-card); color: var(--lbw-ink); font: 600 14px var(--lbw-font); font-variant-numeric: tabular-nums; cursor: pointer; }

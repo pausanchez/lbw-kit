@@ -29,7 +29,7 @@
     slots: 'type cls lang kicker title cta note sep h12 collapse allowDup ics days weekly say',
     confirm: 'type cls lang allowDup form status title rows steps note actions',
     review: 'type cls lang kicker title cta note collapse allowDup state tables compute money lines total discard send',
-    chart: 'type cls lang kicker title sub note links allowDup kind height state tables compute money x series y mark summary',
+    chart: 'type cls lang kicker title sub note links allowDup kind stack height state tables compute money x series y mark summary',
     compare: 'type cls lang kicker title titles param items rows min max empty note same primary allowDup',
     season: 'type cls lang kicker ranges words rows note reply links allowDup',
     rating: 'type cls lang kicker title text kind min max labels bands send note allowDup'
@@ -319,7 +319,12 @@
                 if (fkey && !(isStr(mp[fkey]) && /\{[A-Za-z0-9_.]+(\|text)?\}/.test(mp[fkey]))) err('source.map.' + fkey + ' is missing: the filter reads it from a column, as "{' + fkey + '}"');
                 if (mp.until != null && !isStr(cfg.timeZone)) err('source.map.until needs "timeZone" in the config (the day ends where the client is)');
                 if (mp.link != null) { if (!isPair(mp.link)) err('source.map.link is [label, "{column}"]'); else { col(mp.link[0], 'source.map.link'); col(mp.link[1], 'source.map.link'); } }
-                if (mp.img != null) { if (!(isObj(mp.img) && isStr(mp.img.src))) err('source.map.img is { "src": "{column}", "alt": text }'); else { only(mp.img, ['src', 'alt', 'width', 'height'], 'source.map.img'); col(mp.img.src, 'source.map.img.src'); if (mp.img.alt != null && !col(mp.img.alt, 'source.map.img.alt')) err('source.map.img.alt must be text'); } }
+                // v0.8.1.12 · { "photo": "set:{column}", "alt" }: the set is fixed, the file name comes from the row
+                if (mp.img != null && isObj(mp.img) && mp.img.photo != null) { only(mp.img, ['photo', 'alt'], 'source.map.img'); var pm = isStr(mp.img.photo) ? /^([a-z_][a-z0-9_]*):(.+)$/i.exec(mp.img.photo) : null;
+                  if (!pm) err('source.map.img.photo is "set:{column}", a set of "photos" then the column that holds the file name');
+                  else { if (!(isObj(cfg.photos) && own(cfg.photos, pm[1]))) err('source.map.img.photo: "' + pm[1] + ':" is not a set in "photos"'); if (/[{}]/.test(pm[1])) err('source.map.img.photo: the set is fixed, only the file name may be a {column}'); col(pm[2], 'source.map.img.photo'); }
+                  if (mp.img.alt != null && !col(mp.img.alt, 'source.map.img.alt')) err('source.map.img.alt must be text'); }
+                else if (mp.img != null) { if (!(isObj(mp.img) && isStr(mp.img.src))) err('source.map.img is { "src": "{column}", "alt": text } or { "photo": "set:{column}", "alt": text }'); else { only(mp.img, ['src', 'alt', 'width', 'height'], 'source.map.img'); col(mp.img.src, 'source.map.img.src'); if (mp.img.alt != null && !col(mp.img.alt, 'source.map.img.alt')) err('source.map.img.alt must be text'); } }
                 if (mp.price != null) { if (!(isObj(mp.price) && isStr(mp.price.now))) err('source.map.price is { "now": "{column}", "unit": text, "list": text }'); else { only(mp.price, ['now', 'unit', 'list'], 'source.map.price'); ['now', 'unit', 'list'].forEach(function (k) { if (mp.price[k] != null && !col(mp.price[k], 'source.map.price.' + k)) err('source.map.price.' + k + ' must be text'); }); } }
               }
               if (isObj(w.filter) && isStr(w.filter.by) && !(isArr(w.filter.values) && w.filter.values.length && w.filter.values.every(isStr))) err('with a "source", filter.values lists the values the tag may carry (the rows aren\'t known yet)');
@@ -401,7 +406,12 @@
               if (se.values != null) { if (!isArr(se.values) || !se.values.every(function (n) { return typeof n === 'number' && isFinite(n); })) err(at + '.values must be numbers'); else if (points != null && se.values.length !== points) err(at + '.values has ' + se.values.length + ' numbers for ' + points + ' points of x'); }
               else if (!isStr(se.value)) err(at + '.value must be a formula'); else formula(se.value, at + '.value', ['i']);
             }).length;
-            if (isArr(w.series) && (ns < 1 || ns > 2)) err('"series" holds one or two series');
+            if (w.stack != null && w.stack !== true && w.stack !== false) err('"stack" is true or false');
+            if (w.stack === true) {   // v0.8.1.12 · bars piled per point: 2 to 4 series, none below 0
+              if (w.kind !== 'bar') err('"stack" is for "kind": "bar"');
+              if (isArr(w.series) && (ns < 2 || ns > 4)) err('a stacked chart holds 2 to 4 series');
+              (isArr(w.series) ? w.series : []).forEach(function (se, k) { if (isObj(se) && isArr(se.values) && se.values.some(function (n) { return typeof n === 'number' && n < 0; })) err('series[' + k + '].values: a stacked chart has no value below 0'); });
+            } else if (isArr(w.series) && (ns < 1 || ns > 2)) err('"series" holds one or two series (three or four: "stack": true, with "kind": "bar")');
             if (w.y != null && !isObj(w.y)) err('"y" must be an object'); else if (isObj(w.y)) { if (w.y.ticks != null && !(Number.isInteger(w.y.ticks) && w.y.ticks >= 1 && w.y.ticks <= 10)) err('y.ticks is a whole number from 1 to 10'); strs(w.y, ['suffix'], 'y'); }
             if (w.height != null && !(typeof w.height === 'number' && w.height >= 100 && w.height <= 400)) err('"height" is a number from 100 to 400');
             if (w.mark != null) { if (!isObj(w.mark) || w.mark.at == null) err('mark is { "at": a point of x (a number or a formula), "label" }'); else if (typeof w.mark.at === 'string') formula(w.mark.at, 'mark.at', []); else if (!Number.isInteger(w.mark.at) || w.mark.at < 0 || (points != null && w.mark.at >= points)) err('mark.at is the position of a point of x, from 0' + (points != null ? ' to ' + (points - 1) : '') + ' (or a formula that gives it)'); strs(w.mark, ['label'], 'mark'); }

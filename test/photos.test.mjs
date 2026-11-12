@@ -65,3 +65,29 @@ test('photos: without the checker (the bundle a bot loads), a photo from an unkn
   assert.equal(m.querySelectorAll('.kit-slide img').length, 1);
   c.close();
 });
+
+test('photos 0.8.1.12: a person\'s img from a set is one URL (the smallest size); an unknown set is named', () => {
+  const ppl = { type: 'people', items: { ana: { name: 'Ana', role: 'Recepción', img: 'h:ana.jpg' }, ben: { name: 'Ben', role: 'Spa', img: 'zz:ben.jpg' } } };
+  const c = setup({ team: ppl });
+  const x = json(c.w.LBW.kit.setup._.photosIn(c.cfg)).widgets.team.items;
+  assert.equal(x.ana.img, 'https://img.example/gallery/S/ana.jpg'); assert.equal(x.ben.img, undefined);
+  assert.match(c.check(c.cfg).join('\n'), /team: ben\.img: "zz:" is not a set in "photos"/);
+  c.close();
+});
+
+test('photos 0.8.1.12: a live carousel maps { "photo": "set:{column}" } row by row; a row with a missing file has no photo', async () => {
+  const csv = 'id,name,foto\na,Doble,01_a.jpg\nb,Suite,\n';
+  const live = { type: 'carousel', items: [{ id: 'a', name: 'Doble' }], source: { csv: 'https://site.example/rooms.csv', map: { name: '{name}', img: { photo: 'h:{foto}', alt: '{name}' } } } };
+  const c = boot({ kit: true, scripts: ['kit/setup.js', 'kit/setup-check.js'] });
+  c.w.fetch = () => Promise.resolve({ ok: true, status: 200, text: () => Promise.resolve(csv) });
+  const cfg = { prefix: 't', langs: ['es'], links: LINKS, photos: PHOTOS, widgets: { r: live } };
+  assert.deepEqual(json(c.w.LBW.kit.setup.check(cfg)), []);
+  json(c.w.LBW.kit.setup(cfg));
+  const m = c.bot('Text [[t:r]]'); c.LBW.scan(); await new Promise((r) => setTimeout(r, 40));
+  const img = [...m.querySelectorAll('.kit-slide img')];
+  assert.equal(img.length, 1); assert.equal(img[0].getAttribute('src'), 'https://img.example/gallery/S/01_a.jpg');
+  assert.match(img[0].getAttribute('srcset'), /M\/01_a\.jpg 964w/); assert.equal(img[0].getAttribute('alt'), 'Doble');
+  const bad = json(c.w.LBW.kit.setup.check({ ...cfg, widgets: { r: { ...live, source: { ...live.source, map: { name: '{name}', img: { photo: 'zz:{foto}' } } } } } })).join('\n');
+  assert.match(bad, /source\.map\.img\.photo: "zz:" is not a set in "photos"/);
+  c.close();
+});

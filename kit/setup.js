@@ -233,6 +233,8 @@
           // "merge": true · the saved item with the same id gives the parts the map doesn't fill (a photo, a description, a
           // name by language when "name" isn't mapped). A mapped part comes only from the file: an emptied cell stays empty,
           // and a saved "until" never hides a live row.
+          // v0.8.1.12 · a mapped photo may be { "photo": "set:{column}" }: written out from "photos" here, row by row
+          if (it.img != null && photoRef(it.img)) { var pi = photo(cfg.photos, it.img, 'img', it.name, function (m) { LBW.drop(name + ': source row ' + id + ': ' + m); }); if (pi === undefined) delete it.img; else it.img = pi; }
           if (src.merge) (w.items || []).some(function (s) { if (String(s.id) !== id) return false; Object.keys(s).forEach(function (k) { if (k !== 'id' && k !== 'until' && k !== 'status' && !own(src.map, k)) it[k] = s[k]; }); /* v0.8.1.4: never a saved status beside live data */ return true; });
           if (!it.name) { LBW.drop(name + ': source row skipped (no name, id "' + id + '")'); return; }
           if (it.until != null && LBW.day.read(it.until) == null) { LBW.drop(name + ': source row skipped (id "' + id + '": "until" is not D/M/YYYY)'); return; }
@@ -408,8 +410,9 @@
           return { label: se.label, values: vs };
         });
         if (bad || !xs.length) { LBW.drop('setup: ' + name + ': the chart has a value that is not a number'); return null; }   // nothing is better than a wrong picture
-        var spec = { type: w.kind || 'line', x: xs.map(function (x) { return x[1]; }), series: series, height: w.height, summary: tpl(w.summary, base),
-          y: { ticks: y.ticks, format: function (v) { return y.money ? H.money(v, w.money) : (Math.round(v * 100) / 100) + (y.suffix || ''); } } };
+        if (w.stack && series.some(function (se) { return se.values.some(function (n) { return n < 0; }); })) { LBW.drop('setup: ' + name + ': a stacked chart has a value below 0'); return null; }
+        var spec = { type: w.kind || 'line', lang: lang, stack: !!w.stack, x: xs.map(function (x) { return x[1]; }), series: series, height: w.height, summary: tpl(w.summary, base),
+          y: { ticks: y.ticks, format: function (v) { return y.money ? H.money(v, w.money) : (Math.round(v * 100) / 100).toLocaleString(lang || 'en', { maximumFractionDigits: 2 }) + (y.suffix || ''); } } };   /* v0.8.1.12: the language's decimal mark («13,3 k» in Spanish) */
         if (w.mark) { var m = at ? Math.round(at(base.v)) : w.mark.at; if (isFinite(m)) spec.mark = { at: m, label: w.mark.label }; }
         return spec;
       };
@@ -459,27 +462,35 @@
   // "h10:01_room.jpg" or { "photo": "h10:01_room.jpg", "alt": … }: the kit writes src (the smallest), srcset (every size),
   // width and height (from ratio), and a gallery photo's "big" (the largest). say(widget, message) reports, for the checker.
   var REF = /^([a-z_][a-z0-9_]*):([^\s"'<>]+)$/i;
+  function photoRef(x) { var s = isStr(x) ? x : isObj(x) && isStr(x.photo) ? x.photo : null, m = s && !/^https?:/i.test(s) ? REF.exec(s) : null; return m ? { cdn: m[1], file: m[2], o: isObj(x) ? x : {} } : null; }
+  function photoSet(P, cdn) { var d = isObj(P) && own(P, cdn) ? P[cdn] : null; return d && isStr(d.base) && isArr(d.sizes) && d.sizes.length && d.sizes.every(function (z) { return isArr(z) && typeof z[0] === 'string' && typeof z[1] === 'number'; }) ? d : null; }
+  // one photo: x itself when it is no reference, undefined when its set doesn't exist (say(message) is told), else the
+  // written-out img. kind: 'img' (a slide), 'big' (a gallery photo), 'url' (a person's avatar: the smallest size, one URL)
+  function photo(P, x, kind, alt, say) {
+    var r = photoRef(x); if (!r) return x;
+    var d = photoSet(P, r.cdn); if (!d) { say('"' + r.cdn + ':" is not a set in "photos"'); return undefined; }
+    var url = function (z) { return d.base + z[0] + r.file; }, zs = d.sizes, o = {};
+    if (kind === 'url') return url(zs[0]);
+    Object.keys(r.o).forEach(function (k) { if (k !== 'photo' && k !== '__proto__') o[k] = r.o[k]; });
+    o.src = url(kind === 'big' ? zs[Math.floor(zs.length / 2)] : zs[0]); o.srcset = zs.map(function (z) { return [url(z), z[1]]; });
+    if (kind === 'big') o.big = url(zs[zs.length - 1]);
+    else if (isArr(d.ratio) && d.ratio[0] > 0 && d.ratio[1] > 0) { o.width = zs[0][1]; o.height = Math.round(zs[0][1] * d.ratio[1] / d.ratio[0]); }
+    if (o.alt == null && alt != null) o.alt = alt;
+    return o;
+  }
   function photosIn(cfg, say) {
     var P = isObj(cfg) && isObj(cfg.photos) ? cfg.photos : null;
     if (!isObj(cfg) || !isObj(cfg.widgets)) return cfg;
     var out = merge(cfg, {}); out.widgets = {};
-    function ref(x) { var s = isStr(x) ? x : isObj(x) && isStr(x.photo) ? x.photo : null, m = s && !/^https?:/i.test(s) ? REF.exec(s) : null; return m ? { cdn: m[1], file: m[2], o: isObj(x) ? x : {} } : null; }
-    function set(r) { var d = P && own(P, r.cdn) ? P[r.cdn] : null; return d && isStr(d.base) && isArr(d.sizes) && d.sizes.length && d.sizes.every(function (z) { return isArr(z) && typeof z[0] === 'string' && typeof z[1] === 'number'; }) ? d : null; }
-    function one(x, name, at, big, alt) {
-      var r = ref(x); if (!r) return x;
-      var d = set(r); if (!d) { var m = at + ': "' + r.cdn + ':" is not a set in "photos"'; if (say) say(name, m); else LBW.drop('setup: ' + name + ': ' + m); return undefined; }
-      var url = function (z) { return d.base + z[0] + r.file; }, zs = d.sizes, o = {};
-      Object.keys(r.o).forEach(function (k) { if (k !== 'photo' && k !== '__proto__') o[k] = r.o[k]; });
-      o.src = url(big ? zs[Math.floor(zs.length / 2)] : zs[0]); o.srcset = zs.map(function (z) { return [url(z), z[1]]; });
-      if (big) o.big = url(zs[zs.length - 1]);
-      else if (isArr(d.ratio) && d.ratio[0] > 0 && d.ratio[1] > 0) { o.width = zs[0][1]; o.height = Math.round(zs[0][1] * d.ratio[1] / d.ratio[0]); }
-      if (o.alt == null && alt != null) o.alt = alt;
-      return o;
-    }
+    function one(x, name, at, big, alt) { return photo(P, x, big === 'url' ? 'url' : big ? 'big' : 'img', alt, function (m) { m = at + ': ' + m; if (say) say(name, m); else LBW.drop('setup: ' + name + ': ' + m); }); }
     // defineProperty: a widget named "__proto__" stays a key (the checker reports it) instead of setting the prototype
     var put = function (name, v) { Object.defineProperty(out.widgets, name, { value: v, enumerable: true, writable: true, configurable: true }); };
     Object.keys(cfg.widgets).forEach(function (name) {
       var w = cfg.widgets[name];
+      if (isObj(w) && w.type === 'people' && isObj(w.items)) {   // v0.8.1.12 · a person's img: one URL, the smallest size
+        var ppl = {}; Object.keys(w.items).forEach(function (id) { var x = w.items[id]; if (!isObj(x) || x.img == null) { ppl[id] = x; return; } var c = merge(x, {}), u = one(x.img, name, id + '.img', 'url'); if (u === undefined) delete c.img; else c.img = u; ppl[id] = c; });
+        put(name, merge(w, { items: ppl })); return;
+      }
       if (!isObj(w) || w.type !== 'carousel' || !isArr(w.items)) { put(name, w); return; }
       put(name, merge(w, { items: w.items.map(function (it, i) {
         if (!isObj(it)) return it;
@@ -520,6 +531,6 @@
   setup.types = Object.keys(MAKE);
   // for kit/setup-check.js
   setup._ = { own: own, pick: pick, isArr: isArr, isObj: isObj, isStr: isStr, isPair: isPair, WORD: WORD, CODE: CODE, HOLE: HOLE, SLOT: SLOT,
-    compile: compile, loc: loc, photosIn: photosIn, langsOf: langsOf, dfltOf: dfltOf, resolve: resolve, reply: reply, timeOf: timeOf };
+    compile: compile, loc: loc, photosIn: photosIn, photoRef: photoRef, photoSet: photoSet, langsOf: langsOf, dfltOf: dfltOf, resolve: resolve, reply: reply, timeOf: timeOf };
   K.setup = setup;
 })(typeof window !== 'undefined' ? window : this);
