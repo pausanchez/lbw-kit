@@ -61,7 +61,7 @@
     },
 
     "ok": {
-      "type": "consent", "icon": "shield", "title": { "es": "¿Te avisamos por SMS?", "en": "Shall we text you?" }, "text": { "es": "Solo cuando la bici esté lista. Es una demo: no se guarda nada.", "en": "Only when the bike is ready. A demo: nothing is stored." },
+      "type": "consent", "icon": "shield", "title": { "es": "¿Te avisamos por SMS?", "en": "Shall we text you?" }, "text": { "es": "Solo cuando la bici esté lista. Es una demo: tu respuesta se guarda en un campo de prueba, no se envía nada.", "en": "Only when the bike is ready. A demo: your answer is saved in a test field; nothing is sent." },
       "yes": [{ "es": "Sí", "en": "Yes" }, { "es": "Sí, avisadme por SMS", "en": "Yes, text me" }, { "tn_sms": "yes" }], "no": [{ "es": "No", "en": "No" }, { "es": "No, gracias", "en": "No, thanks" }, { "tn_sms": "no" }]
     },
 
