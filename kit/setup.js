@@ -7,6 +7,7 @@
               widgets: { tagName: { type: one of the kit makers, … } } }   (LBW.kit.setup.types lists them)
    action = 'name'  |  { use: 'name', primary: true }  |  { tel, cc, label }  |  { wa, text, label }  |  { link, label }  |  { mail, label }
             |  { reply: [label, say] }      (primary: true fills it)
+            any action may add "icon": one of LBW.kit.h.icons, and "danger": true (a destructive or "no" action) (v0.8.1.4)
    Where a kit maker takes a function, the JSON gives data instead:
      text      a template: 'My room: {size} m², {finish:label:lower}, {total:money}'. {key} is a value of the widget's
                state; :label / :labels read the label of a pick; :lower lower-cases; :money formats integer cents.
@@ -102,13 +103,13 @@
     return isObj(spec) ? spec : null;
   }
   function action(cfg, spec, text) {
-    var a = resolve(cfg, spec); if (!a) return null; var cls = a.primary ? 'is-primary' : '';
-    if (a.tel) return U.tel(a.label, a.tel, cls, a.cc);
-    if (a.wa) return H.wa(a.label, a.wa, a.text == null ? '' : tpl(a.text, plain({ text: text || '' })), cls);
-    if (a.link) return U.link(a.label, a.link, cls);
-    if (a.mail) return U.link(a.label, 'mailto:' + a.mail, cls);
-    if (a.reply) return U.reply(a.reply[0], a.reply[1], { primary: !!a.primary });
-    return null;
+    var a = resolve(cfg, spec); if (!a) return null; var cls = (a.primary ? 'is-primary' : '') + (a.danger ? ' is-danger' : ''), n = null;   // v0.8.1.4: "danger", "icon"
+    if (a.tel) n = U.tel(a.label, a.tel, cls, a.cc);
+    else if (a.wa) n = H.wa(a.label, a.wa, a.text == null ? '' : tpl(a.text, plain({ text: text || '' })), cls);
+    else if (a.link) n = U.link(a.label, a.link, cls);
+    else if (a.mail) n = U.link(a.label, 'mailto:' + a.mail, cls);
+    else if (a.reply) n = U.reply(a.reply[0], a.reply[1], { primary: !!a.primary, cls: a.danger ? 'is-danger' : '' });
+    return n && a.icon ? H.withIcon(n, a.icon) : n;
   }
   function actions(cfg, list, text) { return (list || []).map(function (a) { return action(cfg, a, text); }); }
   function reply(cfg, spec) { return typeof spec === 'string' ? (own(cfg.replies || {}, spec) ? cfg.replies[spec] : null) : spec || null; }
@@ -135,7 +136,7 @@
   // ── one maker per type ───────────────────────────────────────────────────────────────────────────
   var MAKE = {
     cards: function (cfg, name, w, lang) {
-      var o = pick(w, ['cls', 'param', 'items', 'kicker', 'disclaimer', 'single', 'fallback', 'pointsCls', 'allowDup', 'lang']), r = reply(cfg, w.reply);
+      var o = pick(w, ['cls', 'param', 'items', 'kicker', 'disclaimer', 'single', 'fallback', 'pointsCls', 'allowDup', 'lang', 'status']), r = reply(cfg, w.reply);
       if (w.item) { o.items = { _: w.item }; o.single = true; }
       if (r) o.reply = function (id, it) { var sc = plain({ id: id, title: it.title }); return [tpl(r[0], sc), tpl(r[1], sc)]; };
       if (w.links) o.links = function () { return actions(cfg, w.links); };
@@ -214,7 +215,7 @@
           // "merge": true · the saved item with the same id gives the parts the map doesn't fill (a photo, a description, a
           // name by language when "name" isn't mapped). A mapped part comes only from the file: an emptied cell stays empty,
           // and a saved "until" never hides a live row.
-          if (src.merge) (w.items || []).some(function (s) { if (String(s.id) !== id) return false; Object.keys(s).forEach(function (k) { if (k !== 'id' && k !== 'until' && !own(src.map, k)) it[k] = s[k]; }); return true; });
+          if (src.merge) (w.items || []).some(function (s) { if (String(s.id) !== id) return false; Object.keys(s).forEach(function (k) { if (k !== 'id' && k !== 'until' && k !== 'status' && !own(src.map, k)) it[k] = s[k]; }); /* v0.8.1.4: never a saved status beside live data */ return true; });
           if (!it.name) { LBW.drop(name + ': source row skipped (no name, id "' + id + '")'); return; }
           if (it.until != null && LBW.day.read(it.until) == null) { LBW.drop(name + ': source row skipped (id "' + id + '": "until" is not D/M/YYYY)'); return; }
           seen[id] = 1; out.push(it);

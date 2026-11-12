@@ -1,0 +1,73 @@
+{
+  "prefix": "tn",
+  "langs": ["es", "en"],
+  "defaultLang": "es",
+  "timeZone": "Europe/Madrid",
+  "links": ["https://tallernorte.example/", "tel:", "mailto:"],
+
+  "actions": {
+    "call": { "tel": "600 000 000", "cc": "34", "label": { "es": "Llamar", "en": "Call" }, "icon": "phone" },
+    "mail": { "mail": "hola@tallernorte.example", "label": { "es": "Escribir", "en": "Email us" }, "icon": "mail" },
+    "book": { "reply": [{ "es": "Pedir cita", "en": "Book a slot" }, { "es": "Quiero pedir cita para el taller", "en": "I'd like to book a workshop slot" }], "icon": "calendar", "primary": true },
+    "cancel": { "reply": [{ "es": "Anular la cita", "en": "Cancel the booking" }, { "es": "Quiero anular mi cita", "en": "I want to cancel my booking" }], "danger": true }
+  },
+
+  "widgets": {
+    "repair": {
+      "type": "cards", "kicker": { "es": "Tu reparación", "en": "Your repair" }, "links": ["book"],
+      "status": { "param": "estado", "items": {
+        "recibida": { "text": { "es": "Bici recibida en el taller", "en": "Bike received at the workshop" }, "tone": "info" },
+        "pieza": { "text": { "es": "Esperando una pieza", "en": "Waiting for a part" }, "tone": "warn" },
+        "lista": { "text": { "es": "Lista para recoger", "en": "Ready to collect" }, "tone": "ok" },
+        "retraso": { "text": { "es": "La pieza no llega esta semana", "en": "The part won't arrive this week" }, "tone": "danger" } } },
+      "items": {
+        "revision": { "title": { "es": "Revisión completa", "en": "Full service" }, "badge": { "text": { "es": "La más pedida", "en": "Most booked" }, "tone": "info" },
+          "rows": [[{ "es": "Plazo", "en": "Time" }, { "es": "2 días", "en": "2 days" }], [{ "es": "Desde", "en": "From" }, "45 €"]] },
+        "pinchazo": { "title": { "es": "Pinchazo", "en": "Puncture" }, "badge": { "text": { "es": "Sin cita", "en": "No booking" }, "tone": "ok" },
+          "status": { "text": { "es": "Se arregla en el momento", "en": "Fixed while you wait" }, "tone": "ok" },
+          "rows": [[{ "es": "Plazo", "en": "Time" }, { "es": "20 min", "en": "20 min" }], [{ "es": "Desde", "en": "From" }, "12 €"]] }
+      }
+    },
+
+    "booking": {
+      "type": "cards", "kicker": { "es": "Tu cita", "en": "Your booking" }, "links": ["cancel"],
+      "item": { "title": { "es": "Martes 17, 10:00", "en": "Tuesday 17, 10:00" }, "status": { "text": { "es": "Cita confirmada", "en": "Booking confirmed" }, "tone": "ok" }, "rows": [[{ "es": "Servicio", "en": "Service" }, { "es": "Revisión completa", "en": "Full service" }]] }
+    },
+
+    "contact": {
+      "type": "contact", "kicker": { "es": "Contacto", "en": "Contact" }, "title": "Taller Norte", "big": "600 000 000",
+      "hours": { "week": { "1": [[570, 840], [990, 1200]], "2": [[570, 840], [990, 1200]], "3": [[570, 840], [990, 1200]], "4": [[570, 840], [990, 1200]], "5": [[570, 840], [990, 1200]], "6": [[600, 840]] } },
+      "buttons": ["call", "mail"]
+    },
+
+    "season": {
+      "type": "season", "kicker": { "es": "Alquiler de bicis", "en": "Bike hire" }, "ranges": [["1/3/2026", "31/10/2026"], ["1/3/2027", "31/10/2027"]]
+    },
+
+    "quote": {
+      "type": "review", "kicker": { "es": "Presupuesto", "en": "Quote" }, "title": { "es": "Revísalo", "en": "Check it" }, "cta": { "es": "Confirmar", "en": "Confirm" },
+      "discard": [{ "es": "Descartar", "en": "Discard" }, { "es": "Descarto el presupuesto", "en": "I discard the quote" }], "note": { "es": "Precios ficticios.", "en": "Fake prices." },
+      "state": { "tyres": { "values": ["no", "yes"], "default": "no" } },
+      "tables": { "extra": { "no": 0, "yes": 3000 } },
+      "compute": { "total": "4500 + extra[tyres]" },
+      "money": { "cur": "€", "after": true, "cents": false },
+      "lines": [{ "label": { "es": "Revisión", "en": "Service" }, "value": "45 €" }, { "label": { "es": "Ruedas nuevas", "en": "New tyres" }, "select": "tyres", "items": [["no", { "es": "No", "en": "No" }], ["yes", { "es": "Sí, +30 €", "en": "Yes, +€30" }]] }],
+      "total": { "label": "Total", "value": "{total:money}" },
+      "send": { "text": { "es": "Confirmo el presupuesto: {total:money}", "en": "I confirm the quote: {total:money}" }, "fields": { "tn_quote": "{total}" } }
+    },
+
+    "ok": {
+      "type": "consent", "icon": "shield", "title": { "es": "¿Te avisamos por SMS?", "en": "Shall we text you?" }, "text": { "es": "Solo cuando la bici esté lista. Es una demo: no se guarda nada.", "en": "Only when the bike is ready. A demo: nothing is stored." },
+      "yes": [{ "es": "Sí", "en": "Yes" }, { "es": "Sí, avisadme por SMS", "en": "Yes, text me" }, { "tn_sms": "yes" }], "no": [{ "es": "No", "en": "No" }, { "es": "No, gracias", "en": "No, thanks" }, { "tn_sms": "no" }]
+    },
+
+    "bikes": {
+      "type": "carousel", "kicker": { "es": "Bicis de alquiler", "en": "Hire bikes" }, "title": { "es": "Para este fin de semana", "en": "For this weekend" },
+      "items": [
+        { "id": "urbana", "name": { "es": "Urbana", "en": "City" }, "price": { "now": "15 €", "unit": { "es": "/día", "en": "/day" } }, "status": { "text": { "es": "6 libres", "en": "6 free" }, "tone": "ok" } },
+        { "id": "electrica", "name": { "es": "Eléctrica", "en": "E-bike" }, "price": { "now": "35 €", "unit": { "es": "/día", "en": "/day" } }, "status": { "text": { "es": "Quedan 2", "en": "2 left" }, "tone": "warn" } },
+        { "id": "montana", "name": { "es": "Montaña", "en": "Mountain" }, "price": { "now": "25 €", "unit": { "es": "/día", "en": "/day" } }, "status": { "text": { "es": "Agotada", "en": "Sold out" }, "tone": "danger" } }
+      ]
+    }
+  }
+}

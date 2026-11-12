@@ -9,10 +9,14 @@
   var K = LBW.kit, I = K.setup._, own = I.own, pick = I.pick, isArr = I.isArr, isObj = I.isObj, isStr = I.isStr, isPair = I.isPair, WORD = I.WORD, CODE = I.CODE,
       HOLE = I.HOLE, SLOT = I.SLOT, compile = I.compile, loc = I.loc, langsOf = I.langsOf, dfltOf = I.dfltOf, resolve = I.resolve, reply = I.reply, timeOf = I.timeOf;
 
+  // v0.8.1.4 · the kit's icon and tone names, here too: the command-line checker runs without kit.js (scripts/lib.mjs).
+  // test/status.test.mjs keeps them equal to LBW.kit.h.icons and LBW.kit.h.tones.
+  var ICONS = 'check x info alert phone mail chat calendar clock pin external star user shield bell doc'.split(' '), TONES = 'neutral ok info warn danger'.split(' ');
+  K.setup._.icons = ICONS; K.setup._.tones = TONES;
   // ── checking a config: every problem as a sentence, nothing drawn, never a throw ─────────────────
   var TOP = '$schema version prefix langs defaultLang timeZone maxPerMessage links labels quietMs maxWaitMs reveal actions replies widgets'.split(' ');
   var KEYS = {
-    cards: 'type cls param items item kicker disclaimer single fallback pointsCls allowDup lang reply links',
+    cards: 'type cls param items item kicker disclaimer single fallback pointsCls allowDup lang reply links status',
     form: 'type cls lang kicker title cta note preset steps summary fields allowDup collapse',
     contact: 'type cls lang kicker title big rows hours note buttons buttonsWithSummary summary compact allowDup',
     chips: 'type cls lang max items own carriedBy crowd',
@@ -28,7 +32,7 @@
     compare: 'type cls lang kicker title titles param items rows min max empty note same allowDup',
     season: 'type cls lang kicker ranges words rows note reply links allowDup'
   };
-  var ITEM = { cards: 'kicker title who line points pointsCls pointsTitle rows note noteCls link'.split(' '), stats: 'kicker title stats source'.split(' '), people: 'name role img note'.split(' '),
+  var ITEM = { cards: 'kicker title who line points pointsCls pointsTitle rows note noteCls link status badge'.split(' '), stats: 'kicker title stats source'.split(' '), people: 'name role img note'.split(' '),
     slide: 'id img badge kicker name sub price save status desc reply link gallery until'.split(' '), compare: 'name values reply link'.split(' ') };
   var NEED = { cards: [], form: ['steps', 'summary', 'cta'], contact: ['title'], chips: ['items'], carousel: [], calc: ['state', 'controls', 'result', 'send', 'cta'],
     stats: [], people: ['items'], consent: ['title', 'yes', 'no'], slots: ['cta', 'say'], confirm: ['form', 'title'], review: ['state', 'lines', 'send', 'cta'], chart: ['title', 'x', 'series'], compare: ['items', 'rows'], season: ['ranges'] };
@@ -76,6 +80,10 @@
       var r = resolve({ actions: acts }, a); if (!r) { say(where + ': an action is a name or an object'); return; }
       var kinds = ['tel', 'wa', 'link', 'reply', 'mail'].filter(function (k) { return r[k] != null; });
       if (kinds.length !== 1) { say(where + ': an action needs one of tel, wa, link, reply, mail'); return; }
+      // v0.8.1.4 · "icon" names one of the kit's icons; "danger" is true or left out
+      if (r.icon != null && ICONS.indexOf(r.icon) < 0) say(where + ': icon "' + r.icon + '" is not one of the kit\'s icons. Known: ' + ICONS.join(', '));
+      if (r.danger != null && typeof r.danger !== 'boolean') say(where + ': "danger" is true or false');
+      if (r.danger === true && r.primary) say(where + ': "danger" and "primary" together: the primary is the card\'s one main action, never a destructive one');
       if (r.reply) { if (!isPair(r.reply)) say(where + ': "reply" is [label, sentence]'); return; }
       if (!isStr(r.label)) say(where + ': the action has no "label"');
       if (r.tel && links.indexOf('tel:') < 0) say(where + ': a tel action needs "tel:" in "links"');
@@ -117,6 +125,14 @@
       function pairs(l, where) { list(l, where, function (x, at) { if (!isPair(x)) err(at + ' is [text, text]'); }); }
       function rep(r, where) { if (r == null) return; if (typeof r === 'string') { if (!own(reps, r)) err(where + ': reply "' + r + '" is not in "replies"'); } else if (!isPair(r)) err(where + ' is a name in "replies" or [label, sentence]'); }
       function param(v, where) { if (v != null && !WORD.test(v)) err(where + ' "' + v + '" must be lower-case (a tag\'s keys are read lower-cased)'); }
+      // v0.8.1.4 · a status ({ text, tone }) or a badge ('text' or { text, tone }); the tone one of LBW.kit.h.tones
+      function slideStatus(v, where) { if (v == null) return; if (!isObj(v) || !isStr(v.text)) { err(where + ' is { "text": "…", "tone": "…" } (or "ok": true)'); return; } only(v, ['text', 'tone', 'ok'], where); if (v.tone != null && TONES.indexOf(v.tone) < 0) err(where + '.tone "' + v.tone + '" is not a tone. Known: ' + TONES.join(', ')); }
+      function toned(v, where, needObj) {
+        if (v == null) return; if (!needObj && isStr(v)) return;
+        if (!isObj(v) || !isStr(v.text)) { err(where + ' is ' + (needObj ? '' : '"text" or ') + '{ "text": "…", "tone": "' + TONES.join('|') + '" }'); return; }
+        only(v, ['text', 'tone'], where);
+        if (v.tone != null && TONES.indexOf(v.tone) < 0) err(where + '.tone "' + v.tone + '" is not a tone. Known: ' + TONES.join(', '));
+      }
       function url(pair, where) { if (pair == null) return; if (!isPair(pair)) err(where + ' is [label, url]'); else if (!linkOK(pair[1])) err(where + ': "' + pair[1] + '" is not under any entry of "links"'); }
 
       try {
@@ -134,8 +150,10 @@
           if (!w.items && !w.item) err('missing "items" (or "item" for a single card)');
           if (w.items != null && !isObj(w.items)) err('"items" must be an object of cards by id');
           var cs = isObj(w.item) ? { item: w.item } : isObj(w.items) ? w.items : {};
-          Object.keys(cs).forEach(function (id) { var it = cs[id]; if (!isObj(it) || !isStr(it.title)) { err('card "' + id + '" has no "title"'); return; } strs(it, ['kicker', 'who', 'line', 'note', 'pointsTitle'], id); only(it, ITEM.cards, id); url(it.link, id + '.link'); pairs(it.rows, id + '.rows'); list(it.points, id + '.points', function (x, at) { if (!isStr(x)) err(at + ' must be text'); }); });
+          Object.keys(cs).forEach(function (id) { var it = cs[id]; if (!isObj(it) || !isStr(it.title)) { err('card "' + id + '" has no "title"'); return; } strs(it, ['kicker', 'who', 'line', 'note', 'pointsTitle'], id); only(it, ITEM.cards, id); toned(it.status, id + '.status', true); toned(it.badge, id + '.badge', false); url(it.link, id + '.link'); pairs(it.rows, id + '.rows'); list(it.points, id + '.points', function (x, at) { if (!isStr(x)) err(at + ' must be text'); }); });
           param(w.param, 'param'); if (w.fallback != null && !own(cs, w.fallback)) err('fallback "' + w.fallback + '" is not one of the items');
+          // v0.8.1.4 · "status": { param, items: { key: { text, tone } } }: a status the tag names from a closed list (a flow's @{field})
+          if (w.status != null) { if (!isObj(w.status) || !isObj(w.status.items) || !Object.keys(w.status.items).length) err('"status" is { "param": "…", "items": { key: { "text", "tone" } } }'); else { if (!isStr(w.status.param)) err('status.param names the tag\'s key, as "estado"'); param(w.status.param, 'status.param'); if (w.status.param === (w.param || 'id')) err('status.param must differ from the card\'s own param'); only(w.status, ['param', 'items'], 'status'); Object.keys(w.status.items).forEach(function (k) { if (!WORD.test(k)) err('status.items key "' + k + '" must be a plain word (a-z, 0-9, _)'); toned(w.status.items[k], 'status.items.' + k, true); }); } }
           var r = reply({ replies: reps }, w.reply); if (isPair(r)) { text(r[0], 'reply', ['id', 'title'], [], []); text(r[1], 'reply', ['id', 'title'], [], []); }
         }
 
@@ -181,7 +199,7 @@
         }
 
         if (w.type === 'carousel') {
-          var n = list(w.items, 'items', function (it, at) { if (!isObj(it) || !isStr(it.name)) { err(at + ' has no "name"'); return; } only(it, ITEM.slide.concat(isObj(w.filter) && isStr(w.filter.by) ? [w.filter.by] : []), at); strs(it, ['kicker', 'sub', 'desc', 'badge', 'save'], at); url(it.link, at + '.link'); if (it.until != null && LBW.day.read(it.until) == null) err(at + '.until is a date, D/M/YYYY'); if (it.until != null && !isStr(cfg.timeZone)) err(at + '.until needs "timeZone" in the config (the day ends where the client is, not where the visitor is)'); if (it.img != null && !(isObj(it.img) && linkOK(it.img.src))) err(at + '.img.src is not under any entry of "links"'); rep(it.reply, at + '.reply'); }).length;
+          var n = list(w.items, 'items', function (it, at) { if (!isObj(it) || !isStr(it.name)) { err(at + ' has no "name"'); return; } only(it, ITEM.slide.concat(isObj(w.filter) && isStr(w.filter.by) ? [w.filter.by] : []), at); strs(it, ['kicker', 'sub', 'desc', 'badge', 'save'], at); url(it.link, at + '.link'); if (it.until != null && LBW.day.read(it.until) == null) err(at + '.until is a date, D/M/YYYY'); if (it.until != null && !isStr(cfg.timeZone)) err(at + '.until needs "timeZone" in the config (the day ends where the client is, not where the visitor is)'); if (it.img != null && !(isObj(it.img) && linkOK(it.img.src))) err(at + '.img.src is not under any entry of "links"'); rep(it.reply, at + '.reply'); slideStatus(it.status, at + '.status'); }).length;
           if (isArr(w.items) && !n) err('"items" is empty');
           if (w.items == null && w.source == null) err('missing "items" (or a "source" to read them live)');
           if (w.source != null) {

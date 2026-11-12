@@ -248,3 +248,9 @@ test('0.7.7: "order": "items" puts live rows in the saved order; unsaved rows go
   assert.deepEqual(names(m), ['Bee', 'Ay', 'Zed', 'Why']);
   assert.match(errors(wp((cfg, w, s) => { s.order = 'name'; })), /source\.order/);
 });
+
+test('0.8.1.4: merge never puts a saved status beside live data', async () => {
+  const c = chat(wp((cfg, w) => { w.items[0].status = { text: 'Last 2', tone: 'warn' }; }), ok(JSON.stringify([{ id: 'a', title: 'Live', price: '30' }]))), m = draw(c, 'Here [[lv:rides lang=en]]');
+  await wait(30);
+  assert.deepEqual(names(m), ['Live']); assert.equal(m.querySelector('.kit-stock'), null); assert.match(m.widgets()[0].textContent, /Saved line/);
+});

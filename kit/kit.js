@@ -1,4 +1,4 @@
-/* AI Widgets kit v0.8.1.3 · on lbw.js v0.8.1.3 · the widgets every url-to-demo build rewrote, written once with options. Load it after lbw.js and before the
+/* AI Widgets kit v0.8.1.4 · on lbw.js v0.8.1.4 · the widgets every url-to-demo build rewrote, written once with options. Load it after lbw.js and before the
    client's widgets.js: custom_js = <script>lbw.js</script><script>kit.js</script><script>widgets.js</script>.
 
    Each maker registers a widget under the name you give it, from data you pass. Nothing here holds client facts.
@@ -15,7 +15,8 @@
      consent (yes/no before data). See docs/19.
    Every kit widget draws nothing when the same widget is already in the message (the models' most repeated slip),
    unless cfg.allowDup. Every text the visitor sees comes from cfg or LBW.kit.L[lang]: add a language there, once.
-   Helpers for your own widgets: LBW.kit.h (note, list, label, dup, choice, multiChoice, copyBox, status, wa, money, total).
+   Helpers for your own widgets: LBW.kit.h (note, list, label, dup, choice, multiChoice, copyBox, status, wa, money, total;
+   v0.8.1.4: statusHead, badge, icon, withIcon, icons, tones).
    v0.4: dev mode (?kitdev=1) checks cfg and the complexity budget; LBW.kit.describe(prefix) lists every kit tag and mock
    cases; a form or calc folds to one line after it sends (cfg.collapse: false keeps it open).
    Classes are kit-*, styled by kit.css from the --lbw-* tokens: theme it like lbw.css, never per demo. */
@@ -73,7 +74,7 @@
   }
   function budget(where, kind, t) { if (DEV && t != null && String(t).length > BUDGET[kind]) warn(where, kind + ' over ' + BUDGET[kind] + ' characters (' + String(t).length + '): "' + String(t).slice(0, 48) + '…"'); }
   var OPTS = {
-    cards: 'cls param items kicker reply links disclaimer lang single fallback pointsCls allowDup',
+    cards: 'cls param items kicker reply links disclaimer lang single fallback pointsCls allowDup status',
     form: 'cls lang kicker title cta note preset steps summary fields sent allowDup collapse',
     contact: 'cls lang kicker title big rows topic hours note buttons summary compact allowDup',
     chips: 'cls lang max items own carriedBy',
@@ -86,7 +87,8 @@
     stats: 'cls lang items single reply links allowDup',
     people: 'cls lang kicker title items select reply note allowDup',
     consent: 'cls lang icon title text yes no link allowDup',
-    compare: 'cls lang kicker title param items rows min max empty note allowDup'
+    compare: 'cls lang kicker title param items rows min max empty note allowDup same',
+    season: 'cls lang kicker ranges words rows note reply links allowDup'   // v0.8.1.4: missing since 0.8.1, so dev mode threw and the season card drew nothing
   };
   function checkCfg(maker, name, cfg, required) {
     if (!DEV) return; var ok = OPTS[maker].split(' '), where = maker + "('" + name + "')";
@@ -169,9 +171,45 @@
     var of = function (d) { return hours.holiday && hours.holiday(d) ? [] : (hours.week[D.parts(d).w] || []); }, s = T.state(of(n), m), text;
     if (s.open) text = fill(hours.open || w.open, { t: T.format(s.until, sep, f) });
     else { var nx = T.nextOpen(of, n, m, 7); text = nx ? fill(hours.closed || w.closed, { d: nx.n === n ? w.today : nx.n === n + 1 ? w.tomorrow : w.days[D.parts(nx.n).w], t: T.format(nx.m, sep, f) }) : w.closedLong; }
-    var node = el('div', 'kit-status' + (s.open ? ' is-open' : '')); node.appendChild(el('span', 'kit-dot')); node.appendChild(el('span', null, text));
+    // v0.8.1.4 · the status line every card uses (statusHead): ✓ open, ⓘ closed. It was a green dot of its own (critique M9:
+    // two patterns for one idea, and the state told by colour alone). .kit-status stays on it for themes that styled it.
+    var node = statusLine({ text: text, tone: s.open ? 'ok' : 'info' }, 'kit-status' + (s.open ? ' is-open' : ''));
     return { open: s.open, text: text, node: node, now: T.format(m, sep, f) };
   }
+  // ── v0.8.1.4 · icons, badges and one status pattern (ideas from ChatKit's Icon and Badge, Chat SDK's emoji and danger
+  // style, Persona's status badge; drawn our way: inline SVG built with createElementNS, no markup string, no font) ──
+  // 24×24 strokes in currentColor, so an icon takes the colour of the text or button it sits in. Decorative only:
+  // aria-hidden, the label beside it says what it means.
+  var CIRCLE = 'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18z';
+  var ICONS = {
+    check: ['M5 12.5l4.5 4.5L19 7.5'], x: ['M6.5 6.5l11 11', 'M17.5 6.5l-11 11'], info: [CIRCLE, 'M12 11v5', 'M12 7.6v.01'], alert: ['M12 3.5L2.5 20h19z', 'M12 10v4.5', 'M12 17.4v.01'],
+    phone: ['M5 4h3.5l1.8 4.5-2.3 1.5a11 11 0 0 0 6 6l1.5-2.3L20 15.5V19a1.5 1.5 0 0 1-1.6 1.5A16 16 0 0 1 3.5 5.6 1.5 1.5 0 0 1 5 4z'],
+    mail: ['M3.5 6h17v12h-17z', 'M3.5 7l8.5 6.5L20.5 7'], chat: ['M4 5h16v11H9l-5 4z'], calendar: ['M4 6h16v14H4z', 'M4 10h16', 'M8 3.5v4', 'M16 3.5v4'],
+    clock: [CIRCLE, 'M12 7.5V12l3 2'], pin: ['M12 21s-6.5-6-6.5-11a6.5 6.5 0 0 1 13 0c0 5-6.5 11-6.5 11z', 'M12 7.8a2.2 2.2 0 1 0 0 4.4a2.2 2.2 0 1 0 0-4.4z'],
+    external: ['M14 4h6v6', 'M20 4l-9 9', 'M18 14v5.5H4.5V6H10'], star: ['M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.8l-5.2 2.8 1-5.8L3.5 9.7l5.9-.8z'],
+    user: ['M12 4a4 4 0 1 0 0 8a4 4 0 1 0 0-8z', 'M4.5 20a7.5 7.5 0 0 1 15 0'], shield: ['M12 3l7.5 3v5.5c0 4.6-3.2 8.2-7.5 9.5-4.3-1.3-7.5-4.9-7.5-9.5V6z'],
+    bell: ['M6 16v-5a6 6 0 0 1 12 0v5l1.5 2h-15z', 'M10 20.5a2 2 0 0 0 4 0'], doc: ['M6 3.5h8l4 4v13H6z', 'M14 3.5v4h4', 'M9 12.5h6', 'M9 16h6']
+  };
+  // bare marks for inside a filled circle (a status line): an outlined info or alert icon there read as a blob at 12 px
+  var MARKS = { i: ['M12 10.5v6', 'M12 7.2v.01'], bang: ['M12 6.5v7', 'M12 17v.01'] };
+  var SVGNS = 'http://www.w3.org/2000/svg';
+  function icon(name, cls) {
+    var paths = Object.prototype.hasOwnProperty.call(ICONS, name) ? ICONS[name] : Object.prototype.hasOwnProperty.call(MARKS, name) ? MARKS[name] : null;
+    if (!paths) { warn('icon', 'unknown icon "' + name + '". Known: ' + Object.keys(ICONS).join(', ')); return null; }
+    var s = el('span', 'kit-ico' + (cls ? ' ' + cls : '')), g = document.createElementNS(SVGNS, 'svg');
+    s.setAttribute('aria-hidden', 'true'); g.setAttribute('viewBox', '0 0 24 24'); g.setAttribute('focusable', 'false');
+    paths.forEach(function (d) { var p = document.createElementNS(SVGNS, 'path'); p.setAttribute('d', d); g.appendChild(p); });
+    s.appendChild(g); return s;
+  }
+  function withIcon(node, name) { var i = node && name ? icon(name) : null; if (i) { node.insertBefore(i, node.firstChild); node.classList.add('has-ico'); } return node; }
+  // tones: the same five words everywhere (a badge, a status line, a slide's status). Unknown → neutral (a badge) or ok.
+  var TONES = ['neutral', 'ok', 'info', 'warn', 'danger'];
+  function tone(t, dflt) { return TONES.indexOf(t) >= 0 ? t : dflt; }
+  // a small label in a tone: badge('New', 'info') → <span class="kit-tag is-info">New</span>. Text only; colour is never the
+  // only signal (the words say it).
+  function badge(text, t) { if (!text) return null; return el('span', 'kit-tag is-' + tone(t, 'neutral'), text); }
+  // { text, tone } | 'text' → a badge, for JSON items
+  function badgeOf(b) { return !b ? null : typeof b === 'string' ? badge(b) : badge(b.text, b.tone); }
   // a WhatsApp link with prefilled text ('…' is encoded: lbw refuses a ' anywhere in a URL)
   function wa(labelText, phone, text, cls) { return U.link(labelText, 'https://wa.me/' + String(phone).replace(/\D/g, '') + (text ? '?text=' + encodeURIComponent(text).replace(/'/g, '%27') : ''), cls); }
   function buttons(list) { return (list || []).filter(Boolean); }
@@ -194,7 +232,12 @@
       if (!id && cfg.fallback && !p.has(param) && cfg.items[cfg.fallback]) id = cfg.fallback;   // unset only (a flow's @{field}); an unknown id still draws nothing
       if (!id || !cfg.items[id]) return null;
       var it = cfg.items[id], lang = langOf(cfg, ctx), o = U.card(lang, 'kit-card ' + cls);
-      U.head(o.box, it.kicker || val(cfg.kicker, id, it) || '', it.title);
+      // v0.8.1.4 · a status line under the head: the item's own, or one the tag names from a closed list
+      // (cfg.status = { param: 'estado', items: { key: { text, tone } } }: a flow message writes [[p:card id=x estado=@{estado}]];
+      // an unset field or an unknown key draws the item's own status, or none)
+      var sk = cfg.status && cfg.status.param ? p.one(cfg.status.param, Object.keys(cfg.status.items || {})) : null;
+      U.head(o.box, it.kicker || val(cfg.kicker, id, it) || '', it.title, badgeOf(it.badge));
+      statusHead(o.box, sk ? cfg.status.items[sk] : it.status);   // under the title, as on every card (v0.8.1.4 critique)
       if (it.who) o.box.appendChild(el('p', 'kit-who', it.who));
       if (it.line) o.box.appendChild(el('p', 'kit-line', it.line));
       if (it.rows) U.rows(o.box, it.rows).classList.add('kit-lines');
@@ -321,9 +364,7 @@
       var days = function (k) { return k === 1 ? (cw.day || W.sDay) : (cw.days || W.sDays).replace('{n}', k); };
       var o = U.card(lang, 'kit-card kit-season ' + cls + (cur ? ' is-open' : ' is-closed'));
       U.head(o.box, cfg.kicker || '', cur ? (cw.open || W.sOpen) : (cw.closed || W.sClosed));
-      var st = el('div', 'kit-statusbar is-' + (cur ? 'ok' : 'info')); st.appendChild(el('span', 'kit-statusbar-i', cur ? '✓' : 'i'));
-      st.appendChild(el('span', null, cur ? (cw.until || W.sUntil) + ' ' + fmt(cur[1]) : next ? (cw.opens || W.sOpens) + ' ' + fmt(next[0]) : (cw.unknown || W.sUnknown)));
-      o.box.appendChild(st);
+      statusHead(o.box, { tone: cur ? 'ok' : 'info', text: cur ? (cw.until || W.sUntil) + ' ' + fmt(cur[1]) : next ? (cw.opens || W.sOpens) + ' ' + fmt(next[0]) : (cw.unknown || W.sUnknown) });
       var rows = [];
       // closed: the days left, then the whole next season ("Closes …" or "Until …" under "Closed today" read as a contradiction)
       var short = function (d) { return D.format(d, lang, { day: 'numeric', month: 'short', year: 'numeric' }); };
@@ -380,7 +421,7 @@
     if (s.sub) b.appendChild(el('div', 'lbw-muted kit-sub', s.sub));
     if (s.price) { var pr = el('div', 'kit-price'); pr.appendChild(el('strong', null, s.price.now)); if (s.price.unit) pr.appendChild(el('span', 'kit-unit', s.price.unit)); if (s.price.list) pr.appendChild(el('s', 'kit-list', s.price.list)); b.appendChild(pr); }
     if (s.save) b.appendChild(el('div', 'kit-save', s.save));
-    if (s.status) b.appendChild(el('div', 'kit-stock' + (s.status.ok ? ' is-ok' : ''), s.status.text));
+    if (s.status) { var stt = tone(s.status.tone, s.status.ok ? 'ok' : ''); var sd = el('div', 'kit-stock' + (stt ? ' is-' + stt : ''), s.status.text); if (stt && stt !== 'neutral') withIcon(sd, { ok: 'check', info: 'info', warn: 'alert', danger: 'x' }[stt]); b.appendChild(sd); }   // v0.8.1.4: a tone, or ok: true as before
     if (s.desc) b.appendChild(el('p', 'kit-desc', s.desc));
     var acts = []; if (s.reply) acts.push(U.reply(s.reply[0], s.reply[1], { primary: true, fields: s.reply[2] })); if (s.link) acts.push(U.link(s.link[0], s.link[1]));
     if (acts.length) U.row(b, acts);
@@ -546,12 +587,14 @@
   }
 
   // ══ v0.5 · the lead-gen set (ideas from ChatKit's widget gallery, rebuilt on lbw: data in code, the agent picks ids) ══
-  // A status line above a card's head ("✓ Solicitud recibida"): tone 'ok' | 'info' | 'warn'.
-  function statusHead(box, st) {
-    if (!st || !st.text) return null; var b = el('div', 'kit-statusbar is-' + (st.tone || 'ok'));
-    b.appendChild(el('span', 'kit-statusbar-i', st.tone === 'warn' ? '!' : st.tone === 'info' ? 'i' : '✓')); b.appendChild(el('span', null, st.text));
-    box.appendChild(b); return b;
+  // A status line ("✓ Solicitud recibida"): tone 'ok' | 'info' | 'warn' | 'danger' (v0.8.1.4), with an icon that says the
+  // tone too, so colour is never the only signal. The icon is an SVG: the line's text is the status alone.
+  var TONE_ICON = { ok: 'check', info: 'i', warn: 'bang', danger: 'x', neutral: 'i' };
+  function statusLine(st, cls) {
+    var t = tone(st.tone, 'ok'), b = el('div', 'kit-statusbar is-' + t + (cls ? ' ' + cls : '')), i = el('span', 'kit-statusbar-i');
+    var ic = icon(TONE_ICON[t]); if (ic) i.appendChild(ic); b.appendChild(i); b.appendChild(el('span', null, st.text)); return b;
   }
+  function statusHead(box, st) { if (!st || !st.text) return null; var b = statusLine(st); box.appendChild(b); return b; }
   // chart(box, spec): an inline SVG from numbers YOUR code computed (never the agent's). spec = { type: 'line' | 'area' | 'bar',
   //   x: ['1', '2', …], series: [{ label, values: [n…] }] (1 or 2; the 2nd is drawn in --kit-series-2), y: { format(v), ticks: 4 },
   //   mark: { at: index, label } (a dashed vertical line, e.g. the break-even year), height: 170, summary: 'text for screen readers' }
@@ -632,7 +675,7 @@
       if (!cfg.allowDup && dup(ctx, cls)) return null;
       var ls = cfg.form ? last[cfg.form] : {}; if (!ls) return null;
       var lang = langOf(cfg, ctx), o = U.card(lang, 'kit-confirm ' + cls), t = val(cfg.title, ls, ctx);
-      statusHead(o.box, { text: val(cfg.status, ls, ctx), tone: 'ok' }); U.head(o.box, '', t); budget("confirm('" + name + "')", 'title', t);
+      U.head(o.box, '', t); statusHead(o.box, { text: val(cfg.status, ls, ctx), tone: 'ok' }); budget("confirm('" + name + "')", 'title', t);   // v0.8.1.4: the status under the title, as on every card
       var rows = val(cfg.rows, ls, ctx); if (rows && rows.length) U.rows(o.box, rows).classList.add('kit-lines');
       list(o.box, val(cfg.steps, ls, ctx), 'is-steps'); note(o.box, val(cfg.note, ls, ctx), 'is-muted');
       var a = buttons(cfg.actions && cfg.actions(ls, ctx)); if (a.length) U.row(o, a);
@@ -736,14 +779,14 @@
   // ── consent: one clear yes/no before anything is collected (ChatKit's "Enable notification") ──────
   // cfg = { cls, lang, icon: 'check' | 'bell' | 'shield', title, text, yes: [label, say, fields], no: [label, say, fields], link: [label, url] }
   // For production bots that collect data: in a demo, say it collects nothing. Both answers are one-shot and write a field.
-  var ICON = { check: '✓', bell: '🔔', shield: '🛡' };
+  var ICON = { check: 'check', bell: 'bell', shield: 'shield' };   // v0.8.1.4: SVG icons (an emoji drew in each platform's own colours)
   function consent(name, cfg) {
     var cls = cfg.cls || ('kit-' + name);
     checkCfg('consent', name, cfg, ['title', 'yes', 'no']); budget("consent('" + name + "')", 'title', cfg.title); budget("consent('" + name + "')", 'line', cfg.text); register('consent', name, null, null);
     LBW.widget(name, function (p, ctx) {
       if (!cfg.allowDup && dup(ctx, cls)) return null;
       var o = U.card(langOf(cfg, ctx), 'kit-consent ' + cls);
-      o.box.appendChild(el('span', 'kit-consent-i', ICON[cfg.icon] || ICON.check)); o.box.appendChild(el('p', 'kit-consent-t', cfg.title)); if (cfg.text) o.box.appendChild(el('p', 'kit-consent-x', cfg.text));
+      var ci = el('span', 'kit-consent-i'), cg = icon(ICON[cfg.icon] || ICON.check); if (cg) ci.appendChild(cg); o.box.appendChild(ci); o.box.appendChild(el('p', 'kit-consent-t', cfg.title)); if (cfg.text) o.box.appendChild(el('p', 'kit-consent-x', cfg.text));
       var g = U.once('kit-consent-b'); g.appendChild(U.reply(cfg.yes[0], cfg.yes[1], { primary: true, fields: cfg.yes[2] })); g.appendChild(U.reply(cfg.no[0], cfg.no[1], { fields: cfg.no[2] })); o.box.appendChild(g);
       if (cfg.link) o.box.appendChild(U.link(cfg.link[0], cfg.link[1], 'kit-consent-l'));
       return o;
@@ -793,6 +836,7 @@
     });
   }
 
-  LBW.kit = { version: '0.8.1.3', dev: DEV, describe: describe, L: L, last: last, cards: cards, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent, compare: compare, season: season,
-    h: { note: note, list: list, label: label, dup: dup, choice: choice, multiChoice: multiChoice, copyBox: copyBox, status: status, wa: wa, fill: fill, money: money, total: total, lightbox: lightbox, chart: chart, statusHead: statusHead } };
+  LBW.kit = { version: '0.8.1.4', dev: DEV, describe: describe, L: L, last: last, cards: cards, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent, compare: compare, season: season,
+    h: { note: note, list: list, label: label, dup: dup, choice: choice, multiChoice: multiChoice, copyBox: copyBox, status: status, wa: wa, fill: fill, money: money, total: total, lightbox: lightbox, chart: chart, statusHead: statusHead,
+      icon: icon, withIcon: withIcon, icons: Object.keys(ICONS), badge: badge, tones: TONES.slice() } };
 })(typeof window !== 'undefined' ? window : this);

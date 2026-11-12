@@ -1,0 +1,50 @@
+[
+[
+"repair",
+"Esta es la revisión. [[tn:repair id=revision]]"
+],
+[
+"repair-lista",
+"Tu bici ya está. [[tn:repair id=revision estado=lista]]"
+],
+[
+"repair-pieza",
+"Va con retraso. [[tn:repair id=revision estado=retraso]]"
+],
+[
+"repair-unset",
+"Un campo sin rellenar: se ve el estado propio. [[tn:repair id=pinchazo estado=@{estado}]]"
+],
+[
+"repair-en",
+"Here it is. [[tn:repair id=pinchazo estado=pieza lang=en]]"
+],
+[
+"booking",
+"Tu cita. [[tn:booking]]"
+],
+[
+"contact",
+"Así nos encuentras. [[tn:contact]]"
+],
+[
+"season",
+"El alquiler va por temporadas. [[tn:season]]"
+],
+[
+"quote",
+"Este es tu presupuesto. [[tn:quote]]"
+],
+[
+"consent",
+"Una pregunta antes. [[tn:ok]]"
+],
+[
+"bikes",
+"Estas quedan. [[tn:bikes]]"
+],
+[
+"attack",
+"[[tn:repair id=revision estado=<b>x]] [[tn:repair id=nope]]"
+]
+]

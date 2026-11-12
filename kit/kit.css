@@ -1,4 +1,4 @@
-/* AI Widgets kit v0.8.1.3 · the kit-* classes, from the --lbw-* tokens only (set them in the demo's theme.css).
+/* AI Widgets kit v0.8.1.4 · the kit-* classes, from the --lbw-* tokens only (set them in the demo's theme.css).
    Order in custom_css: @imports, lbw.css, kit.css, the demo's theme.css, the chat skin. */
 .kit-note { margin: 10px 0 0; font-size: 12px; line-height: 17px; color: var(--lbw-muted); }
 .kit-note:not(.is-safe):not(.is-flag), .kit-line, .kit-desc { max-width: 62ch; }
@@ -23,9 +23,7 @@
 .kit-lines dd { overflow-wrap: anywhere; }
 .kit-copytext { width: 100%; box-sizing: border-box; margin: 0 0 4px; padding: 8px 10px; border: 1px solid var(--lbw-ring); border-radius: var(--lbw-radius-in); background: var(--lbw-soft); font: 13px/18px var(--lbw-font); color: var(--lbw-ink); resize: none; }
 .kit-copymsg { font-size: 12px; color: var(--lbw-muted); align-self: center; }
-.kit-status { display: flex; align-items: center; gap: 8px; margin: 2px 0 6px; font-size: 14px; font-weight: 700; }
-.kit-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--lbw-muted); flex: none; }
-.kit-status.is-open .kit-dot { background: #1F9D55; box-shadow: 0 0 0 3px rgba(31,157,85,.18); }
+.kit-statusbar.kit-status { margin: 2px 0 8px; }   /* v0.8.1.4: contact's "open now" is the status line every card uses (was a green dot) */
 .lbw.kit-chips .lbw-box { border: 0; box-shadow: none; background: transparent; padding: 0; border-radius: 0; overflow: visible; }   /* no radius, no clipping: the box cut the chips' own corners */
 .lbw.kit-chips .lbw-box::before, .lbw.kit-contact.is-compact .lbw-box::before, .lbw.kit-stats .lbw-box::before, .lbw.lbw-split .lbw-box::before { display: none; }
 /* chips are suggestions, one step quieter than a card's actions (they were the same white pill as a bubble and a button) */
@@ -50,7 +48,9 @@
 .kit-unit, .kit-list { font-size: 13px; color: var(--lbw-muted); }
 .kit-save { font-size: 12px; font-weight: 600; margin-top: 2px; }
 .kit-stock { margin-top: 4px; font-size: 12px; color: var(--lbw-muted); }
-.kit-stock.is-ok { color: #1F7A45; font-weight: 600; }
+.kit-stock.is-ok { color: var(--kit-ok-c); font-weight: 600; }
+.kit-stock.is-warn { color: var(--kit-warn-c); font-weight: 600; } .kit-stock.is-danger { color: var(--kit-danger-c); font-weight: 600; } .kit-stock.is-info { color: var(--kit-info-c); font-weight: 600; }
+.kit-stock.has-ico { display: flex; align-items: center; gap: 4px; } .kit-stock .kit-ico { width: 14px; height: 14px; }   /* v0.8.1.4: a slide's status takes a tone */
 .kit-desc { margin: 4px 0 8px; font-size: 13px; line-height: 18px; }
 .kit-out { margin-top: 12px; }
 .kit-out .lbw-rows > div { grid-template-columns: 1fr auto; } .kit-out .lbw-rows dd { text-align: right; font-variant-numeric: tabular-nums; }   /* the amounts of a sum share the total's right edge */
@@ -83,10 +83,38 @@
 .kit-sent-t { flex: 1; min-width: 0; color: var(--lbw-muted); overflow-wrap: anywhere; }
 .kit-sent-toggle { flex: none; background: none; border: 0; padding: 0 4px; min-height: 44px; display: inline-flex; align-items: center; color: var(--lbw-ink); font: 600 13px/18px var(--lbw-font); text-decoration: underline; cursor: pointer; }
 /* v0.5 · the lead-gen set. Extra tokens a theme may set: --kit-series-2 (a chart's 2nd series), --kit-hero-from / --kit-hero-to / --kit-hero-ink (the stats card) */
-.kit-statusbar { display: flex; align-items: center; gap: 8px; margin: -2px 0 8px; font-size: 13px; font-weight: 600; color: #1F7A45; }
-.kit-statusbar.is-info { color: var(--lbw-ink); } .kit-statusbar.is-warn { color: #9A5B00; }
-.kit-statusbar-i { width: 18px; height: 18px; border-radius: 50%; background: currentColor; display: grid; place-items: center; flex: none; font-size: 12px; font-weight: 700; line-height: 1; }
-.kit-statusbar-i { color: #fff; } .kit-statusbar.is-ok .kit-statusbar-i { background: #1F7A45; } .kit-statusbar.is-info .kit-statusbar-i { background: var(--lbw-ink); } .kit-statusbar.is-warn .kit-statusbar-i { background: #9A5B00; }
+/* v0.8.1.4 · tones, one set for status lines, badges and a slide's status. A theme (a dark chat) may set them on :root:
+   --kit-ok / --kit-info / --kit-warn / --kit-danger (text and icon, each ≥ 4.5:1 on its soft fill and on the card) and
+   --kit-ok-soft / --kit-info-soft / --kit-warn-soft / --kit-danger-soft (a badge's fill) */
+.kit-statusbar { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-size: 13px; line-height: 18px; font-weight: 600; color: var(--kit-ok-c); }
+.kit-statusbar.is-info { color: var(--kit-info-c); } .kit-statusbar.is-neutral { color: var(--lbw-ink); } .kit-statusbar.is-warn { color: var(--kit-warn-c); } .kit-statusbar.is-danger { color: var(--kit-danger-c); }
+.kit-statusbar-i { width: 18px; height: 18px; border-radius: 50%; background: currentColor; display: grid; place-items: center; flex: none; }
+.kit-statusbar-i .kit-ico { width: 12px; height: 12px; color: var(--lbw-card, #fff); } .kit-statusbar-i .kit-ico svg { stroke-width: 3; }
+/* the tones as each widget sees them: a theme's --kit-* token, or the default mixed with the theme's ink (text) and card
+   (fills), so a dark theme written before 0.8.1.4 still reads (review: a fixed blue on navy was 2.4:1; mixed: ≥ 4.4:1) */
+.lbw { --kit-ok-c: var(--kit-ok, #1F7A45); --kit-info-c: var(--kit-info, #1D5FA8); --kit-warn-c: var(--kit-warn, #8A5100); --kit-danger-c: var(--kit-danger, #B42318);
+  --kit-ok-s: var(--kit-ok-soft, #E6F4EC); --kit-info-s: var(--kit-info-soft, #E8F0FA); --kit-warn-s: var(--kit-warn-soft, #FDF1DC); --kit-danger-s: var(--kit-danger-soft, #FDECEA); }
+@supports (color: color-mix(in srgb, red, blue)) { .lbw {
+  --kit-ok-c: var(--kit-ok, color-mix(in srgb, #1F7A45 60%, var(--lbw-ink))); --kit-info-c: var(--kit-info, color-mix(in srgb, #1D5FA8 60%, var(--lbw-ink)));
+  --kit-warn-c: var(--kit-warn, color-mix(in srgb, #8A5100 60%, var(--lbw-ink))); --kit-danger-c: var(--kit-danger, color-mix(in srgb, #B42318 60%, var(--lbw-ink)));
+  --kit-ok-s: var(--kit-ok-soft, color-mix(in srgb, #1F7A45 14%, var(--lbw-card))); --kit-info-s: var(--kit-info-soft, color-mix(in srgb, #1D5FA8 14%, var(--lbw-card)));
+  --kit-warn-s: var(--kit-warn-soft, color-mix(in srgb, #8A5100 14%, var(--lbw-card))); --kit-danger-s: var(--kit-danger-soft, color-mix(in srgb, #B42318 14%, var(--lbw-card))); } }
+/* icons (LBW.kit.h.icon, "icon" on an action): inline SVG in the colour of the text around it */
+.kit-ico { display: inline-flex; width: 18px; height: 18px; flex: none; }
+.kit-ico svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.lbw-pill.has-ico { gap: 6px; }
+/* sent: the ✓ takes the icon's box (same width, no reflow), not a second mark before it */
+.lbw-pill.has-ico.is-sent { padding-inline: clamp(10px, 4.2cqi, 16px); } .lbw-pill.has-ico.is-sent::before { content: none; }
+.lbw-pill.is-sent .kit-ico svg { display: none; } .lbw-pill.is-sent .kit-ico { align-items: center; justify-content: center; } .lbw-pill.is-sent .kit-ico::before { content: "✓"; }
+/* badges (LBW.kit.h.badge, "badge" on a card): a small label in a tone, beside the card's title */
+.kit-tag { display: inline-flex; align-items: center; flex: none; max-width: 50%; padding: 2px 8px; border-radius: 999px; font: 600 12px/16px var(--lbw-font); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--lbw-ink); background: var(--lbw-soft); }
+.kit-tag.is-ok { color: var(--kit-ok-c); background: var(--kit-ok-s); } .kit-tag.is-info { color: var(--kit-info-c); background: var(--kit-info-s); }
+.kit-tag.is-warn { color: var(--kit-warn-c); background: var(--kit-warn-s); } .kit-tag.is-danger { color: var(--kit-danger-c); background: var(--kit-danger-s); }
+.lbw-head > .kit-tag { align-self: flex-start; margin-top: 1px; }
+/* a destructive or "no" action ("danger": true on an action; review's Discard): the danger colour, never a fill */
+/* only while live: disabled, sent and "no longer available" keep their own look (lbw.css), and a filled primary is never red (the checker refuses danger + primary) */
+.lbw-pill.is-danger:not(:disabled):not(.is-sent):not(.is-primary) { color: var(--kit-danger-c) !important; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--kit-danger-c) 60%, transparent); }
+@supports not (color: color-mix(in srgb, red, blue)) { .lbw-pill.is-danger:not(:disabled):not(.is-sent):not(.is-primary) { box-shadow: inset 0 0 0 1px rgba(180,35,24,.6); } }
 /* chart */
 .kit-chart { margin: 6px 0 0; }
 .kit-chart svg { display: block; width: 100%; max-width: 440px; margin: 0 auto; height: auto; overflow: visible; }   /* the viewBox is 320 wide: past ~440 px its text grows too big (1440 shot) */
@@ -120,7 +148,8 @@
 .kit-rtotal { display: flex; justify-content: space-between; align-items: baseline; margin: 10px -16px 0; padding: 12px 16px; background: var(--lbw-soft); font-size: 14px; }
 .kit-rtotal strong { font: 700 18px var(--lbw-display); font-variant-numeric: tabular-nums; }
 .lbw-form.kit-reviewform { display: flex; flex-direction: column; } .kit-reviewform .lbw-cta { order: 10; margin-top: 12px; }
-.kit-reviewform .kit-discard { order: 11; width: 100%; min-height: 44px; margin-top: 4px; background: none; box-shadow: none; color: var(--lbw-muted) !important; font-weight: 500; }   /* a text button: it had the weight of "Confirm" */
+.kit-reviewform .kit-discard { order: 11; width: 100%; min-height: 44px; margin-top: 4px; font-weight: 400; }
+.kit-reviewform .kit-discard:not(.is-sent) { background: none; box-shadow: none; color: var(--kit-danger-c) !important; }   /* a text button: it had the weight of "Confirm". v0.8.1.4: in the danger colour, it says what it does */
 /* stats */
 .lbw.kit-stats .lbw-box { background: linear-gradient(135deg, var(--kit-hero-from, var(--lbw-accent)), var(--kit-hero-to, var(--lbw-ink))); color: var(--kit-hero-ink, #fff); border: 0; }
 .lbw.kit-stats .lbw-kicker, .lbw.kit-stats .lbw-title { color: inherit; }
@@ -136,7 +165,8 @@
 .lbw-pill.kit-person-b { min-height: 40px; padding: 4px 12px; font-size: 13px; flex: none; }
 /* consent */
 .lbw.kit-consent .lbw-box { text-align: center; }
-.kit-consent-i { display: grid; place-items: center; width: 52px; height: 52px; margin: 4px auto 10px; border-radius: 50%; background: #1F9D55; color: #fff; font-size: 24px; font-weight: 700; }
+.kit-consent-i { display: grid; place-items: center; width: 52px; height: 52px; margin: 4px auto 10px; border-radius: 50%; background: var(--kit-ok-c); color: var(--lbw-card, #fff); }
+.kit-consent-i .kit-ico { width: 26px; height: 26px; } .kit-consent-i .kit-ico svg { stroke-width: 2.4; }   /* v0.8.1.4: an SVG, not an emoji */
 .kit-consent-t { margin: 0; font: 600 18px/24px var(--lbw-display); } .kit-consent-x { margin: 4px 0 0; font-size: 14px; line-height: 20px; color: var(--lbw-muted); }
 .kit-consent-b { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px; } .kit-consent-b .lbw-pill { width: 100%; min-height: 44px; justify-content: center; }
 .kit-consent-l { display: inline-flex; align-items: center; min-height: 44px; margin-top: 4px; font-size: 13px; }
