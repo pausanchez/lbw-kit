@@ -375,7 +375,7 @@
       K.review(name, o);
     },
     compare: function (cfg, name, w, lang) {
-      var o = pick(w, ['cls', 'lang', 'kicker', 'title', 'param', 'items', 'rows', 'min', 'max', 'empty', 'note', 'same', 'allowDup']);
+      var o = pick(w, ['cls', 'lang', 'kicker', 'title', 'param', 'items', 'rows', 'min', 'max', 'empty', 'note', 'same', 'primary', 'allowDup']);
       // "titles": { "2": "Two ways to go", "3": "Three ways to go" }: a title by how many are compared
       if (w.titles) o.title = function (ids) { return own(w.titles, String(ids.length)) ? w.titles[ids.length] : w.title || ''; };
       K.compare(name, o);

@@ -1,4 +1,4 @@
-/* lbw.css · base look for Landbot AI Widgets (v0.8.1.6)
+/* lbw.css · base look for Landbot AI Widgets (v0.8.1.7)
    The ChatKit-gallery language measured in retos 16-19: white cards, 18px radius, a hairline and a soft shadow; a small
    kicker above an 18px title; pill buttons (primary filled, secondary an inset ring) under the card. Re-skin it by
    overriding the variables below in your Custom CSS; keep the class names, the test harness reads some of them. */
@@ -65,7 +65,7 @@
 .lbw-once.is-done .lbw-pill:not(.is-sent), .lbw-once.is-stale .lbw-pill { opacity: 1; background: transparent !important; color: var(--lbw-muted) !important; box-shadow: none !important; cursor: default; font-weight: 400; }   /* v0.8.1.6: 400, not 500 (the house weights are 400/600/700). Same height, padding and font size as before. No box at all: a box means "can be pressed" (live: a ring or a fill; disabled: a faint ring): older cards must not change size when the visitor writes */
 .lbw-chips { display: flex; flex-wrap: wrap; gap: 8px; }
 /* toggles (multi-select) */
-.lbw-tog { min-height: 44px; padding: 9px 14px; border: 0; border-radius: var(--lbw-radius-pill); background: var(--lbw-pill-bg, #fff); box-shadow: inset 0 0 0 1px var(--lbw-pill-ring, var(--lbw-ring)); font: 500 13px/1.2 var(--lbw-font); color: var(--lbw-ink); cursor: pointer; }
+.lbw-tog { min-height: 44px; padding: 9px 14px; border: 0; border-radius: var(--lbw-radius-pill); background: var(--lbw-pill-bg, #fff); box-shadow: inset 0 0 0 1px var(--lbw-pill-ring, var(--lbw-ring)); font: 600 13px/1.2 var(--lbw-font); color: var(--lbw-accent-text, var(--lbw-accent)); cursor: pointer; }   /* v0.8.1.7: tappable, so the accent (was the ink) */
 .lbw-tog[aria-pressed="true"] { background: var(--lbw-tint); color: var(--lbw-ink); box-shadow: inset 0 0 0 2px var(--lbw-accent-text, var(--lbw-accent)); }   /* a selection: tint, ring and tick. The filled accent is for the card's one primary action */
 .lbw-tog[aria-pressed="true"] { padding-inline: 8px; }
 .lbw-tog[aria-pressed="true"]::before { content: "✓ "; white-space: pre; }
@@ -73,11 +73,11 @@
 .lbw-strip { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 2px 2px 10px; scrollbar-width: none; overscroll-behavior-x: contain; }
 .lbw-strip::-webkit-scrollbar { display: none; }
 .lbw-box > .lbw-strip { margin: 0 -16px; padding: 2px 16px 12px; scroll-padding-left: 16px; }   /* to the card's edge: the cut slide says "swipe", not "overflow" */
-.lbw-slide { flex: none; width: 80%; scroll-snap-align: start; display: flex; flex-direction: column; background: var(--lbw-card); border: 1px solid var(--lbw-line); border-radius: var(--lbw-radius-in); overflow: hidden; }
+.lbw-slide { flex: none; width: 86%; scroll-snap-align: start; display: flex; flex-direction: column; background: var(--lbw-card); border: 1px solid var(--lbw-line); border-radius: var(--lbw-radius-in); overflow: hidden; }
 .lbw-slide .lbw-img { aspect-ratio: 16 / 10; }
 .lbw-slide-body { display: flex; flex-direction: column; flex: 1; padding: 12px 14px 14px; }
 .lbw-slide .lbw-actions { margin-top: auto; padding-top: 10px; flex-wrap: nowrap; }
-.lbw-slide .lbw-pill { flex: 1; min-height: 44px; padding: 6px 10px; font-size: 13px; white-space: nowrap; }
+.lbw-slide .lbw-pill { flex: 1; min-width: 0; min-height: 44px; padding: 6px 10px; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }   /* v0.8.1.7: a long label ends in … inside the slide, never past its edge (H10: "On the website ↗" ran 40 px out) */
 .lbw-slide .lbw-pill.is-sent { padding-inline: 3px; }   /* v0.8.1.5: a sent slide button doesn't grow by its ✓ */
 .lbw-name { font: 600 14px/20px var(--lbw-font); margin: 2px 0 6px; }
 .lbw-price { font: 700 18px/24px var(--lbw-font); color: var(--lbw-accent-text, var(--lbw-accent)); }
@@ -105,7 +105,7 @@
 /* v0.4 · forms (LBW.ui.form) and steppers (LBW.ui.stepper) */
 .lbw-form { display: flex; flex-direction: column; gap: 10px; }
 .lbw-form > .lbw-cta { width: 100%; min-height: 44px; margin-top: 2px; }   /* one shape for "send this card" in every widget */
-.lbw-form > .lbw-cta:disabled { background: transparent; color: var(--lbw-muted) !important; box-shadow: inset 0 0 0 1px var(--lbw-line); font-weight: 500; }   /* not ready yet: a faint ring and a label that says what is missing; a pale full-width bar read as a dead end (v0.8.1.3) */
+.lbw-form > .lbw-cta:disabled { background: transparent; color: var(--lbw-muted) !important; box-shadow: inset 0 0 0 1px var(--lbw-line); font-weight: 400; }   /* v0.8.1.7: 400 (house weights). Not ready yet: a faint ring and a label that says what is missing; a pale full-width bar read as a dead end (v0.8.1.3) */
 .lbw-step { display: flex; align-items: center; gap: 8px; }
 .lbw-step-l { flex: 1; display: flex; flex-direction: column; font-size: 14px; line-height: 18px; min-width: 0; } .lbw-step-l .lbw-muted { font-size: 12px; }
 .lbw-step-b { width: 44px; height: 44px; flex: none; border: 0; border-radius: 50%; background: var(--lbw-pill-bg, #fff); box-shadow: inset 0 0 0 1px var(--lbw-pill-ring, var(--lbw-ring)); font: 600 18px/1 var(--lbw-font); color: var(--lbw-ink); cursor: pointer; }

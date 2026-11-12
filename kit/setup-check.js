@@ -29,7 +29,7 @@
     confirm: 'type cls lang allowDup form status title rows steps note actions',
     review: 'type cls lang kicker title cta note collapse allowDup state tables compute money lines total discard send',
     chart: 'type cls lang kicker title sub note links allowDup kind height state tables compute money x series y mark summary',
-    compare: 'type cls lang kicker title titles param items rows min max empty note same allowDup',
+    compare: 'type cls lang kicker title titles param items rows min max empty note same primary allowDup',
     season: 'type cls lang kicker ranges words rows note reply links allowDup',
     rating: 'type cls lang kicker title text kind min max labels bands send note allowDup'
   };

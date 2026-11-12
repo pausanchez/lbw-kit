@@ -1,4 +1,4 @@
-/* lbw.js · Landbot AI Widgets runtime · v0.8.1.6
+/* lbw.js · Landbot AI Widgets runtime · v0.8.1.7
    Turns tags that an AI agent (or a flow message) writes at the end of a bot message, e.g. [[shop:card id=boots lang=en]],
    into interactive widgets inside the Landbot v4 web chat. Distilled from four production experiments (retos 16-19).
    You write: your data, your labels and one function per widget. The runtime does the rest:
@@ -67,7 +67,10 @@
   function row(parent, items, cls) { var r = el('div', 'lbw-actions' + (cls ? ' ' + cls : '')); items.forEach(function (a) { if (a) r.appendChild(a); }); parent.appendChild(r); return r; }
   function rows(box, pairs) {   // [[label, value], …]: null values skipped
     var dl = el('dl', 'lbw-rows');
-    pairs.forEach(function (p) { if (p && p[1] != null && p[1] !== '') { var r = el('div'); r.appendChild(el('dt', null, p[0])); r.appendChild(el('dd', null, String(p[1]))); dl.appendChild(r); } });
+    pairs.forEach(function (p) { if (p && p[1] != null && p[1] !== '') { var r = el('div'), v = String(p[1]), dd = el('dd'); r.appendChild(el('dt', null, p[0]));
+      var at = /^[^\s@]+@[^\s@]+$/.test(v) ? v.indexOf('@') + 1 : -1;   // v0.8.1.7: an email address may break after its @, not mid-word
+      if (at > 0) { dd.appendChild(document.createTextNode(v.slice(0, at))); dd.appendChild(document.createElement('wbr')); dd.appendChild(document.createTextNode(v.slice(at))); } else dd.textContent = v;
+      r.appendChild(dd); dl.appendChild(r); } });
     box.appendChild(dl); return dl;
   }
 
@@ -585,7 +588,7 @@
   }
 
   root.LBW = {
-    version: '0.8.1.6',
+    version: '0.8.1.7',
     // LBW.init({ prefix, langs, defaultLang, labels: {en:{…}}, links: ['https://shop.example/', 'tel:', 'mailto:', 'https://calendar.google.com/'], maxPerMessage, quietMs, timeZone: 'Europe/Madrid' })
     init: function (o) { for (var k in o) cfg[k] = o[k]; start(); return root.LBW; },
     // LBW.on('render', function (e) { e.widget, e.tag, e.lang, e.el, e.message }) · 'say' → { text, fields } · 'drop' → the reason

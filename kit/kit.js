@@ -1,4 +1,4 @@
-/* AI Widgets kit v0.8.1.6 · on lbw.js v0.8.1.6 · the widgets every url-to-demo build rewrote, written once with options. Load it after lbw.js and before the
+/* AI Widgets kit v0.8.1.7 · on lbw.js v0.8.1.7 · the widgets every url-to-demo build rewrote, written once with options. Load it after lbw.js and before the
    client's widgets.js: custom_js = <script>lbw.js</script><script>kit.js</script><script>widgets.js</script>.
 
    Each maker registers a widget under the name you give it, from data you pass. Nothing here holds client facts.
@@ -87,7 +87,7 @@
     stats: 'cls lang items single reply links allowDup',
     people: 'cls lang kicker title items select reply note allowDup',
     consent: 'cls lang icon title text yes no link allowDup',
-    compare: 'cls lang kicker title param items rows min max empty note allowDup same',
+    compare: 'cls lang kicker title param items rows min max empty note allowDup same primary',
     season: 'cls lang kicker ranges words rows note reply links allowDup',   // v0.8.1.4: missing since 0.8.1, so dev mode threw and the season card drew nothing
     rating: 'cls lang kicker title text kind min max labels say note allowDup'
   };
@@ -416,7 +416,8 @@
   // Prices arrive formatted (LBW.kit.h.money): the kit never does arithmetic on your data.
   function slideEl(s) {
     var sl = el('article', 'lbw-slide kit-slide'); sl.setAttribute('role', 'listitem'); if (s.id) sl.setAttribute('data-id', s.id);
-    if (s.img) { var im = U.img(s.img.src, 'kit-img' + (s.img.cls ? ' ' + s.img.cls : ''), s.img); if (s.badge) im.appendChild(el('span', 'kit-badge', s.badge)); sl.appendChild(im);
+    // v0.8.1.7 · a slide's photo is drawn ~70 % of a phone's width, ~300 px on a wide column: ask for that, not the 90vw default
+    if (s.img) { var io = s.img.sizes ? s.img : Object.assign({}, s.img, { sizes: '(max-width: 480px) 72vw, 300px' }); var im = U.img(s.img.src, 'kit-img' + (s.img.cls ? ' ' + s.img.cls : ''), io); if (s.badge) im.appendChild(el('span', 'kit-badge', s.badge)); sl.appendChild(im);
       if (s.gallery && s.gallery.photos && s.gallery.photos.length) zoomable(im, s.gallery, s.name); }   // v0.3: the photo opens LBW.kit.h.lightbox
     var b = el('div', 'lbw-slide-body'); sl.appendChild(b);
     if (s.kicker) b.appendChild(el('div', 'kit-slide-kicker', s.kicker));
@@ -441,6 +442,7 @@
         if (!sel || !sel.items || !sel.items.length) return false;
         var st = el('div', 'lbw-strip'); st.tabIndex = 0; st.setAttribute('role', 'list');
         sel.items.forEach(function (x, i) { var s = cfg.slide(x, ctx), wh = "carousel('" + name + "') slide " + i;
+          if (s && s.gallery && !s.gallery.lang) s = Object.assign({}, s, { gallery: Object.assign({}, s.gallery, { lang: lang }) });   // v0.8.1.7: the lightbox and its label speak the card's language
           if (!s || !s.name) { warn(wh, 'no name: the slide was left out'); return; }
           budget(wh, 'title', s.name); budget(wh, 'line', s.desc); st.appendChild(slideEl(s)); });
         if (!st.children.length) return false;
@@ -585,7 +587,7 @@
   }
   function zoomable(frame, g, title) {   // the slide's photo becomes a button that opens the lightbox
     var b = U.btn('', 'kit-zoom'); b.setAttribute('aria-label', (words(g.lang || 'en').photos || 'Photos') + ' · ' + title + ' (' + g.photos.length + ')');
-    b.appendChild(el('span', 'kit-zoom-n', '⤢ ' + g.photos.length)); frame.appendChild(b);
+    b.appendChild(el('span', 'kit-zoom-n', g.photos.length > 1 ? '⤢ ' + g.photos.length : '⤢')); frame.appendChild(b);   // v0.8.1.7: no "1" for a gallery of one
     b.addEventListener('click', function () { lightbox({ photos: g.photos, title: g.title || title, lang: g.lang, page: g.page }, 0, b); });
   }
 
@@ -830,10 +832,10 @@
         line(row[1], cells, (row[2] || '') + (same && !row[2] ? ' is-same' : ''));
       });
       o.box.appendChild(grid);
-      if (folded.length) { var Wl = words(langOf(cfg, ctx)); note(o.box, (got.length === 2 ? Wl.cSame2 : Wl.cSame) + '\n' + folded.join('\n'), 'kit-cmp-same'); }
+      if (folded.length) { var Wl = words(langOf(cfg, ctx)); note(o.box, (got.length === 2 ? Wl.cSame2 : Wl.cSame) + (folded.length === 1 ? ' ' : '\n') + folded.join('\n'), 'kit-cmp-same'); }   // one equal row stays on the label's line
       note(o.box, cfg.note, 'is-muted');
       var g = U.once('kit-actions'), links = [];
-      got.forEach(function (id, i) { var it = cfg.items[id]; if (it.reply) g.appendChild(U.reply(it.reply[0], it.reply[1], { primary: i === 0, fields: it.reply[2] })); if (it.link) links.push(U.link(it.link[0], it.link[1])); });
+      got.forEach(function (id, i) { var it = cfg.items[id]; if (it.reply) g.appendChild(U.reply(it.reply[0], it.reply[1], { primary: i === 0 && cfg.primary !== false, fields: it.reply[2] }));   /* v0.8.1.7: "primary": false when the items are equals */ if (it.link) links.push(U.link(it.link[0], it.link[1])); });
       var acts = (g.children.length ? [g] : []).concat(buttons(links)); if (acts.length) U.row(o, acts);
       return o;
     });
@@ -885,7 +887,7 @@
     });
   }
 
-  LBW.kit = { version: '0.8.1.6', dev: DEV, describe: describe, L: L, last: last, cards: cards, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent, compare: compare, season: season, rating: rating,
+  LBW.kit = { version: '0.8.1.7', dev: DEV, describe: describe, L: L, last: last, cards: cards, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent, compare: compare, season: season, rating: rating,
     h: { note: note, list: list, label: label, dup: dup, choice: choice, multiChoice: multiChoice, copyBox: copyBox, status: status, wa: wa, fill: fill, money: money, total: total, lightbox: lightbox, chart: chart, statusHead: statusHead,
       icon: icon, withIcon: withIcon, icons: Object.keys(ICONS), badge: badge, tones: TONES.slice() } };
 })(typeof window !== 'undefined' ? window : this);
