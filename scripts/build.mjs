@@ -14,7 +14,9 @@ const pkg = JSON.parse(read('package.json'));
 const v = pkg.version;
 const banner = (what) => `/*! ${what} v${v} */`;
 
-async function js(path) { return (await transform(read(path), { loader: 'js', minify: true, target: 'es2017', legalComments: 'none' })).code.trim(); }
+// v0.8.1.9 · no raw U+00A0 in shipped JS: Landbot's upload turns one into a plain space (docs/13); \xA0 works in strings and regexes
+const nbsp = (code) => code.replace(/\u00a0/g, '\\xA0');
+async function js(path) { return nbsp((await transform(read(path), { loader: 'js', minify: true, target: 'es2017', legalComments: 'none' })).code.trim()); }
 async function css(path) { return (await transform(read(path), { loader: 'css', minify: true, legalComments: 'none' })).code.trim(); }
 
 const lbw = await js('runtime/lbw.js'), kit = await js('kit/kit.js'), setup = await js('kit/setup.js'), check = await js('kit/setup-check.js');

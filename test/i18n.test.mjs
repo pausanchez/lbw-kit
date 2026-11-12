@@ -249,7 +249,7 @@ test('review 3: seasons that overlap or touch are one season; day words can be s
   assert.match(draw(c, 'x [[t:season lang=en]]').widgets()[0].textContent, /(30 September|September 30)/);
   c = mk([['19/3/2027', '1/11/2027']], '11/11/2026', { in: 'Em', day: '1 dia', days: '{n} dias' }); assert.deepEqual(c.result.errors, []);
   assert.match(draw(c, 'x [[t:season lang=en]]').widgets()[0].textContent, /Em128 dias|Em\s*128 dias/);
-  c = mk([['19/3/2027', '1/11/2027']], '18/3/2027'); assert.match(draw(c, 'x [[t:season lang=es]]').widgets()[0].textContent, /En1 día|En\s*1 día/);
+  c = mk([['19/3/2027', '1/11/2027']], '18/3/2027'); assert.match(draw(c, 'x [[t:season lang=es]]').widgets()[0].textContent, /Abre en\s*1 día/);
 });
 
 // ── 0.8.1.1: what a design critique of the live chat found ──

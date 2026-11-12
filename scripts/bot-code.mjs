@@ -72,7 +72,9 @@ const file = (p) => (p ? fs.readFileSync(p, 'utf8').trim() : '');
 
 // the demo's own script and CSS are minified like the library: they are re-sent on every change
 const min = async (text, loader) => (text ? (await transform(text, { loader, minify: true, legalComments: 'none' })).code.trim() : '');
-const setup = `LBW.kit.setup(${JSON.stringify(config)});`, own = await min(file(opt.widgets), 'js');
+// v0.8.1.9 · a literal U+00A0 doesn't survive the upload (docs/13: it came back a plain space, and once even a \u00a0 escape did):
+// write it as the \xA0 escape, which Landbot keeps (docs/13: \xXX escapes are kept), in values, keys, regexes and your own widgets
+const setup = `LBW.kit.setup(${JSON.stringify(config).replace(/\u00a0/g, '\\xA0')});`, own = (await min(file(opt.widgets), 'js')).replace(/\u00a0/g, '\\xA0');
 const scripts = [setup, own].filter(Boolean);
 // inside <script>…</script> a literal "</script" would end the block early
 for (const s of scripts) if (/<\/script/i.test(s)) { console.error('the config or the widgets contain "</script": write it as "<\\/script"'); process.exit(1); }

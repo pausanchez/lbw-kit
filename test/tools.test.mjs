@@ -81,3 +81,21 @@ test('build: the all-in-one bundle adds its CSS once, before every other style',
   assert.match(fs.readFileSync(path.join(out, 'custom_js.html'), 'utf8'), /dist\/lbw-kit\.all\.min\.js" integrity="sha384-/);
   assert.doesNotMatch(fs.readFileSync(path.join(out, 'custom_css.css'), 'utf8'), /lbw-kit\.min\.css/);
 });
+
+test('bot-code 0.8.1.9: a literal no-break space is written as \\xA0 (kept by the upload), in values and keys, and still reads as one', () => {
+  const dir = tmp(), cfgPath = path.join(dir, 'c.json');
+  const cfg = JSON.parse(fs.readFileSync('kit/example/config.json', 'utf8'));
+  cfg.widgets.service.items.extension.line = 'Hasta 21 m² más';
+  fs.writeFileSync(cfgPath, JSON.stringify(cfg));
+  const out = tmp(), r = run(cfgPath, '--out', out); assert.equal(r.status, 0, r.stderr);
+  const js = fs.readFileSync(path.join(out, 'custom_js.html'), 'utf8');
+  assert.ok(!js.includes(' '), 'no literal U+00A0 left');
+  assert.match(js, /"Hasta 21\\xA0m² más"/);
+  const setup = scriptsOf(js)[1].replace(/^LBW\.kit\.setup\(/, '').replace(/\);?\s*$/, '');
+  assert.equal(new Function('return ' + setup)().widgets.service.items.extension.line, 'Hasta 21 m² más');
+});
+
+test('build 0.8.1.9: no shipped JS file carries a raw U+00A0 (inline included)', () => {
+  for (const f of ['lbw-kit.min.js', 'lbw-kit.all.min.js', 'lbw-kit.dev.min.js', 'lbw.min.js', 'kit.min.js', 'inline/custom_js.html'])
+    assert.ok(!fs.readFileSync(path.join('dist', f), 'utf8').includes('\u00a0'), f);
+});

@@ -1,4 +1,4 @@
-/* lbw.js · Landbot AI Widgets runtime · v0.8.1.8
+/* lbw.js · Landbot AI Widgets runtime · v0.8.1.9
    Turns tags that an AI agent (or a flow message) writes at the end of a bot message, e.g. [[shop:card id=boots lang=en]],
    into interactive widgets inside the Landbot v4 web chat. Distilled from four production experiments (retos 16-19).
    You write: your data, your labels and one function per widget. The runtime does the rest:
@@ -477,7 +477,9 @@
         var a = host.getBoundingClientRect(), b = sc.getBoundingClientRect();
         var tall = a.height > b.height - 16, aim = a.top;
         // v0.8.1.3 · keep the visitor's own question in view above a tall reply when 160 px of the reply still fit under it
-        if (tall) { var q = host.previousElementSibling; while (q && q.getAttribute && q.getAttribute('data-lb-part') !== 'message') q = q.previousElementSibling;
+        // v0.8.1.9 · the message before this one, from the document's list: live, Landbot's messages are not siblings (the
+        // sibling walk found nothing, so the question stayed 64–114 px above the window on every tall reply, critique 0.8.1.3)
+        if (tall) { var q = null; for (var qi = all.length - 2; qi >= 0; qi--) { if (all[qi].getAttribute('data-lb-author') === 'user') { q = all[qi]; break; } }   // past a reply split into several bubbles
           if (q && q.getAttribute('data-lb-author') === 'user') { var qr = q.getBoundingClientRect(); if (a.top - qr.top + 160 <= b.height - 8 && a.top - qr.top < 220) aim = qr.top; } }
         var to = Math.max(0, Math.round(tall ? sc.scrollTop + (aim - b.top) - 8 : sc.scrollTop + (a.bottom - b.bottom) + 12));
         var off = tall ? Math.abs(aim - b.top - 8) : (a.bottom > b.bottom + 1 || a.top < b.top - 1 ? 1e3 : 0);
@@ -496,13 +498,13 @@
   // bubble's text has stopped changing for quietMs (the chat may still be writing into that very text node), only on
   // phone-shaped runs (an optional +code, then 2–4 digit groups, 9 to 15 digits in all), never inside links, code or a
   // widget. The text it saw is remembered: if the chat redraws the bubble, it is done again.
-  var TEL = /(?:\(?\+\d{1,3}\)?[\s.\- ]?)?\d{2,4}(?:[\s.\- ]\d{2,4}){2,5}(?!\d)/g, telSeen = typeof WeakMap === 'function' ? new WeakMap() : null, telT = 0;
+  var TEL = /(?:\(?\+\d{1,3}\)?[\s.\-\xa0]?)?\d{2,4}(?:[\s.\-\xa0]\d{2,4}){2,5}(?!\d)/g, telSeen = typeof WeakMap === 'function' ? new WeakMap() : null, telT = 0;
   function keepTel() {
     if (!telSeen) return;
     var now = Date.now(), wait = false;
     [].forEach.call(document.querySelectorAll('[data-lb-part="message"][data-lb-author="bot"] [data-lb-part="message-text"]'), function (box) {
       var txt = box.textContent; if (box.getAttribute('data-lbw-tel') === String(txt.length) + ':' + txt.slice(-24)) return;   // done for this text
-      if (txt.indexOf('[[') >= 0 || !/\d[\d  .\-]{7,}\d/.test(txt)) return;
+      if (txt.indexOf('[[') >= 0 || !/\d[\d \xa0.\-]{7,}\d/.test(txt)) return;
       var seen = telSeen.get(box);
       if (!seen || seen.txt !== txt) { telSeen.set(box, { txt: txt, t: now }); wait = true; return; }   // still changing, or first look
       if (now - seen.t < cfg.quietMs) { wait = true; return; }
@@ -575,7 +577,7 @@
     // one-shot groups nobody used go quiet once the visitor has written after them
     var all = document.querySelectorAll('[data-lb-part="message"]'), lastU = -1;
     [].forEach.call(all, function (m, i) { if (m.getAttribute('data-lb-author') === 'user') lastU = i; });
-    [].forEach.call(all, function (m, i) { if (i < lastU) [].forEach.call(m.querySelectorAll('.lbw-once:not(.is-done)'), function (g) { g.classList.add('is-stale'); done(g); }); });
+    [].forEach.call(all, function (m, i) { if (i < lastU) [].forEach.call(m.querySelectorAll('.lbw-once:not(.is-done)'), function (g) { g.classList.add('is-stale'); done(g); var w = g.closest('.lbw'); if (w && !w.querySelector('.is-sent')) w.classList.add('is-spent'); }); });   // v0.8.1.9: is-spent: nothing was sent from this card
   }
   function start() {
     if (started) return; started = true;
@@ -588,7 +590,7 @@
   }
 
   root.LBW = {
-    version: '0.8.1.8',
+    version: '0.8.1.9',
     // LBW.init({ prefix, langs, defaultLang, labels: {en:{…}}, links: ['https://shop.example/', 'tel:', 'mailto:', 'https://calendar.google.com/'], maxPerMessage, quietMs, timeZone: 'Europe/Madrid' })
     init: function (o) { for (var k in o) cfg[k] = o[k]; start(); return root.LBW; },
     // LBW.on('render', function (e) { e.widget, e.tag, e.lang, e.el, e.message }) · 'say' → { text, fields } · 'drop' → the reason

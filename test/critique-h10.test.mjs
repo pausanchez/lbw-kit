@@ -50,3 +50,31 @@ test('0.8.1.8: a swipe pages the lightbox; a vertical or short one does not', ()
   swipe(100, 220); assert.equal(cur(), 'https://img.example/1.jpg');
   lb.close(); c.close();
 });
+
+test('0.8.1.9 (critique 0.8.1.3): compare replies sit in one column each; the season row says when it opens', () => {
+  const c = setup({ v: { type: 'compare', rows: [['s', 'Size']], items: { a: { name: 'A', values: { s: '1' }, reply: ['A', 'Pick A'] }, b: { name: 'B', values: { s: '2' }, reply: ['B', 'Pick B'] }, d: { name: 'D', values: { s: '3' }, reply: ['D', 'Pick D'] } } } });
+  const g = draw(c, '[[t:v ids=a,b,d lang=en]]').querySelector('.kit-cmp-acts');
+  assert.ok(g); assert.equal(g.style.getPropertyValue('--kit-n'), '3');
+  c.close();
+  const c2 = boot({ kit: true, scripts: ['kit/setup.js', 'kit/setup-check.js'] }); c2.w.__lbwToday = '12/11/2026';
+  c2.w.LBW.kit.setup({ prefix: 't', langs: ['es'], timeZone: 'Europe/Madrid', links: [], widgets: { s: { type: 'season', ranges: [['1/3/2027', '31/10/2027']] } } });
+  const rows = [...draw(c2, '[[t:s lang=es]]').querySelectorAll('dt')].map((x) => x.textContent);
+  assert.equal(rows[0], 'Abre en');
+  c2.close();
+});
+
+test('0.8.1.9 review: compare columns follow the items; a reply sits in its own item\'s column; the first reply is the primary', () => {
+  const c = setup({ v: { type: 'compare', rows: [['s', 'Size']], items: { a: { name: 'A', values: { s: '1' } }, b: { name: 'B', values: { s: '2' }, reply: ['B', 'Pick B'] }, d: { name: 'D', values: { s: '3' }, reply: ['D', 'Pick D'] } } } });
+  const g = draw(c, '[[t:v ids=a,b,d lang=en]]').querySelector('.kit-cmp-acts'), bs = [...g.querySelectorAll('.lbw-pill')];
+  assert.equal(g.style.getPropertyValue('--kit-n'), '3');
+  assert.deepEqual(bs.map((b) => b.style.getPropertyValue('--kit-col')), ['2', '3']);
+  assert.ok(bs[0].classList.contains('is-primary') && !bs[1].classList.contains('is-primary'));
+  c.close();
+});
+
+test('0.8.1.9 review: a card whose replies went stale with nothing sent is marked is-spent by the runtime', () => {
+  const c = setup({ ch: { type: 'chips', items: { a: ['A', 'Say A'] } } });
+  const m = draw(c, '[[t:ch q=a]]'); c.user('typed something'); c.LBW.scan();
+  assert.ok(m.querySelector('.lbw').classList.contains('is-spent'));
+  c.close();
+});
