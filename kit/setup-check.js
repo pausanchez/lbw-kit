@@ -17,6 +17,7 @@
   var TOP = '$schema version prefix langs defaultLang timeZone maxPerMessage links labels quietMs maxWaitMs reveal photos actions replies widgets'.split(' ');
   var KEYS = {
     cards: 'type cls param items item kicker disclaimer single fallback pointsCls allowDup lang reply links status',
+    table: 'type cls param items item kicker fold pick allowDup lang reply links fallback',
     form: 'type cls lang kicker title cta note preset steps summary fields allowDup collapse',
     contact: 'type cls lang kicker title big rows hours note buttons buttonsWithSummary summary compact allowDup',
     chips: 'type cls lang max items own carriedBy crowd',
@@ -33,9 +34,9 @@
     season: 'type cls lang kicker ranges words rows note reply links allowDup',
     rating: 'type cls lang kicker title text kind min max labels bands send note allowDup'
   };
-  var ITEM = { cards: 'kicker title who line points pointsCls pointsTitle rows note noteCls link status badge'.split(' '), stats: 'kicker title stats source'.split(' '), people: 'name role img note'.split(' '),
+  var ITEM = { table: 'kicker title cols rows note source link'.split(' '), cards: 'kicker title who line points pointsCls pointsTitle rows note noteCls link status badge'.split(' '), stats: 'kicker title stats source'.split(' '), people: 'name role img note'.split(' '),
     slide: 'id img badge kicker name sub price save status desc reply link gallery until'.split(' '), compare: 'name values reply link'.split(' ') };
-  var NEED = { cards: [], form: ['steps', 'summary', 'cta'], contact: ['title'], chips: ['items'], carousel: [], calc: ['state', 'controls', 'result', 'send', 'cta'],
+  var NEED = { cards: [], table: [], form: ['steps', 'summary', 'cta'], contact: ['title'], chips: ['items'], carousel: [], calc: ['state', 'controls', 'result', 'send', 'cta'],
     stats: [], people: ['items'], consent: ['title', 'yes', 'no'], slots: ['cta', 'say'], confirm: ['form', 'title'], review: ['state', 'lines', 'send', 'cta'], chart: ['title', 'x', 'series'], compare: ['items', 'rows'], season: ['ranges'], rating: ['title', 'send'] };
   // check every language's copy; a problem that every language has is reported once, the others with their language
   // v0.8.1.10 · the photo sets: a base under "links", sizes as [folder, width] going up, an optional ratio [w, h]
@@ -185,9 +186,43 @@
         Object.keys(w).forEach(function (k) { if (known.indexOf(k) < 0) err('unknown option "' + k + '" for ' + w.type + '. Known: ' + known.join(', ')); });
         NEED[w.type].forEach(function (k) { if (w[k] == null) err('missing "' + k + '"'); });
         ['links', 'buttons', 'buttonsWithSummary', 'actions'].forEach(function (k) { list(w[k], k, function (a, at) { act(a, err, at, w.type === 'calc' && k === 'links'); }); });
-        rep(w.reply, 'reply', { cards: ['id', 'title'], stats: ['id', 'title'], people: ['id', 'name', 'role'] }[w.type] || null);
+        rep(w.reply, 'reply', { cards: ['id', 'title'], table: ['id', 'title'], stats: ['id', 'title'], people: ['id', 'name', 'role'] }[w.type] || null);
         strs(w, ['cls', 'lang', 'kicker', 'title', 'cta', 'note', 'text', 'big', 'sub', 'disclaimer', 'lead'], '');
         if (w.item != null && !isObj(w.item)) err('"item" must be an object');
+
+        // v0.8.1.10 · a table: 2 to 5 columns [key, label, align], 1 to 30 rows of that many texts; "pick" over the column keys
+        if (w.type === 'table') {
+          if (!w.items && !w.item) err('missing "items" (or "item" for a single table)');
+          if (w.items != null && !isObj(w.items)) err('"items" must be an object of tables by id');
+          var ts = isObj(w.item) ? { item: w.item } : isObj(w.items) ? w.items : {}, ckeys = null;
+          Object.keys(ts).forEach(function (id) {
+            var t = ts[id]; if (!isObj(t) || !isStr(t.title)) { err('table "' + id + '" has no "title"'); return; }
+            only(t, ITEM.table, id); strs(t, ['kicker', 'note', 'source'], id); url(t.link, id + '.link');
+            if (!isArr(t.cols) || t.cols.length < 2 || t.cols.length > 5) { err(id + '.cols holds 2 to 5 columns, [key, label] or [key, label, "end"] (a phone shows about 3; more scroll sideways)'); return; }
+            var ks = [];
+            t.cols.forEach(function (c, i) {
+              if (!isArr(c) || c.length < 2 || c.length > 3 || !isStr(c[0]) || typeof c[1] !== 'string') { err(id + '.cols[' + i + '] is [key, label] or [key, label, align]'); return; }
+              if (!WORD.test(c[0])) err(id + '.cols[' + i + ']: the key "' + c[0] + '" is a plain lower-case word (it is a {placeholder} in "pick")');
+              if (ks.indexOf(c[0]) >= 0) err(id + '.cols: the key "' + c[0] + '" is there twice'); ks.push(c[0]);
+              if (c[2] != null && ['start', 'end'].indexOf(c[2]) < 0) err(id + '.cols[' + i + ']: align is "start" or "end" (numbers)');
+            });
+            if (ckeys && ckeys.join() !== ks.join() && isObj(w.pick)) err(id + '.cols: with "pick", every table has the same column keys (' + ckeys.join(', ') + ')'); if (!ckeys) ckeys = ks;
+            if (!isArr(t.rows) || !t.rows.length || t.rows.length > 30) err(id + '.rows holds 1 to 30 rows (more is a page, not a card: link it)');
+            else t.rows.forEach(function (r, i) {
+              if (!isArr(r) || r.length !== t.cols.length) err(id + '.rows[' + i + '] has ' + (isArr(r) ? r.length : 0) + ' values for ' + t.cols.length + ' columns');
+              else r.forEach(function (v, j) { if (typeof v !== 'string' && typeof v !== 'number') err(id + '.rows[' + i + '][' + j + '] must be text (format numbers and money yourself)'); });
+            });
+          });
+          param(w.param, 'param'); if (w.fallback != null && !own(ts, w.fallback)) err('fallback "' + w.fallback + '" is not one of the items');
+          if (w.fold != null && !(Number.isInteger(w.fold) && w.fold >= 3)) err('"fold" is a whole number, 3 or more: the rows shown before "See all"');
+          if (w.pick != null) {
+            if (!isObj(w.pick) || !isStr(w.pick.say)) err('"pick" is { "say": "…{column}…", "fields": { "field": "{column}" }, "label" }: each row becomes a button');
+            else { only(w.pick, ['say', 'fields', 'label'], 'pick'); var pk = (ckeys || []).concat(['id']); text(w.pick.say, 'pick.say', pk, [], []); strs(w.pick, ['label'], 'pick');
+              if (w.pick.fields == null) err('pick.fields is missing: a row that is chosen should be saved in Landbot, { "field": "{column}" }');
+              else if (!isObj(w.pick.fields) || !Object.keys(w.pick.fields).length) err('pick.fields is { "field": "{column}" }, saved in Landbot with the sentence');
+              else fieldsCheck(w.pick.fields, 'pick.fields', err, pk); }
+          }
+        }
 
         if (w.type === 'cards') {
           if (!w.items && !w.item) err('missing "items" (or "item" for a single card)');

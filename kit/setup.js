@@ -148,6 +148,18 @@
       o.links = function (id, it, ctx, sk) { var st = sItem(sk); return actions(cfg, st && own(st, 'links') ? st.links || [] : w.links, '', { id: id, title: it.title }); };
       K.cards(name, o);
     },
+    // v0.8.1.10 · a table: "items" by id (or "item"), each { title, cols: [[key, label, "end"?]], rows: [[…]] }. "pick" makes each
+    // row a button: { "say": "Quiero la sesión de las {hora}", "fields": { "sesion": "{hora}" }, "label" } over the row's columns and {id}
+    table: function (cfg, name, w, lang) {
+      var o = pick(w, ['cls', 'param', 'items', 'kicker', 'fold', 'single', 'fallback', 'allowDup', 'lang']), r = reply(cfg, w.reply);
+      if (w.item) { o.items = { _: w.item }; o.single = true; }
+      o.reply = function (id, t) { if (!r) return null; var sc = plain({ id: id, title: t.title }); return [tpl(r[0], sc), tpl(r[1], sc), fieldsOf(r[2], sc)]; };
+      o.links = function (id, t) { return actions(cfg, w.links, '', { id: id, title: t.title }); };
+      if (isObj(w.pick)) o.pick = { label: w.pick.label,
+        say: function (row, id) { return tpl(w.pick.say, plain(merge(row, { id: id }))); },
+        fields: w.pick.fields ? function (row, id) { return fieldsOf(w.pick.fields, plain(merge(row, { id: id }))); } : null };
+      K.table(name, o);
+    },
     form: function (cfg, name, w, lang) {
       var o = pick(w, ['cls', 'lang', 'kicker', 'title', 'cta', 'note', 'preset', 'allowDup', 'collapse']), items = {};
       var sc = function (s) { return { v: s, items: items, money: String }; };
@@ -411,7 +423,7 @@
   // maps by a name of yours are never read that way, whatever their keys: actions, replies, widgets, titles, fields, own,
   // carriedBy, tables, state, compute, map, week, and `items` in the types that keep items by id.
   var MAPS = { actions: 1, replies: 1, widgets: 1, own: 1, carriedBy: 1, titles: 1, tables: 1, fields: 1, state: 1, compute: 1, map: 1, week: 1, values: 1 };
-  var BYID = { cards: 1, stats: 1, people: 1, chips: 1, compare: 1 }, CODE = /^[a-z]{2,3}$/;
+  var BYID = { cards: 1, table: 1, stats: 1, people: 1, chips: 1, compare: 1 }, CODE = /^[a-z]{2,3}$/;
   function langsOf(cfg) { return isObj(cfg) && isArr(cfg.langs) && cfg.langs.length && cfg.langs.every(isStr) ? cfg.langs : [isObj(cfg) && isStr(cfg.defaultLang) ? cfg.defaultLang : 'en']; }
   function dfltOf(cfg, langs) { return isObj(cfg) && isStr(cfg.defaultLang) && langs.indexOf(cfg.defaultLang) >= 0 ? cfg.defaultLang : langs[0]; }
   function isText(v) { return typeof v === 'string' || isArr(v); }

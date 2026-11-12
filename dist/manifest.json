@@ -1,60 +1,60 @@
 {
   "name": "lbw-kit",
-  "version": "0.8.1.10",
+  "version": "0.8.1.11",
   "files": {
     "lbw.min.js": {
       "bytes": 24574,
       "gzip": 9572,
-      "sha256": "38edb742326d8d2b5117a4e38a20806a3ba56357182f3599b135c7e63e96ada3",
-      "integrity": "sha384-txk1kGaqpwWvHgAMLFg0nPjP11GVJ1VHKVEPbEbjuyW2kH9sRKZLpria8Oanxvey"
+      "sha256": "9e781fffef55b0a7705c14be36dcb2f890c1e4752abcdbdcd84741122bf252be",
+      "integrity": "sha384-jAJ0rRdUReA2DqxIxDIP8WV4yF9MYaiABMjcieeHIvpYjceO5+QIP0eOoV4A8R3G"
     },
     "kit.min.js": {
-      "bytes": 70306,
-      "gzip": 25334,
-      "sha256": "07deca82d9d9d7867fc52c4fba335fa88c5ca7428a4e7d8e541ad3a8d1518a15",
-      "integrity": "sha384-quqi8j0dmx0DZiuM0C9GIC2Hb5a6KIRTidjpbQyYkNxe8JAf/eqieosoRRA2hDNb"
+      "bytes": 74812,
+      "gzip": 26673,
+      "sha256": "d258395fcd6bdc569b16872775729f28a13e663dacfeee052b02bf0a8b01bc90",
+      "integrity": "sha384-lmM2Qgz0SFDccHK0e6oD6LH6d4b2vFrLgl62ejm1GVE5//DdB3DcAkbnE652mtXJ"
     },
     "lbw-kit.min.js": {
-      "bytes": 94846,
-      "gzip": 34200,
-      "sha256": "2e90333780fa6a8832e7ce7dc9276bdf095d2529784f7ac8c673b58b96fe96c1",
-      "integrity": "sha384-56hFtO3hMg+GgbgDVjUXkhYhUYLU2da+g+Z11ixsLwC4QJcE2/nFGb7td9JPIcYU"
+      "bytes": 99352,
+      "gzip": 35605,
+      "sha256": "4ab84eec29584de45af7024d75752593bce8e2fb76f2a79a375e83c9077d6836",
+      "integrity": "sha384-WqcpyBfd//ZtTg9eMx0kzMkVW9CUkeSV8iT9/xckvfBs4DFaSjxuMLEfmUvUA5Ye"
     },
     "lbw-kit.dev.min.js": {
-      "bytes": 135944,
-      "gzip": 47445,
-      "sha256": "2da9546da3ae54f44dd78f4a601f07df1a6b049e060469ccfc074224ce619f68",
-      "integrity": "sha384-coqvAHs/zjUr9XdycTtOLz9BsK4skjAilCcfCLl5+EaLtabhEfUso2Y8h0Aqv6In"
+      "bytes": 143053,
+      "gzip": 49574,
+      "sha256": "c5e36bb7f3e455ddd317060a96e4e02bdaca4e292e6c19c6b354fb220d36f64b",
+      "integrity": "sha384-Hnp0Ojq+GCkGEEqddJ2qruIhn5ODBTJ1kIudUxf4dIVi2cr2Wu5lW4qcWunwZrxS"
     },
     "lbw-kit.all.min.js": {
-      "bytes": 123742,
-      "gzip": 40512,
-      "sha256": "e0e2c5a601cbb74b7c607b4d9129ea8d99dc2ba2a64dc94c3b4d052889fdc099",
-      "integrity": "sha384-DNSGdhoTBdREBbtSng3JHGfazPLWdVu1qYVyYCfIW8zp5cicope4UGx5JtBUWkpg"
+      "bytes": 131030,
+      "gzip": 42445,
+      "sha256": "9043638465334c34ad6fe4f7c02429868ddbf2d200e1fa47fff93e920631593a",
+      "integrity": "sha384-k0sRWrIvfWpL/g95v11iDVGhiePMkM4pHyLFGe74KYwaxVb38X1PRxOkbkXG6msy"
     },
     "lbw.min.css": {
       "bytes": 7857,
       "gzip": 2294,
-      "sha256": "69be31809393ef84b39d64c12e1375495e7faecf8ce070cf179b5102e4613a15",
-      "integrity": "sha384-KWc8pcvb6aqqtjA44CmixqcEu3nNDosqqjKrbfZl7exrfDrR08liJ+qNgeiRshJ6"
+      "sha256": "742113a47582d6498b63952b51a5fc9c0dc12067f3e82254f163108d4ca16179",
+      "integrity": "sha384-QcjePjFf12odKGwXbxWxZ+KFiaUBavVqjSYkCBP39QxWC0JaHrEQsYckaj9+PmQH"
     },
     "kit.min.css": {
-      "bytes": 20846,
-      "gzip": 4784,
-      "sha256": "0cfa56a3ec4ff1b5ac741cbc024ab66ba53c9fd3ab190dae38e0b75b90d3fc08",
-      "integrity": "sha384-t3Pp3WKwOXC9cZlivUHBemaadjIKNd27GNUKldv6gIza0X1FJ3frXdykEieSc+Ky"
+      "bytes": 23620,
+      "gzip": 5320,
+      "sha256": "f1c32eaf02935728e3de78f6d6c312caa1253715dbafb78055e0b54f5ac3c496",
+      "integrity": "sha384-fGwJq/tbtnb7WJZxkWucDtDUwYFTmCgBNNsr65tIJsDgw3/gSk0pO4cfTMk3UIU2"
     },
     "lbw-kit.min.css": {
-      "bytes": 28668,
-      "gzip": 6288,
-      "sha256": "ea83b4c51c9d849ef1e59f186f0b7f70b4c2e8df185c486310ad50512e1c1480",
-      "integrity": "sha384-kakyeXJvT2Qo0GmNLKPr9GMNmwYg04RTFKT4PBbOkgzb5uLsGGYYnJX6R5xGPKwG"
+      "bytes": 31442,
+      "gzip": 6789,
+      "sha256": "347e6e5f5ba12dce0c93ba6023758c464df55985b7062fd398126606f69a4934",
+      "integrity": "sha384-cFY7UNc9PzoyDZl5P4Zz2gwT9y0V3DqIck+RZfoTR7DmaRHiuPRxdtBXFUqQb2GR"
     },
     "host-modal.min.js": {
       "bytes": 3062,
       "gzip": 1362,
-      "sha256": "f385a3f914298d0edd1ea2352ca2c1e73a6e9bd03244d955644dc9eb950d05ca",
-      "integrity": "sha384-GjcaYBXyJGiVS1UULChb4wna0FUk9Fv/1t0xL5Am+7ge+23FlvvYRJeYacIYDO4n"
+      "sha256": "6a67760f252d85f2d81f0105f06a0c5cb76f88c16f08ca452a39129c28c4dc0c",
+      "integrity": "sha384-iUgg6y3ltapBTaTU2CEnzxa84kD5PQkta8ntJhokE9nm6aaOtBw8G9BrUBhsvg/k"
     },
     "fallback.min.js": {
       "bytes": 557,
@@ -63,16 +63,16 @@
       "integrity": "sha384-A3EF00p8fLH0wJs2HBqoIGO5D8gEY3zJie33IccmTIG5C70Abi6Z98tEgAISzAod"
     },
     "inline/custom_js.html": {
-      "bytes": 94863,
-      "gzip": 34213,
-      "sha256": "ef6631815eb040898678138c641d314cb0dab254b9ef3a96753112e9124edea0",
-      "integrity": "sha384-yez7devbQglWxLV6hxp4OvroCyfIBVIfUT5z3mc7mLPxT2Zy20FGMkJVc7mcAnLQ"
+      "bytes": 99369,
+      "gzip": 35619,
+      "sha256": "1fa0253dc52cebbb4ff4d658f7bdd9b91addd834b5acfc4d96411ee661f167a9",
+      "integrity": "sha384-cSwIm7tG2T5TpTQ+HwHcQwbmeESsCQ5T0kN0uMnVQ+I3tKJWuEuWb8+InhnvcHCR"
     }
   },
   "hosted": {
-    "js": "https://cdn.jsdelivr.net/gh/pausanchez/lbw-kit@v0.8.1.10/dist/lbw-kit.min.js",
-    "css": "https://cdn.jsdelivr.net/gh/pausanchez/lbw-kit@v0.8.1.10/dist/lbw-kit.min.css",
-    "custom_js": "<script src=\"https://cdn.jsdelivr.net/gh/pausanchez/lbw-kit@v0.8.1.10/dist/lbw-kit.min.js\"></script><script>(function(a,t){setTimeout(function(){if(a.LBW)return;var l=/`?\\[\\[[^\\]]*\\]\\]`?|`?\\[\\[[^\\]]*$/g;function r(){[].forEach.call(t.querySelectorAll('[data-lb-part=\"message\"][data-lb-author=\"bot\"] [data-lb-part=\"message-text\"]'),function(n){if(!(n.textContent.indexOf(\"[[\")<0))for(var u=t.createTreeWalker(n,4),e;e=u.nextNode();)e.nodeValue.indexOf(\"[[\")>=0&&(e.nodeValue=e.nodeValue.replace(l,\"\").replace(/\\s+$/,\"\"))})}new MutationObserver(r).observe(t.documentElement,{childList:!0,subtree:!0,characterData:!0}),r()},a.LBW_FALLBACK_MS||4e3)})(window,document);</script>",
-    "custom_css": "@import url(\"https://cdn.jsdelivr.net/gh/pausanchez/lbw-kit@v0.8.1.10/dist/lbw-kit.min.css\");"
+    "js": "https://cdn.jsdelivr.net/gh/pausanchez/lbw-kit@v0.8.1.11/dist/lbw-kit.min.js",
+    "css": "https://cdn.jsdelivr.net/gh/pausanchez/lbw-kit@v0.8.1.11/dist/lbw-kit.min.css",
+    "custom_js": "<script src=\"https://cdn.jsdelivr.net/gh/pausanchez/lbw-kit@v0.8.1.11/dist/lbw-kit.min.js\"></script><script>(function(a,t){setTimeout(function(){if(a.LBW)return;var l=/`?\\[\\[[^\\]]*\\]\\]`?|`?\\[\\[[^\\]]*$/g;function r(){[].forEach.call(t.querySelectorAll('[data-lb-part=\"message\"][data-lb-author=\"bot\"] [data-lb-part=\"message-text\"]'),function(n){if(!(n.textContent.indexOf(\"[[\")<0))for(var u=t.createTreeWalker(n,4),e;e=u.nextNode();)e.nodeValue.indexOf(\"[[\")>=0&&(e.nodeValue=e.nodeValue.replace(l,\"\").replace(/\\s+$/,\"\"))})}new MutationObserver(r).observe(t.documentElement,{childList:!0,subtree:!0,characterData:!0}),r()},a.LBW_FALLBACK_MS||4e3)})(window,document);</script>",
+    "custom_css": "@import url(\"https://cdn.jsdelivr.net/gh/pausanchez/lbw-kit@v0.8.1.11/dist/lbw-kit.min.css\");"
   }
 }

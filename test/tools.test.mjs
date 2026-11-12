@@ -99,3 +99,16 @@ test('build 0.8.1.9: no shipped JS file carries a raw U+00A0 (inline included)',
   for (const f of ['lbw-kit.min.js', 'lbw-kit.all.min.js', 'lbw-kit.dev.min.js', 'lbw.min.js', 'kit.min.js', 'inline/custom_js.html'])
     assert.ok(!fs.readFileSync(path.join('dist', f), 'utf8').includes('\u00a0'), f);
 });
+
+test('build-mock --fonts: the skin\'s font import reaches the mock, and a theme font nothing imports is warned about', () => {
+  const d = fs.mkdtempSync(path.join(os.tmpdir(), 'mockfont-'));
+  fs.writeFileSync(path.join(d, 'theme.css'), ':root { --lbw-font: "Brand Sans", Arial, sans-serif; }');
+  fs.writeFileSync(path.join(d, 'skin.css'), '@import url("https://fonts.googleapis.com/css2?family=Brand+Sans:wght@400;600&display=swap");\n[data-lb-part=header]{color:red}');
+  fs.writeFileSync(path.join(d, 'cases.json'), '[["a", "Hola"]]'); fs.writeFileSync(path.join(d, 'w.js'), '');
+  const mock = (...extra) => spawnSync('python3', ['tools/build-mock.py', '--runtime', 'runtime/lbw.js', '--widgets', path.join(d, 'w.js'), '--css', 'runtime/lbw.css', '--css', path.join(d, 'theme.css'), ...extra, '--cases', path.join(d, 'cases.json'), '--out', path.join(d, 'm.html')], { cwd, encoding: 'utf8' });
+  const bare = mock();
+  assert.match(bare.stderr, /--lbw-font starts with "brand sans", which no @import loads/);
+  const ok = mock('--fonts', path.join(d, 'skin.css')), html = fs.readFileSync(path.join(d, 'm.html'), 'utf8');
+  assert.equal(ok.stderr, ''); assert.ok(html.includes('family=Brand+Sans')); assert.ok(!html.includes('[data-lb-part=header]{color:red}'));
+  fs.rmSync(d, { recursive: true });
+});

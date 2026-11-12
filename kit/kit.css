@@ -1,4 +1,4 @@
-/* AI Widgets kit v0.8.1.10 · the kit-* classes, from the --lbw-* tokens only (set them in the demo's theme.css).
+/* AI Widgets kit v0.8.1.11 · the kit-* classes, from the --lbw-* tokens only (set them in the demo's theme.css).
    Order in custom_css: @imports, lbw.css, kit.css, the demo's theme.css, the chat skin. */
 .kit-note { margin: 10px 0 0; font-size: 12px; line-height: 17px; color: var(--lbw-muted); }
 .kit-note:not(.is-safe):not(.is-flag), .kit-line, .kit-desc { max-width: 62ch; }
@@ -228,3 +228,35 @@
 .lbw-once.is-done .lbw-pill.has-desc:not(.is-sent) .kit-opt-d, .lbw-form.is-done .lbw-tog.has-desc:not([aria-pressed="true"]) .kit-opt-d { color: inherit; }
 .lbw-chips.is-list > .lbw-pill:not(.has-desc), .lbw-chips.is-list > .lbw-tog:not(.has-desc) { justify-content: flex-start; text-align: start; width: 100%; min-height: 56px; border-radius: min(var(--lbw-radius-pill, 12px), 12px); padding-inline: 20px 14px; }   /* one list: one alignment, corner and height, described or not */
 .kit-form.has-list .lbw-chips:not(.is-list) > .lbw-tog { flex: 1 1 auto; border-radius: min(var(--lbw-radius-pill, 12px), 12px); }   /* rows that fill the width: no ragged edge under the full-width list */
+/* v0.8.1.11 · table: a price list or a timetable. A real table; the columns squeeze first (the first one wraps), and what
+   still doesn't fit scrolls inside the card with the first column held. Numbers right-aligned and tabular. Rows past `fold`
+   wait behind one button. Critique at 375 px (10 findings, all applied): hairlines as on the kit's rows, the header's edge
+   in the ring; headers in sentence case (uppercase made "m²" read "M²"); room between number columns; a pick row's verb on a
+   bordered button centred on the row; after a pick the other rows lose their button and their hover */
+.kit-tbl-wrap { margin-top: 10px; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 4px; }
+.kit-tbl-wrap:focus-visible { outline: 2px solid var(--lbw-accent-text, var(--lbw-accent)); outline-offset: 2px; }
+.kit-tbl { width: 100%; border-collapse: collapse; font-size: 13px; line-height: 1.35; color: var(--lbw-ink); }
+.kit-tbl th, .kit-tbl td { padding: 9px 10px 9px 0; text-align: start; vertical-align: top; border-top: 1px solid var(--lbw-hair, rgba(13,13,13,.08)); }
+.kit-tbl tbody tr:first-child > * { border-top-color: var(--lbw-ring); }
+.kit-tbl th:last-child, .kit-tbl td:last-child { padding-inline-end: 0; }
+.kit-tbl .is-end + .is-end { padding-inline-start: 6px; }
+.kit-tbl thead th { padding-top: 0; border-top: 0; font-size: 12px; font-weight: 600; letter-spacing: 0; color: var(--lbw-muted); white-space: nowrap; }
+.kit-tbl tbody th { font-weight: 600; min-width: 7.5em; hyphens: auto; position: sticky; inset-inline-start: 0; background: var(--lbw-card, #fff); }
+.kit-tbl .is-end { text-align: end; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.kit-tbl tr.is-folded { display: none; }
+.kit-tbl.is-open tr.is-folded, .kit-tbl tr.is-folded.is-picked { display: table-row; }
+.kit-tbl-more { display: block; width: 100%; min-height: 44px; margin-top: 2px; border: 0; border-top: 1px solid var(--lbw-hair, rgba(13,13,13,.08)); background: transparent; font: 600 13px/1.2 var(--lbw-font); color: var(--lbw-accent-text, var(--lbw-accent)); cursor: pointer; }
+.kit-tbl-more[hidden] { display: none; }
+.kit-tbl-more::after { content: " ▾"; } .kit-tbl-more[aria-expanded="true"]::after { content: " ▴"; }
+/* pick: the row is the target (the button's ::after covers it), the verb shows it can be chosen */
+.kit-tbl.is-pick th, .kit-tbl.is-pick td { vertical-align: middle; }
+.kit-tbl.is-pick tbody tr { position: relative; transform: scale(1); }
+.kit-tbl.is-pick td.kit-tbl-act, .kit-tbl.is-pick th.kit-tbl-act { width: 1%; padding-inline: 6px 0; text-align: end; }
+.kit-tbl .lbw-pill.kit-tbl-b { min-height: 32px; min-width: 0; padding: 0 10px; font-size: 12px; font-weight: 600; white-space: nowrap; border-radius: var(--lbw-radius-pill); box-shadow: inset 0 0 0 1px var(--lbw-pill-ring, var(--lbw-ring)); background: var(--lbw-pill-bg, #fff); }
+.kit-tbl .lbw-pill.kit-tbl-b::after { content: ""; position: absolute; inset: 0; }
+.kit-tbl-once:not(.is-done) .kit-tbl.is-pick tbody tr:hover, .kit-tbl-once:not(.is-done) .kit-tbl.is-pick tbody tr:focus-within,
+.kit-tbl-once:not(.is-done) .kit-tbl.is-pick tbody tr:hover th, .kit-tbl-once:not(.is-done) .kit-tbl.is-pick tbody tr:focus-within th { background: var(--lbw-tint); }
+.kit-tbl .lbw-pill.kit-tbl-b.is-sent { background: transparent !important; box-shadow: none !important; color: var(--lbw-ink) !important; font-weight: 600; }
+.kit-tbl-once.is-done tbody tr:not(.is-picked) .kit-tbl-b, .kit-tbl-once.is-stale tbody tr .kit-tbl-b { visibility: hidden; }
+.kit-tbl-once.is-done tbody tr:not(.is-picked) { color: var(--lbw-muted); }
+.kit-tbl-once.is-done tbody tr.is-picked, .kit-tbl-once.is-done tbody tr.is-picked th { background: var(--lbw-tint); }

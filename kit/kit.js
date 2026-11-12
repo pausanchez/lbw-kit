@@ -1,4 +1,4 @@
-/* AI Widgets kit v0.8.1.10 · on lbw.js v0.8.1.10 · the widgets every url-to-demo build rewrote, written once with options. Load it after lbw.js and before the
+/* AI Widgets kit v0.8.1.11 · on lbw.js v0.8.1.11 · the widgets every url-to-demo build rewrote, written once with options. Load it after lbw.js and before the
    client's widgets.js: custom_js = <script>lbw.js</script><script>kit.js</script><script>widgets.js</script>.
 
    Each maker registers a widget under the name you give it, from data you pass. Nothing here holds client facts.
@@ -31,32 +31,32 @@
           open: 'Open now · until {t}', closed: 'Closed now · opens {d} at {t}', closedLong: 'Closed now', today: 'today', tomorrow: 'tomorrow',
           days: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'], localTime: 'Local time: {t}', sent: 'Sent', show: 'Show', hide: 'Hide', busy: 'Busy', pick: 'Pick a time', confirm: 'Confirm', yes: 'Yes', no: 'No',
           close: 'Close', prev: 'Previous photo', next: 'Next photo', photos: 'Photos', enlarge: 'Enlarge on the page', cSame: 'The same in all:', cSame2: 'The same in both:',
-          sOpen: 'Open today', sClosed: 'Closed today', sUntil: 'Open until', sOpens: 'Opens', sIn: 'Opens in', sCloses: 'Season', sDay: '1 day', sDays: '{n} days', sUnknown: 'The next dates aren’t published yet.' , rateOf: '{n} of {max}' },
+          sOpen: 'Open today', sClosed: 'Closed today', sUntil: 'Open until', sOpens: 'Opens', sIn: 'Opens in', sCloses: 'Season', sDay: '1 day', sDays: '{n} days', sUnknown: 'The next dates aren’t published yet.' , rateOf: '{n} of {max}', tMore: 'See all {n} rows', tLess: 'See fewer', tPick: 'Choose', tPicked: 'Chosen' },
     es: { copy: 'Copiar', copied: 'Copiado ✓', select: 'Selecciona el texto y cópialo', summary: 'Tu resumen',
           open: 'Abierto ahora · hasta las {t}', closed: 'Cerrado ahora · abre {d} a las {t}', closedLong: 'Cerrado ahora', today: 'hoy', tomorrow: 'mañana',
           days: ['el domingo', 'el lunes', 'el martes', 'el miércoles', 'el jueves', 'el viernes', 'el sábado'], localTime: 'Hora local: {t}', sent: 'Enviado', show: 'Ver', hide: 'Ocultar', busy: 'Ocupado', pick: 'Elige una hora', confirm: 'Confirmar', yes: 'Sí', no: 'No',
           close: 'Cerrar', prev: 'Foto anterior', next: 'Foto siguiente', photos: 'Fotos', enlarge: 'Ampliar en la página', cSame: 'Igual en todas:', cSame2: 'Igual en las dos:',
-          sOpen: 'Abierto hoy', sClosed: 'Cerrado hoy', sUntil: 'Abierto hasta', sOpens: 'Abre', sIn: 'Abre en', sCloses: 'Temporada', sDay: '1 día', sDays: '{n} días', sUnknown: 'Las próximas fechas aún no están publicadas.' , rateOf: '{n} de {max}' },
+          sOpen: 'Abierto hoy', sClosed: 'Cerrado hoy', sUntil: 'Abierto hasta', sOpens: 'Abre', sIn: 'Abre en', sCloses: 'Temporada', sDay: '1 día', sDays: '{n} días', sUnknown: 'Las próximas fechas aún no están publicadas.' , rateOf: '{n} de {max}', tMore: 'Ver las {n} filas', tLess: 'Ver menos', tPick: 'Elegir', tPicked: 'Elegido' },
     it: { copy: 'Copia', copied: 'Copiato ✓', select: 'Seleziona il testo e copialo', summary: 'Il tuo riepilogo',
           open: 'Aperto ora · fino alle {t}', closed: 'Chiuso ora · apre {d} alle {t}', closedLong: 'Chiuso ora', today: 'oggi', tomorrow: 'domani',
           days: ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato'], localTime: 'Ora locale: {t}', sent: 'Inviato', show: 'Mostra', hide: 'Nascondi', busy: 'Occupato', pick: 'Scegli un orario', confirm: 'Conferma', yes: 'Sì', no: 'No',
           close: 'Chiudi', prev: 'Foto precedente', next: 'Foto successiva', photos: 'Foto', enlarge: 'Ingrandisci nella pagina', cSame: 'Uguale in tutte:', cSame2: 'Uguale in entrambe:',
-          sOpen: 'Aperto oggi', sClosed: 'Chiuso oggi', sUntil: 'Aperto fino a', sOpens: 'Apre', sIn: 'Apre tra', sCloses: 'Stagione', sDay: '1 giorno', sDays: '{n} giorni', sUnknown: 'Le prossime date non sono ancora pubblicate.' , rateOf: '{n} su {max}' },
+          sOpen: 'Aperto oggi', sClosed: 'Chiuso oggi', sUntil: 'Aperto fino a', sOpens: 'Apre', sIn: 'Apre tra', sCloses: 'Stagione', sDay: '1 giorno', sDays: '{n} giorni', sUnknown: 'Le prossime date non sono ancora pubblicate.' , rateOf: '{n} su {max}', tMore: 'Vedi tutte le {n} righe', tLess: 'Vedi meno', tPick: 'Scegli', tPicked: 'Scelto' },
     de: { copy: 'Kopieren', copied: 'Kopiert ✓', select: 'Text markieren und kopieren', summary: 'Deine Zusammenfassung',
           open: 'Jetzt geöffnet · bis {t} Uhr', closed: 'Jetzt geschlossen · öffnet {d} um {t} Uhr', closedLong: 'Jetzt geschlossen', today: 'heute', tomorrow: 'morgen',
           days: ['am Sonntag', 'am Montag', 'am Dienstag', 'am Mittwoch', 'am Donnerstag', 'am Freitag', 'am Samstag'], localTime: 'Ortszeit: {t}', sent: 'Gesendet', show: 'Anzeigen', hide: 'Ausblenden', busy: 'Belegt', pick: 'Uhrzeit wählen', confirm: 'Bestätigen', yes: 'Ja', no: 'Nein',
           close: 'Schließen', prev: 'Vorheriges Foto', next: 'Nächstes Foto', photos: 'Fotos', enlarge: 'Auf der Seite vergrößern', cSame: 'Bei allen gleich:', cSame2: 'Bei beiden gleich:',
-          sOpen: 'Heute geöffnet', sClosed: 'Heute geschlossen', sUntil: 'Geöffnet bis', sOpens: 'Öffnet', sIn: 'Öffnet in', sCloses: 'Saison', sDay: '1 Tag', sDays: '{n} Tagen', sUnknown: 'Die nächsten Termine sind noch nicht veröffentlicht.' , rateOf: '{n} von {max}' },
+          sOpen: 'Heute geöffnet', sClosed: 'Heute geschlossen', sUntil: 'Geöffnet bis', sOpens: 'Öffnet', sIn: 'Öffnet in', sCloses: 'Saison', sDay: '1 Tag', sDays: '{n} Tagen', sUnknown: 'Die nächsten Termine sind noch nicht veröffentlicht.' , rateOf: '{n} von {max}', tMore: 'Alle {n} Zeilen anzeigen', tLess: 'Weniger anzeigen', tPick: 'Wählen', tPicked: 'Gewählt' },
     fr: { copy: 'Copier', copied: 'Copié ✓', select: 'Sélectionnez le texte et copiez-le', summary: 'Votre résumé',
           open: 'Ouvert · jusqu’à {t}', closed: 'Fermé · ouvre {d} à {t}', closedLong: 'Fermé', today: 'aujourd’hui', tomorrow: 'demain',
           days: ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'], localTime: 'Heure locale : {t}', sent: 'Envoyé', show: 'Voir', hide: 'Masquer', busy: 'Occupé', pick: 'Choisissez une heure', confirm: 'Confirmer', yes: 'Oui', no: 'Non',
           close: 'Fermer', prev: 'Photo précédente', next: 'Photo suivante', photos: 'Photos', enlarge: 'Agrandir sur la page', cSame: 'Identique pour toutes :', cSame2: 'Identique pour les deux :',
-          sOpen: 'Ouvert aujourd’hui', sClosed: 'Fermé aujourd’hui', sUntil: 'Ouvert jusqu’au', sOpens: 'Ouverture', sIn: 'Ouvre dans', sCloses: 'Saison', sDay: '1 jour', sDays: '{n} jours', sUnknown: 'Les prochaines dates ne sont pas encore publiées.' , rateOf: '{n} sur {max}' },
+          sOpen: 'Ouvert aujourd’hui', sClosed: 'Fermé aujourd’hui', sUntil: 'Ouvert jusqu’au', sOpens: 'Ouverture', sIn: 'Ouvre dans', sCloses: 'Saison', sDay: '1 jour', sDays: '{n} jours', sUnknown: 'Les prochaines dates ne sont pas encore publiées.' , rateOf: '{n} sur {max}', tMore: 'Voir les {n} lignes', tLess: 'Voir moins', tPick: 'Choisir', tPicked: 'Choisi' },
     ca: { copy: 'Copia', copied: 'Copiat ✓', select: 'Selecciona el text i copia’l', summary: 'El teu resum',
           open: 'Obert ara · fins a les {t}', closed: 'Tancat ara · obre {d} a les {t}', closedLong: 'Tancat ara', today: 'avui', tomorrow: 'demà',
           days: ['diumenge', 'dilluns', 'dimarts', 'dimecres', 'dijous', 'divendres', 'dissabte'], localTime: 'Hora local: {t}', sent: 'Enviat', show: 'Mostra', hide: 'Amaga', busy: 'Ocupat', pick: 'Tria una hora', confirm: 'Confirma', yes: 'Sí', no: 'No',
           close: 'Tanca', prev: 'Foto anterior', next: 'Foto següent', photos: 'Fotos', enlarge: 'Amplia a la pàgina', cSame: 'Igual a totes:', cSame2: 'Igual a les dues:',
-          sOpen: 'Obert avui', sClosed: 'Tancat avui', sUntil: 'Obert fins al', sOpens: 'Obre', sIn: 'Obre d’aquí a', sCloses: 'Temporada', sDay: '1 dia', sDays: '{n} dies', sUnknown: 'Les properes dates encara no estan publicades.' , rateOf: '{n} de {max}' }
+          sOpen: 'Obert avui', sClosed: 'Tancat avui', sUntil: 'Obert fins al', sOpens: 'Obre', sIn: 'Obre d’aquí a', sCloses: 'Temporada', sDay: '1 dia', sDays: '{n} dies', sUnknown: 'Les properes dates encara no estan publicades.' , rateOf: '{n} de {max}', tMore: 'Veure les {n} files', tLess: 'Veure’n menys', tPick: 'Tria', tPicked: 'Triat' }
   };
   function words(lang) { return L[lang] || L.en; }
   function fill(s, o) { return String(s).replace(/\{(\w+)\}/g, function (m, k) { return o[k] == null ? '' : o[k]; }); }
@@ -75,6 +75,7 @@
   function budget(where, kind, t) { if (DEV && t != null && String(t).length > BUDGET[kind]) warn(where, kind + ' over ' + BUDGET[kind] + ' characters (' + String(t).length + '): "' + String(t).slice(0, 48) + '…"'); }
   var OPTS = {
     cards: 'cls param items kicker reply links disclaimer lang single fallback pointsCls allowDup status',
+    table: 'cls param items kicker reply links fold pick lang single fallback allowDup',
     form: 'cls lang kicker title cta note preset steps summary fields sent allowDup collapse',
     contact: 'cls lang kicker title big rows topic hours note buttons summary compact allowDup',
     chips: 'cls lang max items own carriedBy',
@@ -260,6 +261,75 @@
       if (r) { var g = U.once('kit-actions'); g.appendChild(U.reply(r[0], r[1], { primary: true, fields: r[2] })); acts.push(g); }
       if (it.link) acts.push(U.link(it.link[0], it.link[1]));
       acts = acts.concat(buttons(cfg.links && cfg.links(id, it, ctx, sk)));
+      if (acts.length) U.row(o, acts);
+      return o;
+    });
+  }
+
+  // ── table: a price list, a timetable, opening hours by season (v0.8.1.10) ─────────────────────────
+  // cfg = { cls, lang, param: 'id', items: { id: table }, kicker, fold: 8, single, fallback, allowDup,
+  //         reply(id, t, ctx) → [label, say, fields] | null, links(id, t, ctx) → [el…],
+  //         pick: { say(row, id) → text, fields(row, id) → {…}, label } (each row becomes a button that sends and saves) }
+  // table = { kicker, title, cols: [[key, label, align]], rows: [[value, …]], note, source, link: [label, url] }
+  // align: 'start' (default) or 'end' (numbers: right, tabular). Real <table> markup; columns squeeze first (the first one
+  // wraps), and only what still doesn't fit scrolls inside the card, the first column held. Rows past `fold` wait behind one button.
+  function table(name, cfg) {
+    var cls = cfg.cls || ('kit-' + name), param = cfg.param || 'id', ids = Object.keys(cfg.items || {}), fold = cfg.fold == null ? 8 : cfg.fold;
+    checkCfg('table', name, cfg, ['items']);
+    if (DEV) ids.forEach(function (id) { var t = cfg.items[id], wh = "table('" + name + "') " + id;
+      if (!t || !t.title) warn(wh, 'no title'); else budget(wh, 'title', t.title);
+      if (t && t.cols && t.cols.length > 4) warn(wh, t.cols.length + ' columns: the first column wraps or the table scrolls; check it at 375 px');
+      (t && t.rows || []).forEach(function (r, i) { if (t.cols && r.length !== t.cols.length) warn(wh, 'row ' + i + ' has ' + r.length + ' values for ' + t.cols.length + ' columns'); }); });
+    register('table', name, cfg.single ? null : param, cfg.single ? null : ids);
+    LBW.widget(name, function (p, ctx) {
+      if (!cfg.allowDup && dup(ctx, cls)) return null;
+      var id = cfg.single ? '_' : p.one(param, ids);
+      if (!id && cfg.fallback && !p.has(param) && cfg.items[cfg.fallback]) id = cfg.fallback;
+      if (!id || !cfg.items[id]) return null;
+      var t = cfg.items[id], cols = t.cols || [], rows = t.rows || [], lang = langOf(cfg, ctx), w = words(lang), o = U.card(lang, 'kit-table ' + cls);
+      U.head(o.box, t.kicker || val(cfg.kicker, id, t) || '', t.title);
+      var wrap = el('div', 'kit-tbl-wrap'), tb = el('table', 'kit-tbl' + (cfg.pick ? ' is-pick' : '')), head = el('thead'), hr = el('tr'), body = el('tbody');
+      // a keyboard stop and a region only when it scrolls (critique 0.8.1.11: an empty tab stop otherwise)
+      var scrolls = function () { var on = wrap.scrollWidth > wrap.clientWidth + 1; if (on) { wrap.setAttribute('tabindex', '0'); wrap.setAttribute('role', 'region'); wrap.setAttribute('aria-label', t.title || ''); } else { wrap.removeAttribute('tabindex'); wrap.removeAttribute('role'); wrap.removeAttribute('aria-label'); } };
+      if (root.ResizeObserver) new root.ResizeObserver(scrolls).observe(wrap); else setTimeout(scrolls, 0);
+      var cap = el('caption', 'kit-sr', t.title || ''); tb.appendChild(cap);
+      cols.forEach(function (c) { var th = el('th', c[2] === 'end' ? 'is-end' : '', c[1]); th.setAttribute('scope', 'col'); hr.appendChild(th); });
+      if (cfg.pick) { var thp = el('th', 'kit-tbl-act', ''); thp.appendChild(el('span', 'kit-sr', cfg.pick.label || w.tPick)); hr.appendChild(thp); }
+      head.appendChild(hr); tb.appendChild(head); tb.appendChild(body);
+      var g = cfg.pick ? U.once('kit-tbl-once') : null, more = null;
+      rows.forEach(function (r, i) {
+        var tr = el('tr', i >= fold && rows.length > fold + 1 ? 'is-folded' : '');
+        cols.forEach(function (c, j) { var td = el(j ? 'td' : 'th', c[2] === 'end' ? 'is-end' : '', r[j] == null ? '' : String(r[j])); if (!j) td.setAttribute('scope', 'row'); tr.appendChild(td); });
+        if (cfg.pick) {
+          var row = {}; cols.forEach(function (c, j) { row[c[0]] = r[j] == null ? '' : String(r[j]); });
+          var say = cfg.pick.say(row, id); var td2 = el('td', 'kit-tbl-act');
+          // the verb on a bordered button, not a bare ›: in a chat › reads as "open details" (critique 0.8.1.11). Its label
+          // names the whole row ("Elegir: Hora 12:00, Plazas 4, Precio 14 €"); once sent it says it was chosen.
+          var whole = cols.map(function (c, j) { return c[1] + ' ' + (r[j] == null ? '' : r[j]); }).join(', ');
+          if (say) { var b = U.reply(cfg.pick.label || w.tPick, say, { fields: cfg.pick.fields ? cfg.pick.fields(row, id) : undefined, cls: 'kit-tbl-b', onSent: function (x) {
+              var t2 = x.closest('tr'); if (t2) t2.classList.add('is-picked');
+              x.textContent = w.tPicked; x.setAttribute('aria-label', w.tPicked + ': ' + x.getAttribute('data-row')); x.setAttribute('aria-pressed', 'true');
+              tb.classList.add('is-open'); if (more) more.hidden = true;   // the chosen row never folds away, and nothing is left to unfold
+            } });
+            b.setAttribute('data-row', whole); b.setAttribute('aria-label', (cfg.pick.label || w.tPick) + ': ' + whole); td2.appendChild(b); }
+          tr.appendChild(td2);
+        }
+        body.appendChild(tr);
+      });
+      wrap.appendChild(tb);
+      if (g) { g.appendChild(wrap); o.box.appendChild(g); } else o.box.appendChild(wrap);
+      var hidden = rows.length > fold + 1 ? rows.length - fold : 0;   // never fold a single row: showing it costs what the button costs
+      if (hidden) {
+        more = U.btn(fill(w.tMore, { n: rows.length }), 'kit-tbl-more'); more.setAttribute('aria-expanded', 'false');
+        more.addEventListener('click', function () { var open = tb.classList.toggle('is-open'); more.setAttribute('aria-expanded', open ? 'true' : 'false'); more.textContent = open ? w.tLess : fill(w.tMore, { n: rows.length }); });
+        o.box.appendChild(more);
+      }
+      note(o.box, t.note, 'is-muted');
+      if (t.source) o.box.appendChild(el('p', 'kit-stat-src', t.source));
+      var acts = [], rr = cfg.reply && cfg.reply(id, t, ctx);
+      if (rr) { var ga = U.once('kit-actions'); ga.appendChild(U.reply(rr[0], rr[1], { primary: true, fields: rr[2] })); acts.push(ga); }
+      if (t.link) acts.push(U.link(t.link[0], t.link[1]));
+      acts = acts.concat(buttons(cfg.links && cfg.links(id, t, ctx)));
       if (acts.length) U.row(o, acts);
       return o;
     });
@@ -907,7 +977,7 @@
     });
   }
 
-  LBW.kit = { version: '0.8.1.10', dev: DEV, describe: describe, L: L, last: last, cards: cards, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent, compare: compare, season: season, rating: rating,
+  LBW.kit = { version: '0.8.1.11', dev: DEV, describe: describe, L: L, last: last, cards: cards, table: table, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent, compare: compare, season: season, rating: rating,
     h: { note: note, list: list, label: label, dup: dup, choice: choice, multiChoice: multiChoice, copyBox: copyBox, status: status, wa: wa, fill: fill, money: money, total: total, lightbox: lightbox, chart: chart, statusHead: statusHead,
       icon: icon, withIcon: withIcon, icons: Object.keys(ICONS), badge: badge, tones: TONES.slice() } };
 })(typeof window !== 'undefined' ? window : this);
