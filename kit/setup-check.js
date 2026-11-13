@@ -263,11 +263,12 @@
           else if (isArr(d.values) && d.values.some(function (v) { return !/^[a-z][a-z0-9_]{0,39}$/.test(v); })) err('params.' + sc.data.param + '.values are keys of LBW.data: lower-case words (a-z, 0-9, _), starting with a letter');
         } else err('source.data is a key of LBW.data ("tarifas"), or { "param": "src" } to let the tag name it');
         if (sc.wait != null && !(typeof sc.wait === 'number' && sc.wait >= 0 && sc.wait <= 8000)) err('source.wait is how long to wait for the data, in milliseconds: 0 to 8000 (1500 by default)');
+        if (sc.upgrade != null && !(typeof sc.upgrade === 'number' && sc.upgrade >= 0 && sc.upgrade <= 60000)) err('source.upgrade is how long the saved copy may still be replaced by data that lands late, in milliseconds: 0 to 60000 (20000 by default; 0 = never)');
       }
       function itemSource(w, P) {
         var so = w.source, ty = w.type, single = w.item != null;
         if (!isObj(so)) { err('"source" is { "data": a key of LBW.data, "map": { part: "{column}" } }'); return; }
-        only(so, ['data', 'wait', 'path', 'id', 'map', 'merge', 'max'], 'source');
+        only(so, ['data', 'wait', 'upgrade', 'path', 'id', 'map', 'merge', 'max'], 'source');
         if (so.data == null) err('source.data is missing: the key of LBW.data the rows are in (a flow\'s Code block puts them there)'); else dataCheck(so, P);
         if (so.path != null && !(isStr(so.path) && /^[A-Za-z0-9_]+(\.[A-Za-z0-9_]+)*$/.test(so.path))) err('source.path is the dotted key of the list inside the data, as "data.items"');
         if (ty === 'table' && !isObj(w.item)) err('a table with a "source" is one table: give "item" (its title and cols); the data gives its rows');

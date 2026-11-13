@@ -1,4 +1,4 @@
-/* lbw.js · Landbot AI Widgets runtime · v0.9.0
+/* lbw.js · Landbot AI Widgets runtime · v0.9.1
    Turns tags that an AI agent (or a flow message) writes at the end of a bot message, e.g. [[shop:card id=boots lang=en]],
    into interactive widgets inside the Landbot v4 web chat. Distilled from four production experiments (retos 16-19).
    You write: your data, your labels and one function per widget. The runtime does the rest:
@@ -447,7 +447,8 @@
     return cached('page', url, o, function (t) { return new DOMParser().parseFromString(String(t).slice(0, 1e6), 'text/html'); });
   }
   // ── LBW.data (v0.9.0): data the flow hands to the widgets, by name ──────────────────────────────────
-  // A flow Code block runs in the chat's own window, before the next message (docs/13 §2c): LBW.data.put('tarifas', x),
+  // A flow Code block runs in the chat's own window (docs/13 §2c), late: after every message up to the next block that waits
+  // for the visitor (measured live, 13 Nov 2026). It calls LBW.data.put('tarifas', x),
   // x an object, a list or a JSON text (a webhook's answer kept in a field). A kit widget with "source": { "data": "tarifas" }
   // then draws from it. What is put here is untrusted data: a JSON copy is kept (500 KB at most), never code, in memory only.
   // put(key, x) → true | false (unreadable: logged, and widgets waiting on it draw their saved copy) · get(key) → the copy |
@@ -705,7 +706,7 @@
   }
 
   root.LBW = {
-    version: '0.9.0',
+    version: '0.9.1',
     // LBW.init({ prefix, langs, defaultLang, labels: {en:{…}}, links: ['https://shop.example/', 'tel:', 'mailto:', 'https://calendar.google.com/'], maxPerMessage, quietMs, timeZone: 'Europe/Madrid' })
     init: function (o) { for (var k in o) cfg[k] = o[k]; start(); return root.LBW; },
     // LBW.landbot(this) at the top level of the bot's Custom JS: messages go through the v4 widget's sendMessage. true if taken

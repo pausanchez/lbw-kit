@@ -617,8 +617,8 @@
 
   // ── "source": { "data": "key" } for every type that keeps items (v0.9.0) ─────────────────────────────────────────
   // The rows come from LBW.data (a flow's Code block put them there); "items" (or "item") is the saved copy, drawn when the
-  // data is missing after "wait" ms or unreadable. Already there when the tag is read (a Code block runs before the next
-  // message): drawn at once; not yet: a skeleton, then the data or the saved copy.
+  // data is missing after "wait" ms or unreadable. Already there when the tag is read: drawn at once; not yet: a skeleton,
+  // then the data or the saved copy, which the data replaces if it lands within "upgrade" ms (v0.9.1: a Code block runs late).
   var NEEDS = { cards: ['title'], stats: ['stats'], people: ['name', 'role'], compare: ['name'], table: [] };
   function build(c, name, w, lang) {   // the maker's widget function for this copy of the widget
     var fn = null, real = LBW.widget;
@@ -655,10 +655,24 @@
       var lw; try { lw = liveW(c, name, w, lang, key, cur); } catch (e) { LBW.drop(name + ': data "' + key + '": ' + e.message + ' (the saved copy)'); return has ? saved() : null; }
       return lw ? build(c, name, lw, lang)(p, ctx) : null;
     }
-    var o = U.loading(lang, 'kit-' + w.type);
-    return LBW.later(o, LBW.data.wait(key, w.source.wait).then(function (d) { return liveW(c, name, w, lang, key, d); }),
+    var o = U.loading(lang, 'kit-' + w.type), up = w.source.upgrade == null ? 20000 : w.source.upgrade;
+    // v0.9.1 · measured live (13 Nov 2026): a flow Code block runs late, after every message up to the next block that
+    // waits for the visitor (6.6–12.5 s after its own place), so the saved copy is usually drawn first. It is replaced by
+    // the live rows when they land within "upgrade" ms (20000 by default, 0 = never), unless the visitor already used it.
+    // With no saved copy the skeleton waits that long instead.
+    var lateUp = function () {
+      if (!(up > 0)) return;
+      LBW.data.wait(key, up).then(function (d) {
+        if (!o.isConnected) return;
+        if (o.querySelector('.is-sent, .is-done, [aria-pressed="true"]')) { LBW.drop(name + ': data "' + key + '" came late; the saved copy stays (already used)'); return; }
+        var lw; try { lw = liveW(c, name, w, lang, key, d); } catch (e) { return; }
+        var el = lw && build(c, name, lw, lang)(p, ctx); if (!el) return;
+        transplant(o, el); o.setAttribute('data-lbw-upgraded', '1');
+      }, function () {});
+    };
+    return LBW.later(o, LBW.data.wait(key, has ? w.source.wait : Math.max(w.source.wait == null ? 1500 : w.source.wait, up)).then(function (d) { return liveW(c, name, w, lang, key, d); }),
       function (lw) { var el = lw && build(c, name, lw, lang)(p, ctx); if (!el) return false; transplant(o, el); },
-      has ? function () { var el = saved(); if (!el) throw new Error('nothing to show'); transplant(o, el); } : null);
+      has ? function () { var el = saved(); if (!el) throw new Error('nothing to show'); transplant(o, el); lateUp(); } : null);
   }
   // a widget with params or a data source is made again for each tag, from its copy in the tag's language
   function dyn(c, name, lang, p, ctx) {

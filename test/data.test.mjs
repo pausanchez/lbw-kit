@@ -84,7 +84,7 @@ test('data: late data: a skeleton, then the rows; never → the saved copy after
   await wait(100); assert.equal(title(m2), 'Kayak (copia guardada)');
   const c3 = chat(), m3 = draw(c3, '[[p:tour id=kayak]]'); c3.put('tours', 'nope'); await wait(10);
   assert.equal(title(m3), 'Kayak (copia guardada)');
-  delete cfg.widgets.tour.items; const c4 = chat(cfg), m4 = draw(c4, 'Hola [[p:tour id=kayak]]'); await wait(100);
+  delete cfg.widgets.tour.items; cfg.widgets.tour.source.upgrade = 0; const c4 = chat(cfg), m4 = draw(c4, 'Hola [[p:tour id=kayak]]'); await wait(100);
   assert.equal(m4.widgets().length, 0); assert.equal(m4.text(), 'Hola');
 });
 
@@ -171,4 +171,28 @@ test('data: a card draws from a Python repr handed by a Code block', () => {
   c.put('tours', "{'data': {'tours': [{'id': 'kayak', 'nombre': 'Kayak al amanecer', 'desc': 'Dos horas', 'plazas': 4, 'precio': '34,99', 'url': 'https://tours.example/kayak/'}]}}");
   const m = draw(c, '[[p:tour id=kayak lang=es]]');
   assert.equal(title(m), 'Kayak al amanecer'); assert.equal(rows(m).Precio, '34,99 €');
+});
+
+test('data (v0.9.1): data that lands after the saved copy replaces it, unless the visitor used it; with no copy the skeleton waits', async () => {
+  // measured live: a Code block runs after every message up to the next question, 6.6–12.5 s late
+  const cfg = CFG(); cfg.widgets.tour.source.wait = 30; cfg.widgets.tour.source.upgrade = 400;
+  cfg.widgets.tour.reply = ['Reservar', 'Quiero reservar el kayak'];
+  const c = chat(cfg), m = draw(c, '[[p:tour id=kayak]]'); await wait(60);
+  assert.equal(title(m), 'Kayak (copia guardada)');
+  c.put('tours', TOURS); await wait(30);
+  assert.equal(title(m), 'Kayak al amanecer'); assert.equal(m.widgets()[0].getAttribute('data-lbw-upgraded'), '1');
+  assert.equal(m.widgets()[0].getAttribute('data-widget'), 'tour');
+  // used before the data came: kept
+  const c2 = chat(cfg), m2 = draw(c2, '[[p:tour id=kayak]]'); await wait(60);
+  m2.widgets()[0].querySelector('button').click(); c2.put('tours', TOURS); await wait(30);
+  assert.equal(title(m2), 'Kayak (copia guardada)'); assert.ok(c2.dropped().some((x) => /came late; the saved copy stays/.test(x)));
+  // past the window: kept
+  const c3 = chat(cfg), m3 = draw(c3, '[[p:tour id=kayak]]'); await wait(500); c3.put('tours', TOURS); await wait(30);
+  assert.equal(title(m3), 'Kayak (copia guardada)');
+  // no saved copy: the skeleton waits for the upgrade window, not just "wait"
+  delete cfg.widgets.tour.items; const c4 = chat(cfg), m4 = draw(c4, '[[p:tour id=kayak]]'); await wait(100);
+  assert.ok(m4.widgets()[0].classList.contains('is-loading')); c4.put('tours', TOURS); await wait(30);
+  assert.equal(title(m4), 'Kayak al amanecer');
+  // the checker
+  const bad = CFG(); bad.widgets.tour.source.upgrade = 90000; assert.match(errors(bad), /source\.upgrade/);
 });
