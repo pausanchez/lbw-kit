@@ -79,7 +79,7 @@
 
   // ── text: '{key}' with :label :labels :lower :money ──────────────────────────────────────────────
   // sc = { v: values, items: { key: [[k, label]] | fn(values) → that }, money: fn(cents), lang, sep, h12 (for :date and :time) }
-  var HOLE = /\{([^{}]*)\}/g, SLOT = /^([A-Za-z_]\w*)((?::(?:label|labels|lower|money|date|dmy|time))*)$/;
+  var HOLE = /\{([^{}]*)\}/g, SLOT = /^([A-Za-z_]\w*)((?::(?:label|labels|lower|money|date|dmy|time|count))*)$/;
   function tpl(str, sc) {
     return String(str == null ? '' : str).replace(HOLE, function (m, body) {
       var x = SLOT.exec(body); if (!x) return '';
@@ -93,6 +93,8 @@
         else if (mod === 'date') v = LBW.day.format(v, sc.lang || 'en', { weekday: 'long', day: 'numeric', month: 'long' });
         else if (mod === 'dmy') v = LBW.day.str(v);
         else if (mod === 'time') v = LBW.time.format(v, sc.sep, { h12: sc.h12 });
+        // v0.9.4.2 · {plazas:count}: an int param's "forms" ({ zero, one, other }, {n} = the number), "1 libre" / "5 libres" / "Completa"
+        else if (mod === 'count') { var fm = sc.forms && own(sc.forms, k) ? sc.forms[k] : null, nn = +v, f = fm ? (nn === 0 && fm.zero != null ? fm.zero : nn === 1 && fm.one != null ? fm.one : fm.other) : null; v = f == null ? String(v) : String(f).replace(/\{n\}/g, String(nn)); }
       });
       return isArr(v) ? v.join(',') : String(v);
     });
@@ -597,9 +599,9 @@
   // the widget with every param placeholder written out. A param with no value leaves its text empty, and a field it fills is
   // left out (never emptied in Landbot). In a URL a value is encoded; a value never brings a { } of its own.
   function withParams(w, defs, vals, lang) {
-    var names = Object.keys(defs), items = {};
-    names.forEach(function (k) { var lb = defs[k].labels; if (isObj(lb)) items[k] = Object.keys(lb).map(function (v) { return [v, lb[v]]; }); });
-    var sc = function (sent) { return { v: vals, items: items, money: function (n) { return H.money(n, merge(w.money, sent ? { nb: false } : null)); }, lang: w.lang || lang, sep: w.sep, h12: w.h12 }; };
+    var names = Object.keys(defs), items = {}, forms = {};
+    names.forEach(function (k) { var lb = defs[k].labels; if (isObj(lb)) items[k] = Object.keys(lb).map(function (v) { return [v, lb[v]]; }); if (isObj(defs[k].forms)) forms[k] = defs[k].forms; });
+    var sc = function (sent) { return { v: vals, items: items, forms: forms, money: function (n) { return H.money(n, merge(w.money, sent ? { nb: false } : null)); }, lang: w.lang || lang, sep: w.sep, h12: w.h12 }; };
     function str(x, sent) {
       var url = /^(https?:|tel:|mailto:)/i.test(x), empty = false;
       var r = x.replace(HOLE, function (m, body) {
@@ -615,6 +617,16 @@
       if (!isObj(x)) return x;
       var o = {}; Object.keys(x).forEach(function (k) {
         if (k === '__proto__') return; if (own(PSKIP, k)) { o[k] = x[k]; return; }
+        // v0.9.4.2 · a row [label, value, key] or [label, value, key, text] whose key is a number param: while that number is 0
+        // the row is left out, or its value becomes the text ("Completa"); a missing value keeps the row as written
+        if (k === 'rows' && isArr(x[k]) && ['cards', 'contact', 'season'].indexOf(w.type) >= 0) {
+          var rs = []; x[k].forEach(function (r) {
+            if (!(isArr(r) && r.length >= 3 && isStr(r[2]) && own(defs, r[2]) && own(PNUM, defs[r[2]].type))) { rs.push(walk(r, sent, false)); return; }
+            if (vals[r[2]] === 0) { if (r.length > 3) rs.push([walk(r[0], sent, false), walk(r[3], sent, false)]); return; }
+            rs.push([walk(r[0], sent, false), walk(r[1], sent, false)]);
+          });
+          o[k] = rs; return;
+        }
         var v = walk(x[k], sent || own(PSENT, k), fields || k === 'fields'); if (v !== undefined) o[k] = v;
       });
       return o;

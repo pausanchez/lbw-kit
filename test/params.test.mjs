@@ -144,3 +144,45 @@ test('params: check() names what is wrong', () => {
   const d = CFG(); d.widgets.total.params.n = { type: 'int', min: 0, max: 3 };
   assert.match(errors(d), /params\.n has the name of a state key/);
 });
+
+// v0.9.4.2 · number forms and rows keyed by a number (the Faro de Salitre showcase needed both: "1 libres", "Suite 309 € · 0 libres")
+const DIA = () => ({
+  prefix: 'p', langs: ['es', 'en'], defaultLang: 'es', timeZone: 'Europe/Madrid', links: ['https://tours.example/'],
+  widgets: {
+    dia: { type: 'cards', money: { cur: '€', after: true, dec: ',', th: '.', cents: false },
+      params: {
+        mar_p: { type: 'money', max: 100000, required: true },
+        mar_l: { type: 'int', min: 0, max: 99, required: true, forms: { one: { es: '{n} libre', en: '{n} left' }, other: { es: '{n} libres', en: '{n} left' } } },
+        suite_p: { type: 'money', max: 100000, required: true },
+        suite_l: { type: 'int', min: 0, max: 99, required: true, forms: { zero: { es: 'Completa', en: 'Sold out' }, one: { es: '{n} libre', en: '{n} left' }, other: { es: '{n} libres', en: '{n} left' } } },
+        jard_l: { type: 'int', min: 0, max: 99 }
+      },
+      item: { title: 'Hoy', rows: [
+        ['Vista al Mar', '{mar_p:money} · {mar_l:count}', 'mar_l', { es: 'Completa', en: 'Sold out' }],
+        ['Suite', '{suite_p:money} · {suite_l:count}', 'suite_l', { es: 'Completa', en: 'Sold out' }],
+        ['Jardín', '{jard_l}', 'jard_l']
+      ] } }
+  }
+});
+
+test('params (v0.9.4.2): {x:count} picks the form by the number; a row keyed by a number shows its 0 text or goes', () => {
+  assert.equal(errors(DIA()), '');
+  const c = chat(DIA());
+  let m = draw(c, '[[p:dia mar_p=189|mar_l=1|suite_p=309|suite_l=5|jard_l=0|lang=es]]');
+  assert.deepEqual(rows(m), { 'Vista al Mar': '189 € · 1 libre', Suite: '309 € · 5 libres' });   // Jardín at 0 with no 4th text: gone
+  m = draw(c, '[[p:dia mar_p=189|mar_l=0|suite_p=309|suite_l=1|jard_l=3|lang=es]]');
+  assert.deepEqual(rows(m), { 'Vista al Mar': 'Completa', Suite: '309 € · 1 libre', 'Jardín': '3' });   // no price beside "Completa"
+  m = draw(c, '[[p:dia mar_p=189|mar_l=2|suite_p=309|suite_l=0|lang=en]]');
+  assert.deepEqual(rows(m), { 'Vista al Mar': '189 € · 2 left', Suite: 'Sold out' });   // jard_l missing: its row as written, empty → left out
+});
+
+test('params (v0.9.4.2): the checker knows forms, :count and keyed rows', () => {
+  const bad = (f) => { const x = DIA(); f(x.widgets.dia); return errors(x); };
+  assert.match(bad((w) => { w.params.mar_l.forms = { one: '{n} libre' }; }), /forms is \{.*"other" is required/);
+  assert.match(bad((w) => { w.params.mar_l.forms.other = { es: '{n} libres {x}', en: 'x' }; }), /the only placeholder a form takes is \{n\}/);
+  assert.match(bad((w) => { w.item.rows[2][1] = '{jard_l:count}'; }), /asks for a count, and params\.jard_l has no "forms"/);
+  assert.match(bad((w) => { w.params.mar_p.forms = { other: 'x' }; }), /unknown|forms/);
+  assert.match(bad((w) => { w.item.rows[0][2] = 'nada'; }), /rows\[0\]\[2\] "nada" is not a number param/);
+  assert.match(bad((w) => { w.item.rows[1].push('x'); }), /rows\[1\] is \[label, value\], \[label, value, key\] or \[label, value, key, text for 0\]/);
+  assert.match(bad((w) => { w.item.rows[2][1] = '{mar_p:count}'; }), /:count is for an int param/);
+});

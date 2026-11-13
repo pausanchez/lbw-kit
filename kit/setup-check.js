@@ -196,7 +196,7 @@
           if (RES.indexOf(k) >= 0) err(at + ': "' + k + '" is a name the kit already fills in texts ({' + k + '}); call it something else');
           if (taken.indexOf(k) >= 0) err(at + ' has the name of a state key, a table, a compute line, a form step or a column');
           if (!isObj(d) || PTYPES.indexOf(d.type) < 0) { err(at + '.type is one of ' + PTYPES.join(', ')); return; }
-          var more = { one: 'values labels', list: 'values labels max', int: 'min max', num: 'min max', money: 'min max cents', text: 'max', day: 'min max', time: '' }[d.type];
+          var more = { one: 'values labels', list: 'values labels max', int: 'min max forms', num: 'min max', money: 'min max cents', text: 'max', day: 'min max', time: '' }[d.type];
           only(d, ['type', 'param', 'required', 'default'].concat(more ? more.split(' ') : []), at);
           var key = d.param == null ? k : d.param; if (d.param != null) param(d.param, at + '.param');
           if (read.indexOf(key) >= 0) err(at + ': the tag key "' + key + '" is already read by this widget' + (key === 'lang' ? ' (the language)' : ''));
@@ -230,13 +230,19 @@
             if (isStr(d.min) && isStr(d.max) && d.min !== 'today' && d.max !== 'today' && LBW.day.read(d.min) > LBW.day.read(d.max)) err(at + ': "min" is after "max"');
           }
           if (d.type === 'time' && dv != null && LBW.time.read(dv) == null) err(at + '.default is a time, HH:MM');
+          // v0.9.4.2 · forms: { zero, one, other } for {name:count}; {n} is the number
+          if (d.forms != null) {
+            if (!isObj(d.forms) || !isStr(d.forms.other)) err(at + '.forms is { "one": "{n} libre", "other": "{n} libres", "zero": "Completa" }: "other" is required, "one" and "zero" optional');
+            else { only(d.forms, ['zero', 'one', 'other'], at + '.forms'); ['zero', 'one', 'other'].forEach(function (f) { if (d.forms[f] != null && typeof d.forms[f] !== 'string') err(at + '.forms.' + f + ' must be text'); else if (isStr(d.forms[f]) && /\{(?!n\})[^{}]*\}/.test(d.forms[f])) err(at + '.forms.' + f + ': the only placeholder a form takes is {n}'); }); }
+          }
         });
         // every placeholder that names a param: the format its type needs
         walkStr(w, '', function (t, where) {
           t.replace(HOLE, function (m, body) {
             var x = SLOT.exec(body), d = x && own(P, x[1]) && isObj(P[x[1]]) ? P[x[1]] : null; if (!d) return m;
-            var f = (x[2].match(/:(label|labels|money|date|dmy|time)\b/g) || []), ty = d.type, at = where + ': "' + m + '"';
-            if (f.length > 1) err(at + ' has two formats: one of :label :labels :money :date :dmy :time (then :lower if wanted)');
+            var f = (x[2].match(/:(label|labels|money|date|dmy|time|count)\b/g) || []), ty = d.type, at = where + ': "' + m + '"';
+            if (f.length > 1) err(at + ' has two formats: one of :label :labels :money :date :dmy :time :count (then :lower if wanted)');
+            else if (f[0] === ':count') { if (ty !== 'int') err(at + ': :count is for an int param (its "forms")'); else if (!isObj(d.forms)) err(at + ' asks for a count, and params.' + x[1] + ' has no "forms"'); }
             else if (ty === 'money' && f[0] !== ':money') err(at + ' is an amount in cents: write {' + x[1] + ':money}');
             else if (ty === 'day' && f[0] !== ':date' && f[0] !== ':dmy') err(at + ' is a day: write {' + x[1] + ':date} or {' + x[1] + ':dmy}');
             else if (ty === 'time' && f[0] !== ':time') err(at + ' is a time: write {' + x[1] + ':time}');
@@ -245,6 +251,22 @@
             return m;
           });
         });
+      }
+      // v0.9.4.2 · rows [label, value, key] / [label, value, key, text]: the key a number param (the row goes or changes at 0)
+      function keyedRows(w) {
+        if (['cards', 'contact', 'season'].indexOf(w.type) < 0) return; var P = isObj(w.params) ? w.params : {};   // rows of [label, value]
+        var look = function (x, at) {
+          if (isArr(x)) return x.forEach(function (y, i) { look(y, at + '[' + i + ']'); }); if (!isObj(x)) return;
+          Object.keys(x).forEach(function (k) {
+            if (own(PSKIP, k) || k === 'result') return; var here = at ? at + '.' + k : k;
+            if (k === 'rows' && isArr(x[k])) x[k].forEach(function (r, i) { if (!isArr(r) || r.length < 3) return; var ra = here + '[' + i + ']';
+              if (r.length > 4) err(ra + ' is [label, value], [label, value, key] or [label, value, key, text for 0]');
+              else if (!isStr(r[2]) || !own(P, r[2]) || !isObj(P[r[2]]) || !own(PNUM, P[r[2]].type) || P[r[2]].type === 'day' || P[r[2]].type === 'time') err(ra + '[2] "' + r[2] + '" is not a number param of this widget (int, num or money): the row is left out, or shows its 4th text, while that number is 0');
+              else if (r.length === 4 && typeof r[3] !== 'string') err(ra + '[3] must be text: what the row says while ' + r[2] + ' is 0 ("Completa")'); });
+            else look(x[k], here);
+          });
+        };
+        look(w, '');
       }
       // the widget as the rest of the checks see it: each param placeholder filled with a sample value
       function sampled(x, P) {
@@ -307,6 +329,7 @@
         Object.keys(w).forEach(function (k) { if (known.indexOf(k) < 0) err('unknown option "' + k + '" for ' + w.type + '. Known: ' + known.join(', ')); });
         NEED[w.type].forEach(function (k) { if (w[k] == null && !(k === 'items' && w.source != null)) err('missing "' + k + '"'); });
         var pdefs = isObj(w.params) ? w.params : {};
+        keyedRows(w);   // v0.9.4.2
         if (w.params != null) { paramsCheck(w); w = sampled(w, pdefs); }
         if (w.source != null && w.type !== 'carousel') itemSource(w, pdefs);
         // v0.9.0 · "money" formats {x:money} in every type (a money param): { cur, after, dec, th, cents, space }
