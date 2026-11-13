@@ -17,7 +17,7 @@
   var TOP = '$schema version prefix langs defaultLang timeZone maxPerMessage links labels quietMs maxWaitMs reveal photos actions replies widgets'.split(' ');
   var KEYS = {
     cards: 'type cls param items item kicker disclaimer single fallback pointsCls allowDup lang reply links status',
-    table: 'type cls param items item kicker fold pick allowDup lang reply links fallback',
+    table: 'type cls param items item kicker fold pick same allowDup lang reply links fallback',
     form: 'type cls lang kicker title cta note preset steps summary fields allowDup collapse',
     contact: 'type cls lang kicker title big rows hours note buttons buttonsWithSummary summary compact allowDup',
     chips: 'type cls lang max items own carriedBy crowd',
@@ -215,6 +215,7 @@
           });
           param(w.param, 'param'); if (w.fallback != null && !own(ts, w.fallback)) err('fallback "' + w.fallback + '" is not one of the items');
           if (w.fold != null && !(Number.isInteger(w.fold) && w.fold >= 3)) err('"fold" is a whole number, 3 or more: the rows shown before "See all"');
+          if (w.same != null && w.same !== false) err('"same" is false (keep a column that says the same in every row) or left out');
           if (w.pick != null) {
             if (!isObj(w.pick) || !isStr(w.pick.say)) err('"pick" is { "say": "…{column}…", "fields": { "field": "{column}" }, "label" }: each row becomes a button');
             else { only(w.pick, ['say', 'fields', 'label'], 'pick'); var pk = (ckeys || []).concat(['id']); text(w.pick.say, 'pick.say', pk, [], []); strs(w.pick, ['label'], 'pick');

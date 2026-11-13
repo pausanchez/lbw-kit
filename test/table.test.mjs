@@ -60,7 +60,7 @@ test('table pick: one tap on a row sends its sentence and SAVES its fields; the 
   assert.deepEqual(c.sent, [['landbot-custom-data', { visita: '12:00' }], ['landbot-msg-send', { type: 'text', message: 'Quiero la visita de las 12:00' }]]);
   assert.ok(m.querySelector('.kit-tbl-once').classList.contains('is-done'));
   assert.deepEqual([...m.querySelectorAll('tr.is-picked th')].map((x) => x.textContent), ['12:00']);
-  assert.equal(b[2].getAttribute('aria-label'), 'Elegido: Hora 12:00, Plazas 18, Precio 14,00 €'); assert.equal(b[2].getAttribute('aria-pressed'), 'true'); assert.equal(b[2].textContent, 'Elegido');
+  assert.equal(b[2].getAttribute('aria-label'), 'Elegido: Hora 12:00, Plazas 18, Precio 14,00 €'); assert.equal(b[2].getAttribute('aria-pressed'), 'true'); assert.equal(b[2].textContent, '');
   c.close();
 });
 
@@ -97,5 +97,24 @@ test('table 0.8.1.13 (Callan critique): a column empty in every row is left out;
   assert.equal(m.querySelector('.kit-tbl-b').getAttribute('aria-label'), 'Elegir: Hora 11.00');
   m.querySelector('.kit-tbl-b').click(); await wait(300);
   assert.equal(c.sent[1][1].message, 'Quiero 11.00');
+  c.close();
+});
+
+test('table 0.8.1.14: a column equal in every row (3+ rows) leaves the table for one line; two columns always stay; "same": false keeps it', async () => {
+  const rowsD = [['L/X o M/J', '11.00', 'Sí'], ['L/X o M/J', '12.30', '—'], ['L/X o M/J', '14.15', 'Sí']];
+  const c = setup({ h: { type: 'table', item: { title: 'Horario', cols: [['hora', 'Hora'], ['dias', 'Días'], ['red', 'Reducida']], rows: rowsD.map((r) => [r[1], r[0], r[2]]) }, pick: { say: 'Quiero {hora} ({dias})', fields: { f: '{hora}' } } },
+    k: { type: 'table', same: false, item: { title: 'K', cols: [['a', 'A'], ['b', 'B'], ['c', 'C']], rows: [['1', 'x', '1'], ['2', 'x', '2'], ['3', 'x', '3']] } },
+    two: { type: 'table', item: { title: 'Two', cols: [['a', 'A'], ['b', 'B']], rows: [['1', 'x'], ['2', 'x'], ['3', 'x']] } } });
+  assert.equal(c.result.ok, true, JSON.stringify(c.result.errors));
+  const m = draw(c, '[[t:h]]');
+  assert.equal(m.querySelector('.kit-tbl-same').textContent, 'Días: L/X o M/J');
+  assert.deepEqual([...m.querySelectorAll('thead th:not(.kit-tbl-act)')].map((x) => x.textContent), ['Hora', 'Reducida']);
+  m.querySelector('.kit-tbl-b').click(); await wait(300);
+  assert.equal(c.sent[1][1].message, 'Quiero 11.00 (L/X o M/J)');
+  await wait(1300);
+  assert.equal(draw(c, '[[t:k]]').querySelector('.kit-tbl-same'), null);
+  await wait(10);
+  const t2 = draw(c, '[[t:two]]'); assert.equal(t2.querySelector('.kit-tbl-same'), null); assert.equal(t2.querySelectorAll('thead th').length, 2);
+  assert.match(c.check({ x: { type: 'table', same: 'yes', item: { title: 'X', cols: [['a', 'A'], ['b', 'B']], rows: [['1', '2']] } } }).join('\n'), /x: "same" is false/);
   c.close();
 });

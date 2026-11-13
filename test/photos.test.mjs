@@ -91,3 +91,17 @@ test('photos 0.8.1.12: a live carousel maps { "photo": "set:{column}" } row by r
   assert.match(bad, /source\.map\.img\.photo: "zz:" is not a set in "photos"/);
   c.close();
 });
+
+test('photos 0.8.1.14: a srcset pasted from a WordPress page is parsed; width and height from the smallest file name; a gallery gets the largest as big', () => {
+  const ss = 'https://site.example/wp-content/uploads/2026/06/FACHADA.jpg 2207w, https://site.example/wp-content/uploads/2026/06/FACHADA-380x282.jpg 380w, https://site.example/wp-content/uploads/2026/06/FACHADA-768x569.jpg 768w, https://site.example/wp-content/uploads/2026/06/FACHADA-480x356.jpg 480w';
+  const live = { type: 'carousel', items: [{ id: 'a', name: 'Fachada', img: { srcset: ss }, gallery: { photos: [{ srcset: ss, alt: 'Vía Augusta' }] } }, { id: 'b', name: 'Nada', img: { srcset: 'no pairs here' } }] };
+  const c = setup({ r: live }, { links: ['https://site.example/'] });
+  const x = json(c.w.LBW.kit.setup._.photosIn(c.cfg)).widgets.r.items;
+  assert.equal(x[0].img.src, 'https://site.example/wp-content/uploads/2026/06/FACHADA-380x282.jpg');
+  assert.deepEqual(x[0].img.srcset.map((p) => p[1]), [380, 480, 768, 2207]);
+  assert.deepEqual([x[0].img.width, x[0].img.height, x[0].img.alt], [380, 282, 'Fachada']);
+  assert.equal(x[0].gallery.photos[0].big, 'https://site.example/wp-content/uploads/2026/06/FACHADA.jpg');
+  assert.equal(x[0].gallery.photos[0].src, 'https://site.example/wp-content/uploads/2026/06/FACHADA-768x569.jpg');
+  assert.match(c.check(c.cfg).join('\n'), /r: items\[1\]\.img: "srcset" holds no "url 480w" pairs/);
+  c.close();
+});

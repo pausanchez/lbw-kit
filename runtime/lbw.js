@@ -1,4 +1,4 @@
-/* lbw.js · Landbot AI Widgets runtime · v0.8.1.13
+/* lbw.js · Landbot AI Widgets runtime · v0.8.1.14
    Turns tags that an AI agent (or a flow message) writes at the end of a bot message, e.g. [[shop:card id=boots lang=en]],
    into interactive widgets inside the Landbot v4 web chat. Distilled from four production experiments (retos 16-19).
    You write: your data, your labels and one function per widget. The runtime does the rest:
@@ -476,6 +476,10 @@
         if (!sc) { sc = scroller(host); if (!sc) return; EV.forEach(function (n) { sc.addEventListener(n, end, { passive: true }); }); sc.addEventListener('scroll', later, { passive: true }); document.addEventListener('keydown', end, true); }
         var a = host.getBoundingClientRect(), b = sc.getBoundingClientRect();
         var tall = a.height > b.height - 16, aim = a.top;
+        // v0.8.1.14 · a reply that fits, but not together with the visitor's question: aligned to the bottom, the question went
+        // under the header (Callan live critique: a compare and a contact card, question top at −36 and −21 px). Placed like a
+        // tall reply, question first, when its start is close above (it was the turn's own question)
+        if (!tall) { for (var qj = all.length - 2; qj >= 0; qj--) { if (all[qj].getAttribute('data-lb-author') === 'user') { var qq = all[qj].getBoundingClientRect(); if (a.bottom - qq.top > b.height - 16 && a.top - qq.top < 220) tall = true; break; } } }
         // v0.8.1.3 · keep the visitor's own question in view above a tall reply when 160 px of the reply still fit under it
         // v0.8.1.9 · the message before this one, from the document's list: live, Landbot's messages are not siblings (the
         // sibling walk found nothing, so the question stayed 64–114 px above the window on every tall reply, critique 0.8.1.3)
@@ -590,7 +594,7 @@
   }
 
   root.LBW = {
-    version: '0.8.1.13',
+    version: '0.8.1.14',
     // LBW.init({ prefix, langs, defaultLang, labels: {en:{…}}, links: ['https://shop.example/', 'tel:', 'mailto:', 'https://calendar.google.com/'], maxPerMessage, quietMs, timeZone: 'Europe/Madrid' })
     init: function (o) { for (var k in o) cfg[k] = o[k]; start(); return root.LBW; },
     // LBW.on('render', function (e) { e.widget, e.tag, e.lang, e.el, e.message }) · 'say' → { text, fields } · 'drop' → the reason

@@ -151,7 +151,7 @@
     // v0.8.1.10 · a table: "items" by id (or "item"), each { title, cols: [[key, label, "end"?]], rows: [[…]] }. "pick" makes each
     // row a button: { "say": "Quiero la sesión de las {hora}", "fields": { "sesion": "{hora}" }, "label" } over the row's columns and {id}
     table: function (cfg, name, w, lang) {
-      var o = pick(w, ['cls', 'param', 'items', 'kicker', 'fold', 'single', 'fallback', 'allowDup', 'lang']), r = reply(cfg, w.reply);
+      var o = pick(w, ['cls', 'param', 'items', 'kicker', 'fold', 'same', 'single', 'fallback', 'allowDup', 'lang']), r = reply(cfg, w.reply);
       if (w.item) { o.items = { _: w.item }; o.single = true; }
       o.reply = function (id, t) { if (!r) return null; var sc = plain({ id: id, title: t.title }); return [tpl(r[0], sc), tpl(r[1], sc), fieldsOf(r[2], sc)]; };
       o.links = function (id, t) { return actions(cfg, w.links, '', { id: id, title: t.title }); };
@@ -466,7 +466,21 @@
   function photoSet(P, cdn) { var d = isObj(P) && own(P, cdn) ? P[cdn] : null; return d && isStr(d.base) && isArr(d.sizes) && d.sizes.length && d.sizes.every(function (z) { return isArr(z) && typeof z[0] === 'string' && typeof z[1] === 'number'; }) ? d : null; }
   // one photo: x itself when it is no reference, undefined when its set doesn't exist (say(message) is told), else the
   // written-out img. kind: 'img' (a slide), 'big' (a gallery photo), 'url' (a person's avatar: the smallest size, one URL)
+  // v0.8.1.14 · a srcset as a page writes it ("a-380x282.jpg 380w, a-768x569.jpg 768w"), pasted from a WordPress page:
+  // parsed into pairs; width and height come from the smallest file's "-WxH" suffix (exact, unlike a computed name)
+  function srcsetOf(str) { var out = [], m, re = /(\S+)\s+(\d+)w/g; while ((m = re.exec(str))) out.push([m[1].replace(/^,/, ''), +m[2]]); out.sort(function (a, b) { return a[1] - b[1]; }); return out; }
+  function pasted(x, kind, alt) {
+    var zs = srcsetOf(x.srcset), o = {}; if (!zs.length) return undefined;
+    Object.keys(x).forEach(function (k) { if (k !== 'srcset' && k !== '__proto__') o[k] = x[k]; });
+    if (kind === 'url') return zs[0][0];
+    o.srcset = zs; o.src = kind === 'big' ? zs[Math.floor(zs.length / 2)][0] : zs[0][0];
+    if (kind === 'big') o.big = zs[zs.length - 1][0];
+    else { var d = /-(\d+)x(\d+)\.[a-z0-9]+(?:\?.*)?$/i.exec(zs[0][0]); if (d && o.width == null) { o.width = +d[1]; o.height = +d[2]; } }
+    if (o.alt == null && alt != null) o.alt = alt;
+    return o;
+  }
   function photo(P, x, kind, alt, say) {
+    if (isObj(x) && isStr(x.srcset)) { var pz = pasted(x, kind, alt); if (pz === undefined) say('"srcset" holds no "url 480w" pairs'); return pz; }
     var r = photoRef(x); if (!r) return x;
     var d = photoSet(P, r.cdn); if (!d) { say('"' + r.cdn + ':" is not a set in "photos"'); return undefined; }
     var url = function (z) { return d.base + z[0] + r.file; }, zs = d.sizes, o = {};
@@ -531,6 +545,6 @@
   setup.types = Object.keys(MAKE);
   // for kit/setup-check.js
   setup._ = { own: own, pick: pick, isArr: isArr, isObj: isObj, isStr: isStr, isPair: isPair, WORD: WORD, CODE: CODE, HOLE: HOLE, SLOT: SLOT,
-    compile: compile, loc: loc, photosIn: photosIn, photoRef: photoRef, photoSet: photoSet, langsOf: langsOf, dfltOf: dfltOf, resolve: resolve, reply: reply, timeOf: timeOf };
+    compile: compile, loc: loc, photosIn: photosIn, srcsetOf: srcsetOf, photoRef: photoRef, photoSet: photoSet, langsOf: langsOf, dfltOf: dfltOf, resolve: resolve, reply: reply, timeOf: timeOf };
   K.setup = setup;
 })(typeof window !== 'undefined' ? window : this);

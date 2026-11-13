@@ -1,4 +1,4 @@
-/* AI Widgets kit v0.8.1.13 · on lbw.js v0.8.1.13 · the widgets every url-to-demo build rewrote, written once with options. Load it after lbw.js and before the
+/* AI Widgets kit v0.8.1.14 · on lbw.js v0.8.1.14 · the widgets every url-to-demo build rewrote, written once with options. Load it after lbw.js and before the
    client's widgets.js: custom_js = <script>lbw.js</script><script>kit.js</script><script>widgets.js</script>.
 
    Each maker registers a widget under the name you give it, from data you pass. Nothing here holds client facts.
@@ -75,7 +75,7 @@
   function budget(where, kind, t) { if (DEV && t != null && String(t).length > BUDGET[kind]) warn(where, kind + ' over ' + BUDGET[kind] + ' characters (' + String(t).length + '): "' + String(t).slice(0, 48) + '…"'); }
   var OPTS = {
     cards: 'cls param items kicker reply links disclaimer lang single fallback pointsCls allowDup status',
-    table: 'cls param items kicker reply links fold pick lang single fallback allowDup',
+    table: 'cls param items kicker reply links fold pick same lang single fallback allowDup',
     form: 'cls lang kicker title cta note preset steps summary fields sent allowDup collapse',
     contact: 'cls lang kicker title big rows topic hours note buttons summary compact allowDup',
     chips: 'cls lang max items own carriedBy',
@@ -295,6 +295,10 @@
       var cap = el('caption', 'kit-sr', t.title || ''); tb.appendChild(cap);
       // v0.8.1.13 · a column with no value in any row is left out (Callan: the online timetable's empty "Rate"); pick still reads it
       var shown = cols.map(function (c, j) { return rows.some(function (r) { return r[j] != null && String(r[j]).trim() !== ''; }); });
+      // v0.8.1.14 · a column that says the same in every row (3 rows or more, not the first) leaves the table for one line
+      // above it, "Días: L/X o M/J" (Callan: the days on every timetable row squeezed the times into two lines)
+      var same = [];
+      if (rows.length >= 3 && cfg.same !== false) cols.forEach(function (c, j) { if (!j || !shown[j]) return; var v = rows[0][j] == null ? '' : String(rows[0][j]); if (v.trim() && rows.every(function (r) { return String(r[j] == null ? '' : r[j]) === v; }) && shown.filter(Boolean).length > 2) { same.push(c[1] + ': ' + v); shown[j] = false; } });
       cols.forEach(function (c, j) { if (!shown[j]) return; var th = el('th', c[2] === 'end' ? 'is-end' : '', c[1]); th.setAttribute('scope', 'col'); hr.appendChild(th); });
       if (cfg.pick) { var thp = el('th', 'kit-tbl-act', ''); thp.appendChild(el('span', 'kit-sr', cfg.pick.label || w.tPick)); hr.appendChild(thp); }
       head.appendChild(hr); tb.appendChild(head); tb.appendChild(body);
@@ -310,7 +314,7 @@
           var whole = cols.filter(function (c, j) { return shown[j]; }).map(function (c) { var j = cols.indexOf(c); return c[1] + ' ' + (r[j] == null ? '' : r[j]); }).join(', ');
           if (say) { var b = U.reply(cfg.pick.label || w.tPick, say, { fields: cfg.pick.fields ? cfg.pick.fields(row, id) : undefined, cls: 'kit-tbl-b', onSent: function (x) {
               var t2 = x.closest('tr'); if (t2) t2.classList.add('is-picked');
-              x.textContent = w.tPicked; x.setAttribute('aria-label', w.tPicked + ': ' + x.getAttribute('data-row')); x.setAttribute('aria-pressed', 'true');
+              x.textContent = ''; x.setAttribute('aria-label', w.tPicked + ': ' + x.getAttribute('data-row'));   /* v0.8.1.14: only the ✓ (CSS) — a wider "✓ Elegido" overflowed the table and the held first column covered the next one (Callan live) */ x.setAttribute('aria-pressed', 'true');
               tb.classList.add('is-open'); if (more) more.hidden = true;   // the chosen row never folds away, and nothing is left to unfold
             } });
             b.setAttribute('data-row', whole); b.setAttribute('aria-label', (cfg.pick.label || w.tPick) + ': ' + whole); td2.appendChild(b); }
@@ -319,6 +323,7 @@
         body.appendChild(tr);
       });
       wrap.appendChild(tb);
+      if (same.length) o.box.appendChild(el('p', 'kit-tbl-same', same.join(' · ')));
       if (g) { g.appendChild(wrap); o.box.appendChild(g); } else o.box.appendChild(wrap);
       var hidden = rows.length > fold + 1 ? rows.length - fold : 0;   // never fold a single row: showing it costs what the button costs
       if (hidden) {
@@ -999,7 +1004,7 @@
     });
   }
 
-  LBW.kit = { version: '0.8.1.13', dev: DEV, describe: describe, L: L, last: last, cards: cards, table: table, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent, compare: compare, season: season, rating: rating,
+  LBW.kit = { version: '0.8.1.14', dev: DEV, describe: describe, L: L, last: last, cards: cards, table: table, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent, compare: compare, season: season, rating: rating,
     h: { note: note, list: list, label: label, dup: dup, choice: choice, multiChoice: multiChoice, copyBox: copyBox, status: status, wa: wa, fill: fill, money: money, total: total, lightbox: lightbox, chart: chart, statusHead: statusHead,
       icon: icon, withIcon: withIcon, icons: Object.keys(ICONS), badge: badge, tones: TONES.slice() } };
 })(typeof window !== 'undefined' ? window : this);
