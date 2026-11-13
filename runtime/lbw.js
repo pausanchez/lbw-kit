@@ -14,7 +14,8 @@
   var cfg = { prefix: 'w', langs: ['en'], defaultLang: 'en', maxPerMessage: 3, links: [], quietMs: 1500, maxWaitMs: 20000, labels: {} };
   var W = {}, last = {}, lock = 0, quietSince = Date.now(), started = false;
   var log = function (k, v) { (root[k] = root[k] || []).push(v); };
-  // LBW.on('render' | 'say' | 'drop', fn): what was drawn, what the visitor sent through a widget, what was thrown away.
+  // LBW.on('render' | 'say' | 'drop' | 'data', fn): what was drawn, what the visitor sent through a widget, what was thrown
+  // away, what a flow's data message handed over ({ key, via: 'event' | 'dom', ok, length, at }, v0.9.5).
   // For counting views and clicks; a listener that throws is ignored.
   var subs = {};
   function emit(name, data) { (subs[name] || []).forEach(function (f) { try { f(data); } catch (e) {} }); }
@@ -87,7 +88,7 @@
   function bind(w) {
     if (!w || w === root) return false;   // a plain <script> (the mock): `this` is the window, nothing to bind
     if (typeof w.sendMessage !== 'function') { drop('LBW.landbot: not a widget (no sendMessage)'); return false; }
-    bound = w; return true;
+    bound = w; hookEvents(w); return true;   // v0.9.5: its new_message carries data messages raw (scanData)
   }
   function setData(fields) {   // fields with no message: queued, saved with the next one
     var lb = root._landbot;
@@ -452,8 +453,9 @@
     return cached('page', url, o, function (t) { return new DOMParser().parseFromString(String(t).slice(0, 1e6), 'text/html'); });
   }
   // ── LBW.data (v0.9.0): data the flow hands to the widgets, by name ──────────────────────────────────
-  // A flow Code block runs in the chat's own window (docs/13 §2c), late: after every message up to the next block that waits
-  // for the visitor (measured live, 13 Nov 2026). It calls LBW.data.put('tarifas', x),
+  // v0.9.5: the flow hands it as TEXT, a Message block `[[lbw:data key=tarifas]] @{tarifas}` (scanData, below), which the
+  // runtime reads and puts here. The v0.9.0 way, a Code block calling LBW.data.put('tarifas', String.raw`@{tarifas}`), is
+  // deprecated: Landbot pastes the field into the script, so the API's text can run as code; and it runs late. put(key, x):
   // x an object, a list or a JSON text (a webhook's answer kept in a field). A kit widget with "source": { "data": "tarifas" }
   // then draws from it. What is put here is untrusted data: a JSON copy is kept (500 KB at most), never code, in memory only.
   // put(key, x) → true | false (unreadable: logged, and widgets waiting on it draw their saved copy) · get(key) → the copy |
@@ -515,13 +517,16 @@
     var s, v, why = null;
     try {
       s = typeof x === 'string' ? x : JSON.stringify(x);
-      if (typeof s !== 'string') why = 'not JSON'; else if (s.length > 5e5) why = 'over 500 KB';
+      if (typeof s !== 'string') why = 'not JSON'; else if (s.length > 5e5) why = 'over 500 KB'; else if (!s.trim()) why = 'empty';
       else {
         try { v = JSON.parse(s); if (typeof v === 'string' && /^\s*[\[{]/.test(v)) v = JSON.parse(v); }   // a JSON text written as a JSON string
         catch (je) { v = pyRead(s); }   // v0.9.0: a webhook object as @{field} (a Python repr)
         if (!v || typeof v !== 'object') why = 'not an object or a list';
       }
     } catch (e) { why = 'not JSON or a Python repr'; }
+    return dataSet(key, why, v);
+  }
+  function dataSet(key, why, v) {
     dataBox[key] = why ? { bad: why } : { v: v }; if (why) drop('data: "' + key + '" is unreadable (' + why + ')');
     (dataWaits[key] || []).splice(0).forEach(function (f) { f(); });
     return !why;
@@ -534,6 +539,69 @@
       if (go()) return;
       var l = dataWaits[key] = dataWaits[key] || []; l.push(go);
       t = setTimeout(function () { var i = l.indexOf(go); if (i >= 0) l.splice(i, 1); rej(new Error('no data "' + key + '"')); }, ms == null ? 1500 : ms);
+    });
+  }
+  // ── v0.9.5 · data as TEXT in a flow Message block, never as code ──────────────────────────────────────
+  // A Message block whose text STARTS with the reserved marker:   [[lbw:data key=tours]] @{tours}
+  // Everything after the marker is the value (JSON or the Python repr Landbot writes for a Webhook object; a `]]` or a
+  // tag inside it is data too). The runtime reads it, calls LBW.data.put, and hides that bubble. Never run, never drawn.
+  // Replaces the v0.9.0 recipe `LBW.data.put('k', String.raw`@{k}`)` in a Code block, where a backtick or `${` in the API's
+  // text ran as code in the chat's window (a stored XSS on the client's site in a Livechat, security review finding 1).
+  // Read from the raw message first: the v4 widget's `new_message` event (LBW.landbot(this) hooks it) carries the text
+  // as the flow wrote it, before the chat's Markdown can eat a `_`, a `*` or a backslash, and it fires when the messages
+  // ARRIVE, before the chat shows them one by one (measured live, docs/21 §2). Only bot messages count: a visitor
+  // typing the marker is ignored. Without the event (a chat with history after a reload, a page with no LBW.landbot(this)),
+  // the bubble's text is read from the DOM, and refused when the Markdown visibly changed it (emphasis, code, a list).
+  var DATA_MARK = /^\s*\[\[\s*lbw:data\s+key=([A-Za-z0-9_]{1,40})\s*\]\]\s*([\s\S]*)$/i, MD = 'em,strong,b,i,del,s,code,pre,li,h1,h2,h3,h4,h5,h6,blockquote';
+  var dataEv = Object.create(null), dataDom = Object.create(null), dataTs = Object.create(null), hooked = [], evOn = false;
+  function dataIn(key, value, via) {
+    var ok = dataPut(key, value);
+    var e = { key: key, via: via, ok: ok, length: value.length, at: Date.now() }; log('__lbwDataIn', e); emit('data', e);
+    return ok;
+  }
+  function onMessage(m) {   // the v4 widget's new_message: one raw message, as the flow wrote it
+    if (!m || m.author_type !== 'bot' || typeof m.message !== 'string' || m.message.indexOf('lbw:data') < 0) return;
+    var x = DATA_MARK.exec(m.message); if (!x) return;
+    dataEv[x[1]] = (dataEv[x[1]] || 0) + 1;
+    // messages can reach the chat out of order (measured live: a run's 2nd data message came 1.3 s before its 1st; the chat
+    // still shows them in order). For one key the message the flow sent last wins, by Landbot's own timestamp
+    var ts = +m.timestamp; if (ts && dataTs[x[1]] > ts) { drop('data: "' + x[1] + '" older than the one already read (kept the newer)'); return; }
+    if (ts) dataTs[x[1]] = ts; dataIn(x[1], x[2], 'event');
+  }
+  function hookEvents(w) {
+    try {
+      if (!w || hooked.indexOf(w) >= 0 || !w.core || !w.core.events || typeof w.core.events.on !== 'function') return false;
+      w.core.events.on('new_message', function (m) { try { onMessage(m); } catch (e) {} });
+      hooked.push(w); evOn = true; return true;
+    } catch (e) { return false; }
+  }
+  // the v4 chat wraps each message in a box of its own inside a flex column with a 16 px gap: a hidden message left its
+  // empty box, and the gap around it (64 px of blank for 4 data messages, measured live). A box whose children are all
+  // hidden is hidden too, checked again on every pass (at first the box also holds the chat's "Thinking…")
+  function hideUp(h) {
+    for (var e = h, p = e.parentElement; p && p !== document.body && !p.matches('[data-lb-part="window"]'); e = p, p = p.parentElement) {
+      if (p.style.display === 'none') continue;
+      if (![].every.call(p.children, function (c) { return c.style.display === 'none'; })) return;
+      p.style.display = 'none'; p.setAttribute('data-lbw-data-box', '');
+    }
+  }
+  function scanData() {
+    if (!evOn) hookEvents(root._landbot);   // the share page's widget, when the Custom JS didn't hand it over
+    [].forEach.call(document.querySelectorAll('[data-lbw-data]'), hideUp);
+    [].forEach.call(document.querySelectorAll('[data-lb-part="message"] [data-lb-part="message-text"]:not([data-lbw])'), function (box) {
+      var t = box.textContent; if (t.indexOf('lbw:data') < 0) return;
+      var x = DATA_MARK.exec(t); if (!x) return;
+      var host = box.closest('[data-lb-part="message"]') || box, key = x[1];
+      box.setAttribute('data-lbw', 'data');   // never scanned for tags: a tag inside the data is data
+      if (host.getAttribute('data-lb-author') !== 'bot') return;   // a visitor who typed the marker: shown as written, never read
+      host.style.display = 'none'; host.setAttribute('aria-hidden', 'true'); host.setAttribute('data-lbw-data', key); hideUp(host);
+      var n = dataDom[key] = (dataDom[key] || 0) + 1;
+      function fromDom() {
+        if ((dataEv[key] || 0) >= n) return;   // the event already read this one, from the raw text
+        if (box.querySelector(MD)) { if (DATA_KEY.test(key)) dataSet(key, 'the chat\'s Markdown changed it: hand the widget over with LBW.landbot(this)'); log('__lbwDataIn', { key: key, via: 'dom', ok: false, at: Date.now() }); return; }
+        dataIn(key, box.textContent.replace(DATA_MARK, '$2'), 'dom');
+      }
+      if (evOn && (dataEv[key] || 0) < n) setTimeout(fromDom, 1500); else fromDom();   // the event may still be on its way
     });
   }
   function prevUser(hostMsg) {   // the visitor's last message before this bot message (to drop a chip that repeats it)
@@ -642,6 +710,7 @@
     if (wait && !telT) telT = setTimeout(function () { telT = 0; try { keepTel(); } catch (e) {} }, cfg.quietMs + 60);
   }
   function scan() {
+    try { scanData(); } catch (e) {}   // v0.9.5: data messages first, hidden and never read as tags
     try { scanTags(); } finally { try { keepTel(); } catch (e) {} }   // phones after the tags: never inside one
   }
   function scanTags() {
