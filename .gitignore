@@ -9,9 +9,11 @@
 !/scripts/
 !/test/
 !/dist/
+!/gallery/
 
 /kit/example-leadgen/
 /kit/tests/
 /kit/example/mock*
 node_modules/
 .DS_Store
+/gallery/index.html

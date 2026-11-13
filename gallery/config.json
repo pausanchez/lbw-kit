@@ -1,0 +1,207 @@
+{
+  "prefix": "gx",
+  "langs": ["es"],
+  "defaultLang": "es",
+  "timeZone": "Europe/Madrid",
+  "maxPerMessage": 3,
+  "reveal": false,
+  "links": ["https://rodanorte.example/", "tel:", "https://wa.me/", "mailto:"],
+
+  "actions": {
+    "call": { "tel": "600 000 000", "cc": "34", "label": "Llamar", "icon": "phone" },
+    "wa": { "wa": "34600000000", "label": "WhatsApp ↗", "text": "¡Hola! Tengo una pregunta", "icon": "chat" },
+    "mail": { "mail": "hola@rodanorte.example", "label": "Escribir", "icon": "mail" },
+    "book": { "reply": ["Pedir cita", "Quiero pedir cita para el taller", { "estado": "pedida" }], "icon": "calendar", "primary": true }
+  },
+  "replies": {
+    "rent": ["Reservar una bici", "Quiero reservar una bici"]
+  },
+
+  "widgets": {
+    "servicio": {
+      "type": "cards", "kicker": "Taller", "pointsCls": "is-check", "links": ["book"],
+      "status": { "param": "estado", "items": {
+        "pieza": { "text": "Esperando una pieza", "tone": "warn" },
+        "lista": { "text": "Lista para recoger", "tone": "ok", "links": [{ "reply": ["Voy a recogerla", "Voy a recoger la bici hoy", { "estado": "recogida" }], "icon": "check", "primary": true }] } } },
+      "items": {
+        "revision": { "title": "Revisión completa", "badge": { "text": "La más pedida", "tone": "info" }, "line": "Frenos, cambios, ruedas y transmisión, en 48 horas.", "pointsTitle": "Incluye", "points": ["Ajuste de frenos y cambios", "Centrado de ruedas", "Limpieza de transmisión"], "rows": [["Plazo", "2 días"], ["Desde", "45 €"]], "link": ["Ver el servicio ↗", "https://rodanorte.example/taller/"] },
+        "pinchazo": { "title": "Pinchazo", "status": { "text": "Se arregla en el momento", "tone": "ok" }, "rows": [["Plazo", "20 min"], ["Desde", "12 €"]] }
+      }
+    },
+
+    "tarifas": {
+      "type": "table", "kicker": "Tarifas de alquiler",
+      "items": {
+        "verano": { "title": "Alquiler · temporada alta", "cols": [["bici", "Bici"], ["dia", "Día €", "end"], ["semana", "Semana €", "end"]],
+          "rows": [["Urbana", "15", "75"], ["Montaña", "25", "120"], ["Eléctrica", "35", "170"], ["Gravel", "28", "135"]], "source": "Datos ficticios para la galería" }
+      },
+      "pick": { "say": "Quiero alquilar la {bici}", "fields": { "bici": "{bici}", "temporada": "{id}" }, "label": "Elegir" }
+    },
+
+    "plan": {
+      "type": "form", "kicker": "Planificador", "title": "¿Qué ruta buscas?", "cta": "Enviar mi plan",
+      "note": "Tres preguntas, sin datos personales.",
+      "steps": [
+        { "key": "nivel", "title": "Tu nivel", "ask": "¿Qué nivel tienes?", "items": [["suave", "Paseo tranquilo", "Llano, sin prisas, con paradas"], ["medio", "Algo de subida", "Hasta 40 km con algún repecho"], ["duro", "Quiero sudar", "Más de 60 km y puertos"]] },
+        { "key": "con", "title": "Con quién", "ask": "¿Con quién vas?", "items": [["solo", "Solo"], ["pareja", "En pareja"], ["familia", "En familia"]] },
+        { "key": "extra", "title": "Extras (elige varios)", "ask": "¿Algún extra?", "multi": true, "none": "nada", "items": [["casco", "Casco"], ["sillita", "Sillita infantil"], ["nada", "Nada"]] }
+      ],
+      "summary": "Mi plan: {nivel:label} · {con:label:lower} · Extras: {extra:labels:lower}",
+      "fields": { "gx_nivel": "{nivel}", "gx_con": "{con}", "gx_extra": "{extra}" }
+    },
+
+    "contacto": {
+      "type": "contact", "kicker": "Contacto", "title": "Roda Norte · tienda y taller", "big": "600 000 000",
+      "hours": { "week": { "1": [[570, 840], [990, 1200]], "2": [[570, 840], [990, 1200]], "3": [[570, 840], [990, 1200]], "4": [[570, 840], [990, 1200]], "5": [[570, 840], [990, 1200]], "6": [[600, 840]] } },
+      "rows": [["Dirección", "Calle Ejemplo 1, Bilbao"]],
+      "note": "Demo: no se envía nada.",
+      "buttons": [{ "use": "call", "primary": true }, "wa", "mail"]
+    },
+
+    "chips": {
+      "type": "chips",
+      "items": {
+        "tarifas": ["¿Cuánto cuesta?", "¿Cuánto cuesta alquilar una bici?"],
+        "taller": { "label": "Llevar mi bici al taller", "say": "Quiero llevar mi bici al taller", "desc": "Revisión, pinchazos y puesta a punto" },
+        "ruta": ["Recomiéndame una ruta", "Recomiéndame una ruta"],
+        "contacto": ["Hablar con alguien", "¿Cómo hablo con alguien?"]
+      },
+      "own": { "contacto": "contacto" }
+    },
+
+    "bicis": {
+      "type": "carousel", "kicker": "Flota de alquiler", "title": "Para este fin de semana", "reply": "rent",
+      "filter": { "by": "tipo", "param": "tipo" },
+      "titles": { "electrica": "Eléctricas disponibles" },
+      "links": [{ "link": "https://rodanorte.example/alquiler/", "label": "Toda la flota ↗" }],
+      "items": [
+        { "id": "urbana", "tipo": "paseo", "name": "Urbana", "sub": "Talla S–XL", "desc": "Con cesta y candado", "price": { "now": "15 €", "unit": "/día" }, "status": { "text": "6 libres", "tone": "ok" }, "reply": ["La urbana", "Quiero la urbana"] },
+        { "id": "ebike", "tipo": "electrica", "name": "Eléctrica", "sub": "80 km de batería", "badge": "Nueva", "price": { "now": "35 €", "unit": "/día", "list": "40 €" }, "save": "−12 %", "status": { "text": "Quedan 2", "tone": "warn" } },
+        { "id": "mtb", "tipo": "montana", "name": "Montaña", "sub": "Doble suspensión", "price": { "now": "25 €", "unit": "/día" }, "status": { "text": "Agotada", "tone": "danger" } }
+      ]
+    },
+
+    "alquiler": {
+      "type": "calc", "kicker": "Calculadora", "title": "Tu alquiler", "cta": "Enviar mi cálculo",
+      "state": { "dias": { "min": 1, "max": 14, "default": 3, "int": true }, "bici": { "values": ["urbana", "ebike"], "default": "urbana" } },
+      "controls": [
+        { "stepper": "dias", "label": "Días", "step": 1, "less": "Menos", "more": "Más" },
+        { "pick": "bici", "title": "Bici", "items": [["urbana", "Urbana"], ["ebike", "Eléctrica"]] }
+      ],
+      "tables": { "tarifa": { "urbana": 1500, "ebike": 3500 } },
+      "compute": { "base": "dias * tarifa[bici]", "dto": "round(base * 0.1 * min(1, floor(dias / 7)))", "total": "base - dto" },
+      "money": { "cur": "€", "after": true, "dec": ",", "th": "." },
+      "result": { "rows": [["{dias} días · {bici:label}", "{base:money}"], ["Descuento semana", "−{dto:money}", "dto"]], "total": ["Total", "{total:money}"] },
+      "send": { "text": "Mi alquiler: {bici:label:lower}, {dias} días, {total:money}", "fields": { "gx_dias": "{dias}", "gx_bici": "{bici}" } },
+      "notes": [["Tarifas ficticias para la galería.", "is-muted"]]
+    },
+
+    "confianza": {
+      "type": "stats", "reply": "rent", "links": ["call"],
+      "item": { "kicker": "Desde 2009", "title": "Roda Norte en cifras", "stats": [["12.000", "alquileres"], ["4,8", "en reseñas"], ["2 años", "de garantía"]], "source": "Datos ficticios, nov 2026" }
+    },
+
+    "equipo": {
+      "type": "people", "kicker": "Guías", "title": "Quién te acompaña", "note": "De la página pública del equipo.",
+      "filter": { "param": "who" },
+      "reply": ["Ruta con {name}", "Quiero una ruta con {name}", { "guia": "{id}" }],
+      "items": {
+        "ana": { "name": "Ana Ruiz", "role": "Guía de montaña", "note": "Lun–Jue" },
+        "ben": { "name": "Ben Cole", "role": "Mecánico y guía", "note": "Fines de semana" }
+      }
+    },
+
+    "permiso": {
+      "type": "consent", "icon": "shield", "title": "¿Te avisamos por SMS?", "text": "Solo cuando tu bici esté lista.",
+      "yes": ["Sí", "Sí, avisadme por SMS", { "gx_sms": "si" }],
+      "no": ["No", "No, gracias", { "gx_sms": "no" }],
+      "link": ["Privacidad ↗", "https://rodanorte.example/privacidad/"]
+    },
+
+    "cita": {
+      "type": "slots", "kicker": "Taller", "title": "Elige una hora", "cta": "Reservar", "note": "Demo: no se reserva nada.",
+      "weekly": { "ahead": 3, "week": { "1": [["09:00", "10:00"], ["10:00", "11:00", "busy"], ["17:00", "18:00"]], "3": [["10:00", "11:00"], ["12:00", "13:00"]], "5": [["09:00", "10:00"], ["11:00", "12:00"]] } },
+      "say": { "text": "Mi cita: {day:date}, {from:time}–{to:time}", "fields": { "gx_dia": "{day:dmy}", "gx_hora": "{from:time}" } }
+    },
+
+    "hecho": {
+      "type": "confirm", "form": "cita", "status": "Cita pedida", "title": "Nos vemos el {day:date}",
+      "rows": [["Hora", "{from:time}–{to:time}"]],
+      "steps": ["Te confirmamos por teléfono", "Traes la bici al taller"],
+      "note": "Demo: no se reserva nada.", "actions": ["call"]
+    },
+
+    "presu": {
+      "type": "review", "kicker": "Presupuesto", "title": "Revísalo", "cta": "Confirmar", "discard": ["Descartar", "Descarto el presupuesto"], "note": "Precios ficticios.",
+      "state": { "ruedas": { "values": ["no", "si"], "default": "no" } },
+      "tables": { "extra": { "no": 0, "si": 3000 } },
+      "compute": { "total": "4500 + extra[ruedas]" },
+      "money": { "cur": "€", "after": true, "cents": false, "th": "." },
+      "lines": [{ "label": "Revisión", "value": "45 €" }, { "label": "Ruedas nuevas", "select": "ruedas", "items": [["no", "No"], ["si", "Sí, +30 €"]] }],
+      "total": { "label": "Total", "value": "{total:money}" },
+      "send": { "text": "Confirmo el presupuesto: {total:money}", "fields": { "gx_presu": "{total}" } }
+    },
+
+    "vs": {
+      "type": "compare", "kicker": "Comparar", "titles": { "2": "Dos bicis frente a frente", "3": "Tres bicis frente a frente" },
+      "rows": [["peso", "Peso"], ["autonomia", "Autonomía"], ["cesta", "Cesta"], ["precio", "Día", "is-strong"]],
+      "items": {
+        "urbana": { "name": "Urbana", "values": { "peso": "16 kg", "cesta": "Sí", "precio": "15 €" }, "reply": ["La urbana", "Quiero la urbana"] },
+        "ebike": { "name": "Eléctrica", "values": { "peso": "23 kg", "autonomia": "80 km", "cesta": "Sí", "precio": "35 €" }, "reply": ["La eléctrica", "Quiero la eléctrica"] },
+        "mtb": { "name": "Montaña", "values": { "peso": "14 kg", "cesta": "No", "precio": "25 €" } }
+      }
+    },
+
+    "temporada": {
+      "type": "season", "kicker": "Rutas guiadas", "ranges": [["1/3/2026", "31/10/2026"], ["1/3/2027", "31/10/2027"]], "reply": "rent"
+    },
+
+    "salidas": {
+      "type": "chart", "kicker": "Datos de ejemplo", "title": "Alquileres por mes", "sub": "Alquileres", "note": "Cifras ficticias para la galería.",
+      "kind": "bar", "stack": true,
+      "x": ["Jun", "Jul", "Ago", "Sep", "Oct"],
+      "series": [{ "label": "Urbana", "values": [120, 180, 210, 140, 80] }, { "label": "Eléctrica", "values": [60, 110, 150, 90, 40] }, { "label": "Montaña", "values": [40, 50, 45, 60, 55] }],
+      "y": { "ticks": 4 },
+      "summary": "Agosto es el mes con más alquileres"
+    },
+
+    "nps": {
+      "type": "rating", "kind": "scale", "title": "¿Nos recomendarías a un amigo?", "labels": ["Nada probable", "Muy probable"],
+      "bands": [[6, "detractor"], [8, "pasivo"], [10, "promotor"]],
+      "send": { "text": "Mi nota: {value} de 10", "fields": { "gx_nps": "{value}", "gx_nps_grupo": "{band}" } }
+    },
+
+    "estrellas": {
+      "type": "rating", "kind": "stars", "title": "¿Qué tal el servicio?",
+      "send": { "text": "Le doy {value} de {max} estrellas", "fields": { "gx_estrellas": "{value}" } }
+    },
+
+    "util": {
+      "type": "rating", "kind": "thumbs", "title": "¿Te ha servido?",
+      "send": { "text": "Valoro la respuesta: {label}", "fields": { "gx_util": "{value}" } }
+    },
+
+    "dispo": {
+      "type": "cards", "kicker": "Rutas guiadas · disponibilidad",
+      "money": { "cur": "€", "after": true, "dec": ",", "th": "." },
+      "params": {
+        "fecha": { "type": "day", "required": true, "min": "today" },
+        "plazas": { "type": "int", "min": 0, "max": 99, "required": true },
+        "precio": { "type": "money", "max": 100000, "required": true }
+      },
+      "items": {
+        "ria": { "title": "Ruta de la ría · {fecha:date}", "line": "Tres horas en bici con guía, con parada para comer.", "rows": [["Plazas libres", "{plazas}"], ["Precio por persona", "{precio:money}"]], "link": ["Ver la ruta ↗", "https://rodanorte.example/rutas/ria/"] },
+        "monte": { "title": "Subida al monte · {fecha:date}", "line": "Media jornada, para quien ya sube cuestas.", "rows": [["Plazas libres", "{plazas}"], ["Precio por persona", "{precio:money}"]] }
+      },
+      "reply": ["Reservar plaza", "Quiero una plaza en la ruta del {fecha:dmy}", { "gx_ruta": "{id}", "gx_fecha": "{fecha:dmy}" }]
+    },
+
+    "hoy": {
+      "type": "table", "kicker": "Salidas guiadas", "same": false,
+      "source": { "data": "salidas", "path": "salidas", "map": { "hora": "{hora}", "ruta": "{ruta}", "plazas": "{plazas}" } },
+      "item": { "title": "Hoy salen", "cols": [["hora", "Hora"], ["ruta", "Ruta"], ["plazas", "Plazas", "end"]],
+        "rows": [["10:00", "Ría de Bilbao", "—"], ["12:30", "Mirador d'Artxanda", "—"], ["17:00", "Puerto Viejo", "—"]] },
+      "pick": { "say": "Quiero la salida de las {hora}", "fields": { "gx_salida": "{hora}" }, "label": "Elegir" }
+    }
+  }
+}
