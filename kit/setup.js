@@ -270,7 +270,11 @@
       // characters; a row with a bad or repeated id, or with no name, is skipped; a URL outside "links" draws no link or photo.
       // A map never fills "reply": a cell must not become a sentence the visitor sends to the agent.
       // v0.9.0 · "data": "key" reads LBW.data (a flow's Code block put it there) instead of a URL: no fetch, a short wait
-      var load = src && function () { if (src.data != null) return LBW.data.wait(src.data, src.wait); var o = { maxAge: src.maxAge }; return src.csv ? LBW.csv(src.csv, o) : LBW.json(src.json, o); };
+      // v0.9.2 · "upgrade" (as on cards, v0.9.1): a Code block runs late, so the saved slides drawn after "wait" are replaced by
+      // the live ones when the data lands within "upgrade" ms (20000 by default, 0 = never), unless the visitor already used the
+      // carousel (a reply pressed; opening a photo doesn't count). With no saved items the skeleton waits that long instead.
+      var has = isArr(w.items) && w.items.length > 0, up = src && src.data != null ? (src.upgrade == null ? 20000 : src.upgrade) : 0;
+      var load = src && function () { if (src.data != null) return LBW.data.wait(src.data, has ? src.wait : Math.max(src.wait == null ? 1500 : src.wait, up)); var o = { maxAge: src.maxAge }; return src.csv ? LBW.csv(src.csv, o) : LBW.json(src.json, o); };
       var memo = null;   // the rows of the last answer read: one pass, and one log line per skipped row, per fetch
       function live(data) {   // throws when the answer isn't the list (a sign-in page, an error object): the saved items are drawn then
         if (memo && memo.data === data) return memo.rows;
@@ -295,7 +299,13 @@
               reply: reply(cfg, w.reply), links: actions(cfg, w.links) };
           };
           if (!src) return mk(w.items);
-          return { later: load().then(live), then: mk, fallback: w.items && w.items.length ? function () { return mk(w.items); } : null };
+          return { later: load().then(live), then: mk, fallback: has ? function () { return mk(w.items); } : null,
+            // after the fallback: the selection from the late data, or null to keep the saved slides (kit.js swaps them in)
+            upgrade: up > 0 && has ? function (o) { return LBW.data.wait(src.data, up).then(function (d) {
+              if (!o.isConnected) return null;
+              if (o.querySelector('.is-sent, .is-done, [aria-pressed="true"]')) { LBW.drop(name + ': data "' + src.data + '" came late; the saved copy stays (already used)'); return null; }
+              try { return mk(live(d)); } catch (e) { return null; }
+            }); } : null };
         },
         slide: function (r) { return r; }
       }));

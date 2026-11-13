@@ -563,7 +563,12 @@
       if (sel.later) {
         o = U.loading(lang, 'kit-carousel ' + cls);
         return LBW.later(o, sel.later, function (d) { return fill(o, sel.then(d)); },
-          sel.fallback ? function () { if (!fill(o, sel.fallback())) throw new Error('nothing to show'); } : null);
+          sel.fallback ? function () { if (!fill(o, sel.fallback())) throw new Error('nothing to show');
+            // v0.9.2 · upgrade(o) → a promise of the selection from data that came late (null: keep these slides). Drawn on a
+            // fresh card and moved in: the strip starts again at the first slide, the tag's attributes stay.
+            if (sel.upgrade) sel.upgrade(o).then(function (s2) { var n = U.card(lang, 'kit-carousel ' + cls); if (!s2 || !fill(n, s2)) return;
+              while (o.firstChild) o.removeChild(o.firstChild); o.className = n.className; while (n.firstChild) o.appendChild(n.firstChild); o.box = n.box;
+              o.setAttribute('data-lbw-upgraded', '1'); }, function () {}); } : null);
       }
       o = U.card(lang, 'kit-carousel ' + cls);
       return fill(o, sel) ? o : null;
