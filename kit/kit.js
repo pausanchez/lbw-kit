@@ -1,4 +1,4 @@
-/* AI Widgets kit v0.9.2 · on lbw.js v0.9.2 · the widgets every url-to-demo build rewrote, written once with options. Load it after lbw.js and before the
+/* AI Widgets kit v0.9.3 · on lbw.js v0.9.3 · the widgets every url-to-demo build rewrote, written once with options. Load it after lbw.js and before the
    client's widgets.js: custom_js = <script>lbw.js</script><script>kit.js</script><script>widgets.js</script>.
 
    Each maker registers a widget under the name you give it, from data you pass. Nothing here holds client facts.
@@ -567,8 +567,9 @@
             // v0.9.2 · upgrade(o) → a promise of the selection from data that came late (null: keep these slides). Drawn on a
             // fresh card and moved in: the strip starts again at the first slide, the tag's attributes stay.
             if (sel.upgrade) sel.upgrade(o).then(function (s2) { var n = U.card(lang, 'kit-carousel ' + cls); if (!s2 || !fill(n, s2)) return;
+              var q = wasQuieted(o);   // v0.9.3: the conversation moved on: the live slides come in quiet too
               while (o.firstChild) o.removeChild(o.firstChild); o.className = n.className; while (n.firstChild) o.appendChild(n.firstChild); o.box = n.box;
-              o.setAttribute('data-lbw-upgraded', '1'); }, function () {}); } : null);
+              if (q) quietAgain(o); o.setAttribute('data-lbw-upgraded', '1'); }, function () {}); } : null);
       }
       o = U.card(lang, 'kit-carousel ' + cls);
       return fill(o, sel) ? o : null;
@@ -841,6 +842,12 @@
       return o;
     });
   }
+  // v0.9.3 · late data and the visitor's own messages. The runtime quiets every one-shot group above the visitor's last
+  // message (is-stale + is-done + is-spent), so "used" is only what the visitor pressed: a sent button or a ticked toggle.
+  // Measured live: a message typed or sent before the data landed kept untouched cards on their saved copy.
+  function usedByVisitor(o) { return !!o.querySelector('.is-sent, [aria-pressed="true"]'); }
+  function wasQuieted(o) { return !!o.querySelector('.lbw-once.is-stale') || o.classList.contains('is-spent'); }
+  function quietAgain(o) { [].forEach.call(o.querySelectorAll('.lbw-once'), function (g) { g.classList.add('is-stale'); U.done(g); }); o.classList.add('is-spent'); }
   // ── chart: a card around LBW.kit.h.chart ────────────────────────────────────────────────────────
   // cfg = { cls, lang, kicker, title, sub, data(p, ctx) → chart spec | null, note: text | fn(p, ctx, spec), links: fn(p, ctx) → [el…] }
   // Money or savings charts are promises: compute them only from the client's own published rule, and say so in `note`.
@@ -1009,7 +1016,7 @@
     });
   }
 
-  LBW.kit = { version: '0.9.2', dev: DEV, describe: describe, L: L, last: last, cards: cards, table: table, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent, compare: compare, season: season, rating: rating,
-    h: { note: note, list: list, label: label, dup: dup, choice: choice, multiChoice: multiChoice, copyBox: copyBox, status: status, wa: wa, fill: fill, money: money, total: total, lightbox: lightbox, chart: chart, statusHead: statusHead,
+  LBW.kit = { version: '0.9.3', dev: DEV, describe: describe, L: L, last: last, cards: cards, table: table, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent, compare: compare, season: season, rating: rating,
+    h: { usedByVisitor: usedByVisitor, wasQuieted: wasQuieted, quietAgain: quietAgain, note: note, list: list, label: label, dup: dup, choice: choice, multiChoice: multiChoice, copyBox: copyBox, status: status, wa: wa, fill: fill, money: money, total: total, lightbox: lightbox, chart: chart, statusHead: statusHead,
       icon: icon, withIcon: withIcon, icons: Object.keys(ICONS), badge: badge, tones: TONES.slice() } };
 })(typeof window !== 'undefined' ? window : this);

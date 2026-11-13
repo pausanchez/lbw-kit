@@ -236,3 +236,34 @@ test('data (v0.9.2): a carousel\'s saved slides are replaced by data that lands 
   assert.match(bad((x) => { x.source.upgrade = 90000; }), /source\.upgrade is how long/);
   assert.match(bad((x) => { delete x.source.data; x.source.csv = 'https://tours.example/r.csv'; x.source.upgrade = 5000; }), /source\.upgrade is for a carousel read from "data"/);
 });
+
+test('data (v0.9.3): a message the visitor sent before the data landed does not count as "used"; the live copy comes in quiet', async () => {
+  // measured live on v0.9.2: the visitor's message went out 2.6 s before the put, and an untouched card and carousel kept
+  // their saved copy, because the runtime quiets every one-shot group above the visitor's last message (is-done)
+  const cfg = CFG(); cfg.widgets.tour.source.wait = 30; cfg.widgets.tour.source.upgrade = 400;
+  cfg.widgets.tour.reply = ['Reservar', 'Quiero reservar el kayak'];
+  const c = chat(cfg), m = draw(c, '[[p:tour id=kayak]]'); await wait(60);
+  assert.equal(title(m), 'Kayak (copia guardada)');
+  c.user('¿Y mañana?'); c.LBW.scan(); await wait(10);
+  assert.ok(m.widgets()[0].querySelector('.lbw-once.is-stale'), 'the runtime quieted the saved copy');
+  c.put('tours', TOURS); await wait(30);
+  const w = m.widgets()[0];
+  assert.equal(title(m), 'Kayak al amanecer'); assert.equal(w.getAttribute('data-lbw-upgraded'), '1');
+  assert.ok(!c.dropped().some((x) => /already used/.test(x)));
+  // the conversation moved on: the live card's buttons are quiet too, as the saved ones were
+  assert.ok([...w.querySelectorAll('.lbw-once')].every((g) => g.classList.contains('is-stale') && g.classList.contains('is-done')));
+  assert.ok([...w.querySelectorAll('.lbw-once button')].every((b) => b.disabled));
+});
+
+test('data (v0.9.3): the same for a carousel: the visitor wrote, nobody pressed a slide → the live slides, quiet', async () => {
+  const cfg = CFG(); cfg.widgets.rutas.source.wait = 30; cfg.widgets.rutas.source.upgrade = 400;
+  cfg.widgets.rutas.items[0].reply = ['La quiero', 'Quiero la ruta guardada']; cfg.widgets.rutas.reply = ['Ver todas', 'Quiero ver todas las rutas'];
+  const names = (m) => [...m.querySelectorAll('.lbw-name')].map((x) => x.textContent);
+  const c = chat(cfg), m = draw(c, '[[p:rutas]]'); await wait(60);
+  c.user('Hola'); c.LBW.scan(); await wait(10);
+  c.put('rutas', [{ id: 'r1', name: 'Ruta del faro' }, { id: 'r2', name: 'Ruta del puerto' }]); await wait(30);
+  const w = m.widgets()[0];
+  assert.deepEqual(names(m), ['Ruta del faro', 'Ruta del puerto']); assert.equal(w.getAttribute('data-lbw-upgraded'), '1');
+  assert.ok(!c.dropped().some((x) => /already used/.test(x)));
+  assert.ok([...w.querySelectorAll('.lbw-once button')].every((b) => b.disabled));
+});

@@ -303,7 +303,7 @@
             // after the fallback: the selection from the late data, or null to keep the saved slides (kit.js swaps them in)
             upgrade: up > 0 && has ? function (o) { return LBW.data.wait(src.data, up).then(function (d) {
               if (!o.isConnected) return null;
-              if (o.querySelector('.is-sent, .is-done, [aria-pressed="true"]')) { LBW.drop(name + ': data "' + src.data + '" came late; the saved copy stays (already used)'); return null; }
+              if (H.usedByVisitor(o)) { LBW.drop(name + ': data "' + src.data + '" came late; the saved copy stays (already used)'); return null; }
               try { return mk(live(d)); } catch (e) { return null; }
             }); } : null };
         },
@@ -674,10 +674,11 @@
       if (!(up > 0)) return;
       LBW.data.wait(key, up).then(function (d) {
         if (!o.isConnected) return;
-        if (o.querySelector('.is-sent, .is-done, [aria-pressed="true"]')) { LBW.drop(name + ': data "' + key + '" came late; the saved copy stays (already used)'); return; }
+        if (H.usedByVisitor(o)) { LBW.drop(name + ': data "' + key + '" came late; the saved copy stays (already used)'); return; }
         var lw; try { lw = liveW(c, name, w, lang, key, d); } catch (e) { return; }
         var el = lw && build(c, name, lw, lang)(p, ctx); if (!el) return;
-        transplant(o, el); o.setAttribute('data-lbw-upgraded', '1');
+        var q = H.wasQuieted(o);   // v0.9.3: the visitor wrote since: the live card comes in quiet, as the saved one was
+        transplant(o, el); if (q) H.quietAgain(o); o.setAttribute('data-lbw-upgraded', '1');
       }, function () {});
     };
     return LBW.later(o, LBW.data.wait(key, has ? w.source.wait : Math.max(w.source.wait == null ? 1500 : w.source.wait, up)).then(function (d) { return liveW(c, name, w, lang, key, d); }),
