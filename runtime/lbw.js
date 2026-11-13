@@ -75,21 +75,47 @@
   }
 
   // ── talking back: post as the visitor, optionally writing fields ───────────────────────────────
-  // Inside the chat iframe (Popup, Livechat, Container) window.Landbot is a bridge whose exec() reaches the widget;
-  // on the share page (Landbot.Native) window._landbot is the widget. Fields are QUEUED and travel as custom_data
-  // with the next message (seen on the wire): so a field is always written together with a message.
-  function store(fields) {
-    log('__lbwStored', fields);
+  // v4 widget API first (dev.landbot.io/sdks/widgets/api/widget#sendmessage): the bot's Custom JS hands the runtime the
+  // widget instance, `LBW.landbot(this)` at its TOP level (inside a callback `this` is something else). Its sendMessage
+  // returns a Promise and takes the fields as custom_data in the same message. Then window._landbot (the share page), then
+  // the legacy bridge inside the chat iframe (Landbot.exec, logs a deprecation warning: fields queued with
+  // 'landbot-custom-data', then the message), then typing into the text box. Each message goes out once: a way is left
+  // for the next only when it throws or its Promise rejects. NOT YET MEASURED LIVE: that `this` is the widget on the share
+  // page and in the Livechat iframe, and that custom_data arrives through Widget.sendMessage.
+  var bound = null;
+  function bind(w) {
+    if (!w || w === root) return false;   // a plain <script> (the mock): `this` is the window, nothing to bind
+    if (typeof w.sendMessage !== 'function') { drop('LBW.landbot: not a widget (no sendMessage)'); return false; }
+    bound = w; return true;
+  }
+  function setData(fields) {   // fields with no message: queued, saved with the next one
+    var lb = root._landbot;
+    try { if (bound && typeof bound.setCustomData === 'function') { bound.setCustomData(fields); return true; } } catch (e) {}
     try { if (root.Landbot && typeof root.Landbot.exec === 'function') { root.Landbot.exec('landbot-custom-data', fields); return true; } } catch (e) {}
-    try { if (root._landbot && typeof root._landbot.setCustomData === 'function') { root._landbot.setCustomData(fields); return true; } } catch (e) {}
+    try { if (lb && typeof lb.setCustomData === 'function') { lb.setCustomData(fields); return true; } } catch (e) {}
     drop('no way to store fields'); return false;
   }
+  function store(fields) { log('__lbwStored', fields); return setData(fields); }
   function post(text, fields) {
-    if (fields) store(fields);
+    if (fields) log('__lbwStored', fields);
     log('__lbwSent', text); emit('say', { text: text, fields: fields || null });
-    var msg = { type: 'text', message: text };
-    try { if (root.Landbot && typeof root.Landbot.exec === 'function') { root.Landbot.exec('landbot-msg-send', msg); return; } } catch (e) {}
-    try { if (root._landbot && typeof root._landbot.sendMessage === 'function') { root._landbot.sendMessage(msg); return; } } catch (e) {}
+    var lb = root._landbot, ways = [], msg = { type: 'text', message: text };
+    if (fields) msg.custom_data = fields;
+    if (bound) ways.push(['widget', bound]);
+    if (lb && lb !== bound && typeof lb.sendMessage === 'function') ways.push(['_landbot', lb]);
+    function next(i) {
+      if (i >= ways.length) return legacy(text, fields);
+      var r;
+      try { r = ways[i][1].sendMessage(msg); } catch (e) { drop('send failed (' + ways[i][0] + '): ' + text + ' (' + e.message + ')'); return next(i + 1); }
+      if (r && typeof r.then === 'function') r.then(null, function (e) { drop('send failed (' + ways[i][0] + '): ' + text + ' (' + (e && e.message || e) + ')'); next(i + 1); });
+    }
+    next(0);
+  }
+  function legacy(text, fields) {
+    var L = root.Landbot;
+    if (L && typeof L.exec === 'function') {
+      try { if (fields) L.exec('landbot-custom-data', fields); L.exec('landbot-msg-send', { type: 'text', message: text }); return; } catch (e) {}
+    } else if (fields) setData(fields);
     var box = document.querySelector('[data-lb-part="input-field"] textarea, textarea');   // last resort: type it
     if (!box) { drop('no way to send: ' + text); return; }
     Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set.call(box, text);
@@ -597,6 +623,8 @@
     version: '0.8.1.14',
     // LBW.init({ prefix, langs, defaultLang, labels: {en:{…}}, links: ['https://shop.example/', 'tel:', 'mailto:', 'https://calendar.google.com/'], maxPerMessage, quietMs, timeZone: 'Europe/Madrid' })
     init: function (o) { for (var k in o) cfg[k] = o[k]; start(); return root.LBW; },
+    // LBW.landbot(this) at the top level of the bot's Custom JS: messages go through the v4 widget's sendMessage. true if taken
+    landbot: bind,
     // LBW.on('render', function (e) { e.widget, e.tag, e.lang, e.el, e.message }) · 'say' → { text, fields } · 'drop' → the reason
     on: function (name, fn) { if (typeof fn === 'function') (subs[name] = subs[name] || []).push(fn); return root.LBW; },
     // LBW.widget('card', function (p, ctx) { …return an element or null… }, { last: true })

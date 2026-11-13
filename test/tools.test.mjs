@@ -16,7 +16,7 @@ test('bot-code: by URL it writes the pinned load line, the setup call and the fa
   const out = tmp(), r = run('kit/example/config.json', '--out', out, '--theme', 'kit/example/theme.css');
   assert.equal(r.status, 0, r.stderr);
   const js = fs.readFileSync(path.join(out, 'custom_js.html'), 'utf8'), css = fs.readFileSync(path.join(out, 'custom_css.css'), 'utf8');
-  assert.match(js, new RegExp(`^<script src="https://cdn\\.jsdelivr\\.net/gh/[^"]+@v${pkg.version.replace(/\./g, '\\.')}/dist/lbw-kit\\.min\\.js" integrity="sha384-[A-Za-z0-9+/=]+" crossorigin="anonymous"></script><script>LBW\\.kit\\.setup\\(\\{`));
+  assert.match(js, new RegExp(`^<script src="https://cdn\\.jsdelivr\\.net/gh/[^"]+@v${pkg.version.replace(/\./g, '\\.')}/dist/lbw-kit\\.min\\.js" integrity="sha384-[A-Za-z0-9+/=]+" crossorigin="anonymous"></script><script>LBW\\.landbot&&LBW\\.landbot\\(this\\);LBW\\.kit\\.setup\\(\\{`));
   assert.equal(scriptsOf(js).length, 3);
   assert.match(css, /^@import url\("https:\/\/cdn\.jsdelivr\.net\/[^"]+lbw-kit\.min\.css"\);\n/);
   assert.match(css, /--lbw-accent/);
@@ -34,6 +34,17 @@ test('bot-code: --inline gives code that runs with nothing loaded from outside',
   const m = c.bot('Text [[lg:trust]] [[lg:hello]]'); c.w.LBW.scan();
   assert.deepEqual(m.widgets().map((w) => w.getAttribute('data-widget')), ['trust', 'hello']);
   assert.doesNotMatch(fs.readFileSync(path.join(out, 'custom_css.css'), 'utf8'), /@import/);
+});
+
+test('bot-code: the setup script hands its top-level `this` (the v4 widget) to the runtime', async () => {
+  const out = tmp(), r = run('kit/example-lead/config.json', '--out', out, '--inline');
+  assert.equal(r.status, 0, r.stderr);
+  const c = boot({ lbw: false }), got = [], widget = { sendMessage: (m) => { got.push(JSON.parse(JSON.stringify(m))); return Promise.resolve(); } };
+  for (const s of scriptsOf(fs.readFileSync(path.join(out, 'custom_js.html'), 'utf8'))) c.w.Function(s).call(widget);   // Landbot runs the Custom JS with `this` = the widget
+  c.w.LBW.init({ quietMs: 10 }); c.w.LBW.say('Hi', { a: '1' });
+  await new Promise((ok) => setTimeout(ok, 400));
+  assert.deepEqual(got, [{ type: 'text', message: 'Hi', custom_data: { a: '1' } }]);
+  assert.deepEqual(c.sent, [], 'the legacy bridge is not used');
 });
 
 test('bot-code: a config with a problem writes nothing', () => {
@@ -91,7 +102,7 @@ test('bot-code 0.8.1.9: a literal no-break space is written as \\xA0 (kept by th
   const js = fs.readFileSync(path.join(out, 'custom_js.html'), 'utf8');
   assert.ok(!js.includes(' '), 'no literal U+00A0 left');
   assert.match(js, /"Hasta 21\\xA0m² más"/);
-  const setup = scriptsOf(js)[1].replace(/^LBW\.kit\.setup\(/, '').replace(/\);?\s*$/, '');
+  const setup = scriptsOf(js)[1].replace(/^LBW\.landbot&&LBW\.landbot\(this\);LBW\.kit\.setup\(/, '').replace(/\);?\s*$/, '');
   assert.equal(new Function('return ' + setup)().widgets.service.items.extension.line, 'Hasta 21 m² más');
 });
 
