@@ -290,8 +290,9 @@
       U.head(o.box, t.kicker || val(cfg.kicker, id, t) || '', t.title);
       var wrap = el('div', 'kit-tbl-wrap'), tb = el('table', 'kit-tbl' + (cfg.pick ? ' is-pick' : '')), head = el('thead'), hr = el('tr'), body = el('tbody');
       // a keyboard stop and a region only when it scrolls (critique 0.8.1.11: an empty tab stop otherwise)
-      var scrolls = function () { var on = wrap.scrollWidth > wrap.clientWidth + 1; if (on) { wrap.setAttribute('tabindex', '0'); wrap.setAttribute('role', 'region'); wrap.setAttribute('aria-label', t.title || ''); } else { wrap.removeAttribute('tabindex'); wrap.removeAttribute('role'); wrap.removeAttribute('aria-label'); } };
-      if (root.ResizeObserver) new root.ResizeObserver(scrolls).observe(wrap); else setTimeout(scrolls, 0);
+      // v0.9.5 · split in a read and a write, so that one ResizeObserver for every table reads them all before it writes any
+      var scrollsRead = function () { var on = wrap.scrollWidth > wrap.clientWidth + 1; return function () { if (on) { wrap.setAttribute('tabindex', '0'); wrap.setAttribute('role', 'region'); wrap.setAttribute('aria-label', t.title || ''); } else { wrap.removeAttribute('tabindex'); wrap.removeAttribute('role'); wrap.removeAttribute('aria-label'); } }; };
+      if (root.ResizeObserver) sized(wrap, scrollsRead); else setTimeout(function () { scrollsRead()(); }, 0);
       var cap = el('caption', 'kit-sr', t.title || ''); tb.appendChild(cap);
       // v0.8.1.13 · a column with no value in any row is left out (Callan: the online timetable's empty "Rate"); pick still reads it
       var shown = cols.map(function (c, j) { return rows.some(function (r) { return r[j] != null && String(r[j]).trim() !== ''; }); });
@@ -521,6 +522,20 @@
     if (acts.length) U.row(b, acts);
     return sl;
   }
+  // ── layout reads, batched (v0.9.5) ──
+  // afterLayout(read): read() runs after the next frame has been laid out (a requestAnimationFrame, then a task), with every
+  // other read queued for that frame, and only then the writes they answer (a function, or nothing). A read inside the
+  // requestAnimationFrame itself forced a synchronous layout of the whole chat (the review's top cost on the live page).
+  var readQ = [], readT = false;
+  function flushReads() { readT = false; var q = readQ; readQ = []; q.map(function (r) { try { return r(); } catch (e) { return null; } }).forEach(function (w) { if (typeof w === 'function') w(); }); }
+  function afterLayout(read) { readQ.push(read); if (readT) return; readT = true; requestAnimationFrame(function () { setTimeout(flushReads, 0); }); }
+  // sized(el, read): one ResizeObserver for every element; a callback reads every element that changed, then writes
+  var sizeRO = null, sizeFns = typeof WeakMap === 'function' ? new WeakMap() : null;
+  function sized(n, read) {
+    if (!sizeFns) { new root.ResizeObserver(function () { read()(); }).observe(n); return; }
+    if (!sizeRO) sizeRO = new root.ResizeObserver(function (es) { es.map(function (e) { var r = sizeFns.get(e.target); return r ? r() : null; }).forEach(function (w) { if (typeof w === 'function') w(); }); });
+    sizeFns.set(n, read); sizeRO.observe(n);
+  }
   function carousel(name, cfg) {
     var cls = cfg.cls || ('kit-' + name);
     checkCfg('carousel', name, cfg, ['select', 'slide']); register('carousel', name, 'select()', null);
@@ -542,17 +557,21 @@
         var total = st.children.length, hd = o.box.querySelector('.lbw-head');
         if (total > 1 && hd) {
           var cnt = el('span', 'kit-count', ''); cnt.setAttribute('aria-hidden', 'true'); hd.appendChild(cnt);
-          var count = function () {   // the slides fully in view: "1 / 6" on a phone, "1–2 / 4" on a wide column; nothing when all fit
-            if (st.scrollWidth <= st.clientWidth + 2) { cnt.textContent = ''; return; }
+          // the slides fully in view: "1 / 6" on a phone, "1–2 / 4" on a wide column; nothing when all fit. v0.9.5: it only
+          // reads, and answers the write to make, so the first count waits for the frame's own layout (afterLayout) instead of
+          // forcing one of the whole chat, and several carousels read together before any of them writes
+          var count = function () {
+            if (st.scrollWidth <= st.clientWidth + 2) return function () { cnt.textContent = ''; };
             var b = st.getBoundingClientRect(), a = -1, z = -1, best = 0, bi = 0;
             [].forEach.call(st.children, function (c, i) { var r = c.getBoundingClientRect(), ov = Math.min(r.right, b.right) - Math.max(r.left, b.left);
               if (ov > best) { best = ov; bi = i; } if (r.left >= b.left - 2 && r.right <= b.right + 2) { if (a < 0) a = i; z = i; } });
             if (a < 0) a = z = bi;
-            cnt.textContent = (a === z ? (a + 1) : (a + 1) + '–' + (z + 1)) + ' / ' + total;
+            var txt = (a === z ? (a + 1) : (a + 1) + '–' + (z + 1)) + ' / ' + total;
+            return function () { cnt.textContent = txt; };
           };
           cnt.textContent = '1 / ' + total;
-          if (typeof requestAnimationFrame === 'function') requestAnimationFrame(count);
-          var tick = null; st.addEventListener('scroll', function () { if (tick) return; tick = setTimeout(function () { tick = null; count(); }, 80); }, { passive: true });
+          if (typeof requestAnimationFrame === 'function') afterLayout(count);
+          var tick = null; st.addEventListener('scroll', function () { if (tick) return; tick = setTimeout(function () { tick = null; count()(); }, 80); }, { passive: true });
         }
         var acts = []; if (sel.reply) { var g = U.once('kit-actions'); g.appendChild(U.reply(sel.reply[0], sel.reply[1], { primary: true, fields: sel.reply[2] })); acts.push(g); }
         acts = acts.concat(buttons(sel.links)); if (acts.length) U.row(o, acts);

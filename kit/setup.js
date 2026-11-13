@@ -37,7 +37,11 @@
   // ── numbers: a small expression language, compiled to a function of the scope ────────────────────
   // The function carries what it reads, for check(): .names (values), .tables (indexed), .lookups ([table, name] for table[name])
   var FN = { round: Math.round, floor: Math.floor, ceil: Math.ceil, abs: Math.abs, min: Math.min, max: Math.max }, ONE = { round: 1, floor: 1, ceil: 1, abs: 1 };
-  function compile(src) {
+  // v0.9.5 · a formula is compiled once per text: the function is pure (it reads only its scope), and the same compute lines
+  // came back once per language and per widget. A text that doesn't parse isn't kept, so it throws the same error every time.
+  var COMPILED = Object.create(null);
+  function compile(src) { var k = String(src); return COMPILED[k] || (COMPILED[k] = compileNew(k)); }
+  function compileNew(src) {
     var s = String(src), i = 0, toks = [], m, re = /\s*(?:(\d+(?:\.\d+)?)|([A-Za-z_]\w*)|([-+*\/()\[\],]))/g, p = 0, names = [], tables = [], lookups = [];
     while (i < s.length) {
       re.lastIndex = i; m = re.exec(s);
@@ -210,6 +214,10 @@
       out = out.map(function (it, i) { return [it, i]; }).sort(function (a, b) { var x = a[0].id in pos ? pos[a[0].id] : 1e9, y = b[0].id in pos ? pos[b[0].id] : 1e9; return x - y || a[1] - b[1]; }).map(function (q) { return q[0]; }); }
     return o.single ? out.slice(0, 1) : out;
   }
+
+  // v0.9.5 · a chart's tick: one Intl.NumberFormat per language, kept (toLocaleString made one per tick: the same text, by spec)
+  var NUMF = Object.create(null);
+  function numFmt(l) { return NUMF[l] || (NUMF[l] = new Intl.NumberFormat(l, { maximumFractionDigits: 2 })); }
 
   // ── one maker per type ───────────────────────────────────────────────────────────────────────────
   var MAKE = {
@@ -456,7 +464,7 @@
         if (bad || !xs.length) { LBW.drop('setup: ' + name + ': the chart has a value that is not a number'); return null; }   // nothing is better than a wrong picture
         if (w.stack && series.some(function (se) { return se.values.some(function (n) { return n < 0; }); })) { LBW.drop('setup: ' + name + ': a stacked chart has a value below 0'); return null; }
         var spec = { type: w.kind || 'line', lang: lang, stack: !!w.stack, x: xs.map(function (x) { return x[1]; }), series: series, height: w.height, summary: tpl(w.summary, base),
-          y: { ticks: y.ticks, format: function (v) { return y.money ? H.money(v, w.money) : (Math.round(v * 100) / 100).toLocaleString(lang || 'en', { maximumFractionDigits: 2 }) + (y.suffix || ''); } } };   /* v0.8.1.12: the language's decimal mark («13,3 k» in Spanish) */
+          y: { ticks: y.ticks, format: function (v) { return y.money ? H.money(v, w.money) : numFmt(lang || 'en').format(Math.round(v * 100) / 100) + (y.suffix || ''); } } };   /* v0.8.1.12: the language's decimal mark («13,3 k» in Spanish) */
         if (w.mark) { var m = at ? Math.round(at(base.v)) : w.mark.at; if (isFinite(m)) spec.mark = { at: m, label: w.mark.label }; }
         return spec;
       };
@@ -716,6 +724,10 @@
     if (errs.some(function (e) { return e.widget == null; })) return { ok: false, errors: root.__kitSetupErrors, widgets: made };
     var langs = langsOf(cfg), dflt = dfltOf(cfg, langs);
     LBW.init(merge(pick(cfg, ['prefix', 'langs', 'timeZone', 'maxPerMessage', 'links', 'labels', 'quietMs', 'maxWaitMs', 'reveal']), { langs: langs, defaultLang: dflt }));   // the runtime's default must be the config's
+    // v0.9.5 · the config is localized once per language, not once per widget and language (38 deep walks of the showcase's
+    // config were most of its setup). A language's copy is made when the first widget needs it; if making it throws, it isn't
+    // kept, so every widget reports that error as before. Makers only read their copy: each widget reads its own part
+    var LOCS = Object.create(null), locOf = function (l) { return own(LOCS, l) ? LOCS[l] : (LOCS[l] = loc(cfg, { lang: l, langs: langs, dflt: dflt }, '', false, null)); };
     Object.keys(cfg.widgets).forEach(function (name) {
       if (bad.indexOf(name) >= 0) return;
       // a text may be { en: …, es: … }: the maker runs once per language on a copy with that language's texts, and the
@@ -726,14 +738,29 @@
       var isDyn = isObj(w0) && (isObj(w0.params) || (isObj(w0.source) && w0.source.data != null && w0.type !== 'carousel'));
       try {
         LBW.widget = function (n, fn, o) { fns[cur] = fn; opts = o || opts; return LBW; };
-        try { langs.forEach(function (l) { cur = l; var c = loc(cfg, { lang: l, langs: langs, dflt: dflt }, '', false, null); if (isDyn) cs[l] = c; MAKE[c.widgets[name].type](c, name, c.widgets[name], l); }); }
+        try { langs.forEach(function (l) { cur = l; var c = locOf(l); if (isDyn) cs[l] = c; MAKE[c.widgets[name].type](c, name, c.widgets[name], l); }); }
         finally { LBW.widget = real; }
         var fixed = w0.lang, pickL = function (ctx) { return isStr(fixed) && own(fns, fixed) ? fixed : own(fns, ctx.lang) ? ctx.lang : dflt; };   // a widget with its own `lang` always speaks it
         LBW.widget(name, isDyn ? function (p, ctx) { var l = pickL(ctx); return dyn(cs[l], name, l, p, ctx); } : function (p, ctx) { return (fns[isStr(fixed) && own(fns, fixed) ? fixed : ctx.lang] || fns[dflt])(p, ctx); }, opts);
         made.push(name);
       } catch (e) { root.__kitSetupErrors.push(name + ': ' + e.message); LBW.drop('setup: ' + name + ': ' + e.message); }
     });
+    warmIntl(langs, cfg.timeZone);
     return { ok: !root.__kitSetupErrors.length, errors: root.__kitSetupErrors, widgets: made };
+  }
+  // v0.9.5 · the first Intl formatter of a page loads ICU's data for its language and time zone, and the first widget that
+  // wrote a date, a time or a chart tick paid for it (LBW.day.today took 318 ms live). Made once while the chat is idle, the
+  // same formatters are cheap when a widget needs them. Nothing is drawn; where there is no idle callback, nothing runs.
+  function warmIntl(langs, tz) {
+    if (typeof root.requestIdleCallback !== 'function' || typeof Intl !== 'object') return;
+    root.requestIdleCallback(function () {
+      try {
+        var d = new Date();
+        new Intl.DateTimeFormat('en-CA', { timeZone: tz || undefined, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(d);
+        new Intl.DateTimeFormat('en-GB', { timeZone: tz || undefined, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(d);
+        langs.forEach(function (l) { d.toLocaleDateString(l, { timeZone: 'UTC', weekday: 'long', day: 'numeric', month: 'long' }); numFmt(l).format(1.5); });
+      } catch (e) {}
+    }, { timeout: 3000 });
   }
   setup.types = Object.keys(MAKE);
   // for kit/setup-check.js
