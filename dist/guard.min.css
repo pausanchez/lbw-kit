@@ -1,0 +1,1 @@
+html:not(.lbw-ready):not(.lbw-off) [data-lb-part=message][data-lb-author=bot] [data-lb-part=message-text]{visibility:hidden;animation:lbw-guard 0s linear var(--lbw-guard-wait, 4s) 1 normal forwards!important}@keyframes lbw-guard{to{visibility:visible}}

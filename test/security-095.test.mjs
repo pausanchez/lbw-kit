@@ -196,7 +196,7 @@ test('security 0.9.5 · npm run bot: "<!--<script" or "</script" in a config can
   const js = fs.readFileSync(path.join(out, 'custom_js.html'), 'utf8');
   assert.ok(!/<!--|<script>[^<]*<script/i.test(js.replace(/<script[^>]*>|<\/script>/g, (m) => m.replace('<', '«'))), 'no "<" of the config is left');
   const blocks = [...js.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
-  const setup = blocks[1].replace(/^LBW\.landbot&&LBW\.landbot\(this\);LBW\.kit\.setup\(/, '').replace(/\);?\s*$/, '');
+  const setup = blocks[1].replace(/^if\(window\.LBW&&LBW\.kit\)\{/, '').replace(/^LBW\.landbot&&LBW\.landbot\(this\);LBW\.kit\.setup\(/, '').replace(/\);?\}?\s*$/, '');   // v0.9.5: the setup line is guarded
   assert.equal(new Function('return ' + setup)().widgets.service.items.extension.line, 'a <!--<script> b </script> c');
 });
 
