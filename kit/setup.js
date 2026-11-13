@@ -21,7 +21,7 @@
    Languages: any text may be { "en": "Hours", "es": "Horario" } (the keys are languages of `langs`); the tag's lang picks one,
    and a missing one falls back to defaultLang. A carousel item with "until": "D/M/YYYY" is left out after that day.
    Dates and times (slots, confirm): {day:date} "Friday, November 13" (in the chat's language), {day:dmy} 13/11/2026, {from:time} 10:00.
-   v0.8.2 · any widget may declare "params" (typed values from the tag: one list int num money text day time), shown in its
+   v0.9.0 · any widget may declare "params" (typed values from the tag: one list int num money text day time), shown in its
    texts as {name}; and cards, table, stats, people, compare and carousel take "source": { "data": "key", "map": {…} }: rows
    that a flow's Code block put in LBW.data, with "items" (or "item") as the saved copy.
    What still needs your own script after setup(): slots read from an API (Calendly), a chart's own y format. */
@@ -140,7 +140,7 @@
   var FORMS = {};   // form name → its items by step key, for a confirm card's :label
   function timeOf(x) { return typeof x === 'number' ? x : LBW.time.read(x); }
 
-  // ── rows read live (v0.7.6; shared by every type since v0.8.2): a CSV, a JSON or LBW.data → items ─────────────────
+  // ── rows read live (v0.7.6; shared by every type since v0.9.0): a CSV, a JSON or LBW.data → items ─────────────────
   // Every cell is untrusted: text only, cut at 300 characters; an id is a lower-case word (40 at most) and unique, or the row
   // is skipped; a part with an empty cell is left out whole (no "From  €"), except a line of rows, stats, points or values,
   // which is left out alone. A URL outside "links" is never drawn (the runtime's link and img refuse it).
@@ -269,7 +269,7 @@
       // API with CORS); "items" is then the snapshot shown when the source can't be read. Every cell is text, cut at 300
       // characters; a row with a bad or repeated id, or with no name, is skipped; a URL outside "links" draws no link or photo.
       // A map never fills "reply": a cell must not become a sentence the visitor sends to the agent.
-      // v0.8.2 · "data": "key" reads LBW.data (a flow's Code block put it there) instead of a URL: no fetch, a short wait
+      // v0.9.0 · "data": "key" reads LBW.data (a flow's Code block put it there) instead of a URL: no fetch, a short wait
       var load = src && function () { if (src.data != null) return LBW.data.wait(src.data, src.wait); var o = { maxAge: src.maxAge }; return src.csv ? LBW.csv(src.csv, o) : LBW.json(src.json, o); };
       var memo = null;   // the rows of the last answer read: one pass, and one log line per skipped row, per fetch
       function live(data) {   // throws when the answer isn't the list (a sign-in page, an error object): the saved items are drawn then
@@ -356,7 +356,7 @@
       K.stats(name, o);
     },
     people: function (cfg, name, w, lang) {
-      var o = pick(w, ['cls', 'lang', 'kicker', 'title', 'note', 'items', 'allowDup']), r = reply(cfg, w.reply), ids = Object.keys(w.items || {});   // v0.8.2: none saved when the people come from LBW.data
+      var o = pick(w, ['cls', 'lang', 'kicker', 'title', 'note', 'items', 'allowDup']), r = reply(cfg, w.reply), ids = Object.keys(w.items || {});   // v0.9.0: none saved when the people come from LBW.data
       // [[p:team who=ana,ben]] shows those; no `who` shows everyone; a `who` that names nobody known shows nothing
       if (w.filter) o.select = function (p) { var l = p.list(w.filter.param, ids, 4); return l.length ? l : p.has(w.filter.param) ? [] : ids; };
       if (r) o.reply = function (id, x) { var sc = plain({ id: id, name: x.name, role: x.role }); return [tpl(r[0], sc), tpl(r[1], sc), fieldsOf(r[2], sc)]; };
@@ -548,7 +548,7 @@
     });
     return out;
   }
-  // ── params (v0.8.2): typed values a tag carries, for every type ──────────────────────────────────────────────────
+  // ── params (v0.9.0): typed values a tag carries, for every type ──────────────────────────────────────────────────
   // "params": { "plazas": { "type": "int", "min": 0, "max": 99, "required": true }, "precio": { "type": "money", "max": 100000 },
   //             "fecha": { "type": "day" }, "zona": { "type": "one", "values": ["norte", "sur"], "labels": { … } }, "nota": { "type": "text", "max": 60 } }
   // A flow writes them from fields (@{plazas}), or the agent copies them from a source; they are facts to show, so they are
@@ -615,7 +615,7 @@
     return out;
   }
 
-  // ── "source": { "data": "key" } for every type that keeps items (v0.8.2) ─────────────────────────────────────────
+  // ── "source": { "data": "key" } for every type that keeps items (v0.9.0) ─────────────────────────────────────────
   // The rows come from LBW.data (a flow's Code block put them there); "items" (or "item") is the saved copy, drawn when the
   // data is missing after "wait" ms or unreadable. Already there when the tag is read (a Code block runs before the next
   // message): drawn at once; not yet: a skeleton, then the data or the saved copy.
@@ -684,7 +684,7 @@
       // a text may be { en: …, es: … }: the maker runs once per language on a copy with that language's texts, and the
       // widget registered under `name` picks the one for the tag's lang
       var fns = {}, cs = {}, opts, cur, real = LBW.widget, w0 = cfg.widgets[name];
-      // v0.8.2 · params, or rows from LBW.data: made again for each tag (dyn) from its copy by language; every other widget is
+      // v0.9.0 · params, or rows from LBW.data: made again for each tag (dyn) from its copy by language; every other widget is
       // made once, as before. A carousel reads its own source (its select() waits for the data).
       var isDyn = isObj(w0) && (isObj(w0.params) || (isObj(w0.source) && w0.source.data != null && w0.type !== 'carousel'));
       try {

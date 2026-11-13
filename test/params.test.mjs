@@ -1,4 +1,4 @@
-// test/params.test.mjs · typed values in a tag (v0.8.2): a flow's @{field} or a value the agent copied from a source,
+// test/params.test.mjs · typed values in a tag (v0.9.0): a flow's @{field} or a value the agent copied from a source,
 // read strictly, shown in any text of the widget and used in formulas. Good, edge and attack values.
 import test from 'node:test';
 import assert from 'node:assert/strict';

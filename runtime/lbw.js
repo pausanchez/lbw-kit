@@ -1,4 +1,4 @@
-/* lbw.js · Landbot AI Widgets runtime · v0.8.1.14
+/* lbw.js · Landbot AI Widgets runtime · v0.9.0
    Turns tags that an AI agent (or a flow message) writes at the end of a bot message, e.g. [[shop:card id=boots lang=en]],
    into interactive widgets inside the Landbot v4 web chat. Distilled from four production experiments (retos 16-19).
    You write: your data, your labels and one function per widget. The runtime does the rest:
@@ -80,8 +80,9 @@
   // returns a Promise and takes the fields as custom_data in the same message. Then window._landbot (the share page), then
   // the legacy bridge inside the chat iframe (Landbot.exec, logs a deprecation warning: fields queued with
   // 'landbot-custom-data', then the message), then typing into the text box. Each message goes out once: a way is left
-  // for the next only when it throws or its Promise rejects. NOT YET MEASURED LIVE: that `this` is the widget on the share
-  // page and in the Livechat iframe, and that custom_data arrives through Widget.sendMessage.
+  // for the next only when it throws or its Promise rejects. Measured live (13 Nov 2026, docs/07): `this` is the widget on the
+  // share page (=== window._landbot) and in a Livechat embed (the host's myLandbot); custom_data wrote the field; the
+  // Promise resolves to undefined; Landbot.exec still works but logs two console.error lines per click.
   var bound = null;
   function bind(w) {
     if (!w || w === root) return false;   // a plain <script> (the mock): `this` is the window, nothing to bind
@@ -445,22 +446,76 @@
     if (!allowed(url)) { drop('page not allowed: ' + url); return Promise.reject(new Error('not allowed')); }
     return cached('page', url, o, function (t) { return new DOMParser().parseFromString(String(t).slice(0, 1e6), 'text/html'); });
   }
-  // ── LBW.data (v0.8.2): data the flow hands to the widgets, by name ──────────────────────────────────
+  // ── LBW.data (v0.9.0): data the flow hands to the widgets, by name ──────────────────────────────────
   // A flow Code block runs in the chat's own window, before the next message (docs/13 §2c): LBW.data.put('tarifas', x),
   // x an object, a list or a JSON text (a webhook's answer kept in a field). A kit widget with "source": { "data": "tarifas" }
   // then draws from it. What is put here is untrusted data: a JSON copy is kept (500 KB at most), never code, in memory only.
   // put(key, x) → true | false (unreadable: logged, and widgets waiting on it draw their saved copy) · get(key) → the copy |
   // undefined · wait(key, ms) → a Promise of the copy, rejected when it was unreadable or after ms (1500) · clear(key)
   var dataBox = Object.create(null), dataWaits = Object.create(null), DATA_KEY = /^[a-z][a-z0-9_]{0,39}$/;
+  // v0.9.0 · measured live (13 Nov 2026): an object a Webhook block saved reaches @{field} as a Python repr, never JSON:
+  // {'id': 1, 'tags': ['a'], 'ok': False, 'n': None}, with "double quotes" around a text that has an apostrophe.
+  // This reads exactly that grammar (dicts, lists, tuples, quoted texts with Python escapes, numbers, True/False/None) and
+  // nothing else: no names, no calls, no eval. Throws on anything outside it.
+  function pyRead(s) {
+    var i = 0, n = s.length, depth = 0;
+    function ws() { while (i < n && /\s/.test(s[i])) i++; }
+    function fail() { throw new Error('not a Python value at ' + i); }
+    function str() {
+      var q = s[i++], out = '';
+      while (i < n && s[i] !== q) {
+        var c = s[i++];
+        if (c !== '\\') { out += c; continue; }
+        var e = s[i++], m;
+        if (e === 'n') out += '\n'; else if (e === 't') out += '\t'; else if (e === 'r') out += '\r';
+        else if (e === 'x' && (m = /^[0-9a-fA-F]{2}/.exec(s.slice(i, i + 2)))) { out += String.fromCharCode(parseInt(m[0], 16)); i += 2; }
+        else if (e === 'u' && (m = /^[0-9a-fA-F]{4}/.exec(s.slice(i, i + 4)))) { out += String.fromCharCode(parseInt(m[0], 16)); i += 4; }
+        else if (e === 'U' && (m = /^[0-9a-fA-F]{8}/.exec(s.slice(i, i + 8)))) { var cp = parseInt(m[0], 16); if (cp > 0x10FFFF) fail(); out += String.fromCodePoint(cp); i += 8; }
+        else if (e === '\\' || e === "'" || e === '"') out += e;
+        else fail();
+      }
+      if (s[i++] !== q) fail(); return out;
+    }
+    function seq(close) {
+      var a = []; if (++depth > 40) fail(); ws();
+      if (s[i] === close) { i++; depth--; return a; }
+      for (;;) { a.push(val()); ws(); if (s[i] === ',') { i++; ws(); if (s[i] === close) { i++; break; } continue; } if (s[i] === close) { i++; break; } fail(); }
+      depth--; return a;
+    }
+    function val() {
+      ws(); var c = s[i], m;
+      if (c === '{') {
+        i++; var o = {}; if (++depth > 40) fail(); ws();
+        if (s[i] === '}') { i++; depth--; return o; }
+        for (;;) {
+          ws(); if (s[i] !== "'" && s[i] !== '"') fail(); var k = str(); ws(); if (s[i++] !== ':') fail();
+          var v = val(); if (k !== '__proto__') o[k] = v; ws();
+          if (s[i] === ',') { i++; ws(); if (s[i] === '}') { i++; break; } continue; }
+          if (s[i] === '}') { i++; break; } fail();
+        }
+        depth--; return o;
+      }
+      if (c === '[') { i++; return seq(']'); }
+      if (c === '(') { i++; return seq(')'); }
+      if (c === "'" || c === '"') return str();
+      if ((m = /^(True|False|None)\b/.exec(s.slice(i, i + 6)))) { i += m[1].length; return m[1] === 'True' ? true : m[1] === 'False' ? false : null; }
+      if ((m = /^-?\d+(\.\d+)?([eE][+-]?\d+)?/.exec(s.slice(i, i + 40)))) { i += m[0].length; return +m[0]; }
+      fail();
+    }
+    var v = val(); ws(); if (i !== n) fail(); return v;
+  }
   function dataPut(key, x) {
     key = String(key == null ? '' : key); if (!DATA_KEY.test(key)) { drop('data: bad key "' + key.slice(0, 40) + '"'); return false; }
     var s, v, why = null;
     try {
       s = typeof x === 'string' ? x : JSON.stringify(x);
       if (typeof s !== 'string') why = 'not JSON'; else if (s.length > 5e5) why = 'over 500 KB';
-      else { v = JSON.parse(s); if (typeof v === 'string' && /^\s*[\[{]/.test(v)) v = JSON.parse(v);   // a JSON text written as a JSON string
-        if (!v || typeof v !== 'object') why = 'not an object or a list'; }
-    } catch (e) { why = 'not JSON'; }
+      else {
+        try { v = JSON.parse(s); if (typeof v === 'string' && /^\s*[\[{]/.test(v)) v = JSON.parse(v); }   // a JSON text written as a JSON string
+        catch (je) { v = pyRead(s); }   // v0.9.0: a webhook object as @{field} (a Python repr)
+        if (!v || typeof v !== 'object') why = 'not an object or a list';
+      }
+    } catch (e) { why = 'not JSON or a Python repr'; }
     dataBox[key] = why ? { bad: why } : { v: v }; if (why) drop('data: "' + key + '" is unreadable (' + why + ')');
     (dataWaits[key] || []).splice(0).forEach(function (f) { f(); });
     return !why;
@@ -650,7 +705,7 @@
   }
 
   root.LBW = {
-    version: '0.8.1.14',
+    version: '0.9.0',
     // LBW.init({ prefix, langs, defaultLang, labels: {en:{…}}, links: ['https://shop.example/', 'tel:', 'mailto:', 'https://calendar.google.com/'], maxPerMessage, quietMs, timeZone: 'Europe/Madrid' })
     init: function (o) { for (var k in o) cfg[k] = o[k]; start(); return root.LBW; },
     // LBW.landbot(this) at the top level of the bot's Custom JS: messages go through the v4 widget's sendMessage. true if taken
@@ -665,5 +720,5 @@
     cal: { google: gcal, ics: icsText },
     later: later, csv: csv, json: json, page: page, parseCSV: parseCSV, say: say, store: store, drop: drop, missing: missing, parse: parse, scan: scan
   };
-  root.LBW.data = { put: dataPut, get: dataGet, wait: dataWait, clear: function (key) { delete dataBox[String(key)]; } };   // v0.8.2, above
+  root.LBW.data = { put: dataPut, get: dataGet, wait: dataWait, clear: function (key) { delete dataBox[String(key)]; } };   // v0.9.0, above
 })(window);

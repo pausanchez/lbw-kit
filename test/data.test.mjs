@@ -1,4 +1,4 @@
-// test/data.test.mjs · widgets drawn from LBW.data (v0.8.2): a flow's Code block hands rows to the chat, a tag draws them.
+// test/data.test.mjs · widgets drawn from LBW.data (v0.9.0): a flow's Code block hands rows to the chat, a tag draws them.
 // Object and JSON-text input, malformed input → the saved copy, late data, every cell untrusted.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -42,9 +42,9 @@ test('data: LBW.data takes an object, a list or a JSON text, keeps a copy, and r
   assert.equal(D.put('x', o), true); o.a.push(3); assert.deepEqual(json(D.get('x')), { a: [1, 2] });   // a copy
   assert.equal(D.put('x', '[{"id":"a"}]'), true); assert.deepEqual(json(D.get('x')), [{ id: 'a' }]);
   assert.equal(D.put('x', JSON.stringify(JSON.stringify({ b: 1 }))), true); assert.deepEqual(json(D.get('x')), { b: 1 });   // written twice
-  for (const bad of ['{bad', '[object Object]', "{'a': 1}", '42', 42, null, 'x'.repeat(600000)]) { assert.equal(D.put('y', bad), false, String(bad).slice(0, 20)); assert.equal(D.get('y'), undefined); }
+  for (const bad of ['{bad', '[object Object]', "{'a': os}", '42', 42, null, 'x'.repeat(600000)]) { assert.equal(D.put('y', bad), false, String(bad).slice(0, 20)); assert.equal(D.get('y'), undefined); }
   assert.equal(D.put('Bad Key', {}), false); assert.equal(D.put('__proto__', {}), false);
-  assert.ok(c.dropped().some((x) => /data: "y" is unreadable \(not JSON\)/.test(x)));
+  assert.ok(c.dropped().some((x) => /data: "y" is unreadable \(not JSON or a Python repr\)/.test(x)));
 });
 
 test('data: a card from rows already there (an object), mapped; a cell outside "links" is not a link', () => {
@@ -146,4 +146,29 @@ test('data: check() names what is wrong in a data source', () => {
   assert.match(bad('rutas', (w) => { w.source.csv = 'https://x.example/a.csv'; }), /one of "csv" or "json"/);
   assert.match(bad('equipo', (w) => { delete w.source.map.role; }), /source\.map\.role must name a column/);
   assert.match(bad('equipo', (w) => { delete w.source; }), /"items" must be an object of people by id/);
+});
+
+test('data: a webhook object as @{field} (a Python repr, measured live) is read strictly', () => {
+  const c = chat(), get = (k) => json(c.w.LBW.data.get(k));
+  // the exact shapes measured on the live bot, 13 Nov 2026
+  assert.equal(c.put('a', "{'id': 1, 'todo': 'Do something nice', 'completed': False, 'userId': 152}"), true);
+  assert.deepEqual(get('a'), { id: 1, todo: 'Do something nice', completed: false, userId: 152 });
+  assert.equal(c.put('b', `{'id': 194, 'title': "Women's Wrist Watch", 'price': 129.99, 'tags': ['beauty', 'mascara'], 'x': None, 'ok': True}`), true);
+  assert.deepEqual(get('b'), { id: 194, title: "Women's Wrist Watch", price: 129.99, tags: ['beauty', 'mascara'], x: null, ok: true });
+  assert.equal(c.put('c', "{'data': {'tours': [{'id': 'kayak', 'nombre': 'Kay\\'ak \\u00e9', 'precio': '34,99'}]}}"), true);
+  assert.equal(get('c').data.tours[0].nombre, "Kay'ak é");
+  assert.equal(c.put('d', "[(1, 2), {'a': -3.5e2},]"), true); assert.deepEqual(get('d'), [[1, 2], { a: -350 }]);
+  // anything outside the grammar is refused, never run
+  for (const bad of ["{'a': os.system('x')}", "{'a': 1} + 1", "{'a': ''}{", "{a: 1}", "__import__('os')", "{'a': `x`}", "{'__proto__': {'polluted': 1}}"]) {
+    const ok = c.put('bad', bad);
+    if (bad.includes('__proto__')) { assert.equal(ok, true); assert.equal(({}).polluted, undefined); assert.equal(c.w.Object.prototype.polluted, undefined); }
+    else assert.equal(ok, false, bad);
+  }
+});
+
+test('data: a card draws from a Python repr handed by a Code block', () => {
+  const c = chat();
+  c.put('tours', "{'data': {'tours': [{'id': 'kayak', 'nombre': 'Kayak al amanecer', 'desc': 'Dos horas', 'plazas': 4, 'precio': '34,99', 'url': 'https://tours.example/kayak/'}]}}");
+  const m = draw(c, '[[p:tour id=kayak lang=es]]');
+  assert.equal(title(m), 'Kayak al amanecer'); assert.equal(rows(m).Precio, '34,99 €');
 });

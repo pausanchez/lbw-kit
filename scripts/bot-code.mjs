@@ -74,7 +74,7 @@ const file = (p) => (p ? fs.readFileSync(p, 'utf8').trim() : '');
 const min = async (text, loader) => (text ? (await transform(text, { loader, minify: true, legalComments: 'none' })).code.trim() : '');
 // v0.8.1.9 · a literal U+00A0 doesn't survive the upload (docs/13: it came back a plain space, and once even a \u00a0 escape did):
 // write it as the \xA0 escape, which Landbot keeps (docs/13: \xXX escapes are kept), in values, keys, regexes and your own widgets
-// v0.8.1.15 · `this` at the top level of the Custom JS is the v4 widget: hand it to the runtime so messages go through
+// v0.9.0 · `this` at the top level of the Custom JS is the v4 widget: hand it to the runtime so messages go through
 // Widget.sendMessage (custom_data in the same message) instead of the legacy bridge. Guarded: a pinned older library has no LBW.landbot
 const setup = `LBW.landbot&&LBW.landbot(this);LBW.kit.setup(${JSON.stringify(config).replace(/\u00a0/g, '\\xA0')});`, own = (await min(file(opt.widgets), 'js')).replace(/\u00a0/g, '\\xA0');
 const scripts = [setup, own].filter(Boolean);

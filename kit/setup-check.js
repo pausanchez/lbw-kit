@@ -177,7 +177,7 @@
         only(v, ['text', 'tone'], where);
         if (v.tone != null && TONES.indexOf(v.tone) < 0) err(where + '.tone "' + v.tone + '" is not a tone. Known: ' + TONES.join(', '));
       }
-      // v0.8.2 · params: typed values from the tag. Shape, bounds, tag keys that don't collide, and the format each placeholder needs
+      // v0.9.0 · params: typed values from the tag. Shape, bounds, tag keys that don't collide, and the format each placeholder needs
       function walkStr(x, at, fn) { if (typeof x === 'string') fn(x, at); else if (isArr(x)) x.forEach(function (y, i) { walkStr(y, at + '[' + i + ']', fn); }); else if (isObj(x)) Object.keys(x).forEach(function (k) { if (!own(PSKIP, k)) walkStr(x[k], at ? at + '.' + k : k, fn); }); }
       function paramsCheck(w) {
         var P = w.params; if (!isObj(P) || !Object.keys(P).length) { err('"params" is an object of typed values the tag carries: { "plazas": { "type": "int", "min": 0, "max": 99 } }'); return; }
@@ -253,7 +253,7 @@
         if (!isObj(x)) return x;
         var o = {}; Object.keys(x).forEach(function (k) { if (k !== '__proto__') o[k] = own(PSKIP, k) ? x[k] : sampled(x[k], P); }); return o;
       }
-      // v0.8.2 · "source": { "data": … }: a key of LBW.data, or { "param": a "one" param whose values are keys
+      // v0.9.0 · "source": { "data": … }: a key of LBW.data, or { "param": a "one" param whose values are keys
       function dataCheck(sc, P) {
         if (sc.data == null) return;
         if (isStr(sc.data)) { if (!/^[a-z][a-z0-9_]{0,39}$/.test(sc.data)) err('source.data "' + sc.data + '" is a key of LBW.data: a lower-case word (a-z, 0-9, _), 40 at most'); }
@@ -308,7 +308,7 @@
         var pdefs = isObj(w.params) ? w.params : {};
         if (w.params != null) { paramsCheck(w); w = sampled(w, pdefs); }
         if (w.source != null && w.type !== 'carousel') itemSource(w, pdefs);
-        // v0.8.2 · "money" formats {x:money} in every type (a money param): { cur, after, dec, th, cents, space }
+        // v0.9.0 · "money" formats {x:money} in every type (a money param): { cur, after, dec, th, cents, space }
         if (w.money != null && ['calc', 'review', 'chart'].indexOf(w.type) < 0) { if (!isObj(w.money)) err('"money" is { "cur": "€", "after": true, "dec": ",", "th": "." }'); else only(w.money, ['cur', 'after', 'dec', 'th', 'cents', 'space'], 'money'); }
         ['links', 'buttons', 'buttonsWithSummary', 'actions'].forEach(function (k) { list(w[k], k, function (a, at) { act(a, err, at, w.type === 'calc' && k === 'links'); }); });
         rep(w.reply, 'reply', { cards: ['id', 'title'], table: ['id', 'title'], stats: ['id', 'title'], people: ['id', 'name', 'role'] }[w.type] || null);
@@ -332,7 +332,7 @@
               if (c[2] != null && ['start', 'end'].indexOf(c[2]) < 0) err(id + '.cols[' + i + ']: align is "start" or "end" (numbers)');
             });
             if (ckeys && ckeys.join() !== ks.join() && isObj(w.pick)) err(id + '.cols: with "pick", every table has the same column keys (' + ckeys.join(', ') + ')'); if (!ckeys) ckeys = ks;
-            if (w.source != null && t.rows == null) return;   // v0.8.2: the rows come from the data (no saved copy)
+            if (w.source != null && t.rows == null) return;   // v0.9.0: the rows come from the data (no saved copy)
             if (!isArr(t.rows) || !t.rows.length || t.rows.length > 30) err(id + '.rows holds 1 to 30 rows (more is a page, not a card: link it)');
             else t.rows.forEach(function (r, i) {
               if (!isArr(r) || r.length !== t.cols.length) err(id + '.rows[' + i + '] has ' + (isArr(r) ? r.length : 0) + ' values for ' + t.cols.length + ' columns');
@@ -466,7 +466,7 @@
           ['state', 'result', 'send'].forEach(function (k) { if (w[k] != null && !isObj(w[k])) err('"' + k + '" must be an object'); });
           ['tables', 'compute', 'money'].forEach(function (k) { if (w[k] != null && !isObj(w[k])) err('"' + k + '" must be an object'); });
           var skeys = Object.keys(st), nums = [], pickKeys = [], vals = skeys.slice();
-          Object.keys(pdefs).forEach(function (k) { if (isObj(pdefs[k]) && own(PNUM, pdefs[k].type)) { vals.push(k); nums.push(k); } });   // v0.8.2: a number the tag carries
+          Object.keys(pdefs).forEach(function (k) { if (isObj(pdefs[k]) && own(PNUM, pdefs[k].type)) { vals.push(k); nums.push(k); } });   // v0.9.0: a number the tag carries
           if (isObj(w.state) && !skeys.length) err('"state" is empty');
           skeys.forEach(function (k) {
             var d = st[k]; if (!isObj(d)) { err('state.' + k + ' must be an object'); return; }
@@ -562,7 +562,7 @@
           var rk = [];
           list(w.rows, 'rows', function (r, at) { if (!isArr(r) || !isStr(r[0]) || !isStr(r[1]) || (r[2] != null && !isStr(r[2]))) err(at + ' is [key, label] or [key, label, class]'); else rk.push(r[0]); });
           if (isArr(w.rows) && !w.rows.length) err('"rows" is empty');
-          if (w.source != null && w.items == null) {}   // v0.8.2: the items come from the data (no saved copy)
+          if (w.source != null && w.items == null) {}   // v0.9.0: the items come from the data (no saved copy)
           else if (!isObj(w.items) || Object.keys(w.items).length < 2) err('"items" must hold at least two items by id');
           else {
             Object.keys(w.items).forEach(function (id) {
@@ -588,7 +588,7 @@
         }
 
         if (w.type === 'people') {
-          if (w.source != null && w.items == null) {}   // v0.8.2: the people come from the data (no saved copy)
+          if (w.source != null && w.items == null) {}   // v0.9.0: the people come from the data (no saved copy)
           else if (!isObj(w.items) || !Object.keys(w.items).length) err('"items" must be an object of people by id');
           else Object.keys(w.items).forEach(function (id) { var x = w.items[id]; if (!isObj(x) || !isStr(x.name) || !isStr(x.role)) { err('"' + id + '" needs "name" and "role"'); return; } strs(x, ['note'], id); only(x, ITEM.people, id); if (x.img != null && !linkOK(x.img)) err(id + '.img is not under any entry of "links"'); });
           if (w.filter != null) { if (!isObj(w.filter) || !isStr(w.filter.param)) err('filter is { "param": the tag key that lists ids }'); else param(w.filter.param, 'filter.param'); }

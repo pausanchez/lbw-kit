@@ -50,7 +50,7 @@ test('say: on the share page it uses _landbot.sendMessage, the fields as custom_
   c.close();
 });
 
-// v0.8.1.15 · the v4 widget API (Landbot.Widget.sendMessage): LBW.landbot(this) from the bot's Custom JS
+// v0.9.0 · the v4 widget API (Landbot.Widget.sendMessage): LBW.landbot(this) from the bot's Custom JS
 function widget(c, opts) {
   const w = { calls: [], sendMessage(m) { w.calls.push(['send', json(m)]); return opts && opts.reject ? Promise.reject(new Error('offline')) : Promise.resolve(); },
     setCustomData(f) { w.calls.push(['data', json(f)]); } };
