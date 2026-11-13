@@ -110,7 +110,7 @@ test('calc: a result that is not a number is never shown or sent', async () => {
   assert.deepEqual(c.result.errors, []);
   assert.deepEqual(dd, []);
   assert.doesNotMatch(m.textContent, /NaN|Infinity|undefined/);
-  assert.equal(m.querySelector('.lbw-cta').disabled, true);
+  assert.equal(m.querySelector('.lbw-cta').getAttribute('aria-disabled'), 'true');   // v0.9.5: not ready is aria-disabled (focusable, says what is missing)
 });
 
 test('calc: the stepper shows what the result uses', async () => {

@@ -12,7 +12,9 @@
   --lbw-card: #FFFFFF;
   --lbw-soft: #F5F5F7;          /* chips, image stages */
   --lbw-line: rgba(13,13,13,.10);
-  --lbw-ring: rgba(13,13,13,.18);
+  --lbw-ring: rgba(13,13,13,.18);  /* decoration only (hairlines, a sent answer's ring): 1.5:1, never a control's only edge */
+  --lbw-control: rgba(13,13,13,.5);  /* v0.9.5 · the edge of a control (selects, time slots, chips, steppers): 3.6:1 on white,
+                                         WCAG 1.4.11 asks 3:1. With color-mix it follows --lbw-ink, so a dark theme gets a light edge */
   --lbw-tint: #EEEEFF;          /* a "sent" quick reply */
   /* for a dark chat, also set: --lbw-pill-bg (secondary pills, toggles, stepper buttons; white unset), --lbw-hair (the hairline
      between rows) and, for the stats card, --kit-hero-to (the gradient's end; --lbw-ink unset, which is light in a dark theme) */
@@ -26,7 +28,7 @@
   /* --lbw-focus: the focus ring. Unset, it is the ink: an accent ring fails on a light brand colour (yellow on white, 1.66:1) */
 }
 /* the tint follows the accent set on :root (where themes set their tokens) unless the theme sets it too: a brand theme that only sets --lbw-accent no longer gets a lavender note box */
-@supports (color: color-mix(in srgb, red, blue)) { :root { --lbw-tint: color-mix(in srgb, var(--lbw-accent) 10%, #FFFFFF); --lbw-pill-ring: color-mix(in srgb, var(--lbw-accent-text, var(--lbw-accent)) 70%, transparent); } }
+@supports (color: color-mix(in srgb, red, blue)) { :root { --lbw-control: color-mix(in srgb, var(--lbw-ink) 52%, transparent); --lbw-tint: color-mix(in srgb, var(--lbw-accent) 10%, #FFFFFF); --lbw-pill-ring: color-mix(in srgb, var(--lbw-accent-text, var(--lbw-accent)) 70%, transparent); } }
 [data-lb-part="message"].has-lbw { flex-wrap: wrap; }
 [data-lbw-empty] { display: none !important; }   /* a message that was only tags: no empty bubble (v0.8.1) */   /* lets the widget sit under the bubble */
 .lbw { box-sizing: border-box; width: 100%; max-width: var(--lbw-max); margin: 8px 0 0; font: 400 14px/20px var(--lbw-font); color: var(--lbw-ink);
@@ -53,22 +55,23 @@
   box-shadow: inset 0 0 0 1px var(--lbw-pill-ring, var(--lbw-ring)); font: 600 14px/1.25 var(--lbw-font); text-decoration: none; cursor: pointer; transition: background-color 150ms ease, transform 120ms ease, opacity 150ms ease; }
 .lbw-pill.is-primary { background: var(--lbw-accent); color: var(--lbw-accent-ink) !important; box-shadow: none; }
 /* disabled: readable (it was the accent at 40 %: white on it read 1.9:1), and plainly not a button */
-.lbw-pill:disabled { opacity: 1; background: var(--lbw-soft); color: var(--lbw-muted) !important; box-shadow: none; cursor: default; }
+.lbw-pill:disabled, .lbw-pill[aria-disabled="true"]:not(.is-sent) { opacity: 1; background: var(--lbw-soft); color: var(--lbw-muted) !important; box-shadow: none; cursor: default; }
 .lbw-pill.is-sent { opacity: 1; background: var(--lbw-tint); color: var(--lbw-accent-text, var(--lbw-accent)) !important; box-shadow: inset 0 0 0 1.5px var(--lbw-accent-text, var(--lbw-accent)); }   /* v0.8.1.8: the accent ring and ✓: a used choice never looks like a disabled one */
 .lbw-pill.is-sent { padding-inline: max(4px, calc(clamp(10px, 4.2cqi, 16px) - 8px)); }   /* the tick takes the space the padding gives up: the row doesn't reflow (v0.8.1.5: from the pill's own padding; a fixed 10 px left it 9 px wider on a phone) */
 .lbw-pill.is-sent::before { content: "✓ "; white-space: pre; }
-@media (hover: hover) { .lbw-pill:hover:not(:disabled) { filter: brightness(.96); } }
-.lbw-pill:active:not(:disabled) { transform: scale(.97); }
+@media (hover: hover) { .lbw-pill:hover:not(:disabled):not([aria-disabled="true"]) { filter: brightness(.96); } }
+.lbw-pill:active:not(:disabled):not([aria-disabled="true"]) { transform: scale(.97); }
+.lbw-pill[aria-disabled="true"] { cursor: default; }   /* v0.9.5: a sent answer and a not-ready CTA stay focusable (aria-disabled) */
 .lbw button:focus-visible, .lbw a:focus-visible, .lbw [tabindex]:focus-visible { outline: 2px solid var(--lbw-focus, var(--lbw-ink)); outline-offset: 2px; }
 /* three states that must not look alike (a live critique, v0.8.1.1): a live button has a ring or a fill; a DISABLED one a soft fill and no ring;
    an answer that can no longer be given (another was sent, or the visitor wrote after it) has no box at all: plain muted text */
 .lbw-once.is-done .lbw-pill:not(.is-sent), .lbw-once.is-stale .lbw-pill { opacity: 1; background: transparent !important; color: var(--lbw-muted) !important; box-shadow: none !important; cursor: default; font-weight: 400; }   /* v0.8.1.6: 400, not 500 (the house weights are 400/600/700). Same height, padding and font size as before. No box at all: a box means "can be pressed" (live: a ring or a fill; disabled: a faint ring): older cards must not change size when the visitor writes */
 .lbw-chips { display: flex; flex-wrap: wrap; gap: 8px; }
 /* toggles (multi-select) */
-.lbw-tog { min-height: 44px; padding: 9px 14px; border: 0; border-radius: var(--lbw-radius-pill); background: var(--lbw-pill-bg, #fff); box-shadow: inset 0 0 0 1px var(--lbw-pill-ring, var(--lbw-ring)); font: 600 13px/1.2 var(--lbw-font); color: var(--lbw-accent-text, var(--lbw-accent)); cursor: pointer; }   /* v0.8.1.7: tappable, so the accent (was the ink) */
-.lbw-tog[aria-pressed="true"] { background: var(--lbw-tint); color: var(--lbw-ink); box-shadow: inset 0 0 0 2px var(--lbw-accent-text, var(--lbw-accent)); }   /* a selection: tint, ring and tick. The filled accent is for the card's one primary action */
-.lbw-tog[aria-pressed="true"] { padding-inline: 8px; }
-.lbw-tog[aria-pressed="true"]::before { content: "✓ "; white-space: pre; }
+.lbw-tog { min-height: 44px; padding: 9px 14px; border: 0; border-radius: var(--lbw-radius-pill); background: var(--lbw-pill-bg, #fff); box-shadow: inset 0 0 0 1px var(--lbw-pill-ring, var(--lbw-control)); font: 600 13px/1.2 var(--lbw-font); color: var(--lbw-accent-text, var(--lbw-accent)); cursor: pointer; }   /* v0.8.1.7: tappable, so the accent (was the ink) */
+.lbw-tog[aria-pressed="true"], .lbw-tog[aria-checked="true"] { background: var(--lbw-tint); color: var(--lbw-ink); box-shadow: inset 0 0 0 2px var(--lbw-accent-text, var(--lbw-accent)); }   /* a selection: tint, ring and tick. The filled accent is for the card's one primary action */
+.lbw-tog[aria-pressed="true"], .lbw-tog[aria-checked="true"] { padding-inline: 8px; }
+.lbw-tog[aria-pressed="true"]::before, .lbw-tog[aria-checked="true"]::before { content: "✓ "; white-space: pre; }
 /* carousel */
 .lbw-strip { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 2px 2px 10px; scrollbar-width: none; overscroll-behavior-x: contain; }
 .lbw-strip::-webkit-scrollbar { display: none; }
@@ -77,7 +80,7 @@
 .lbw-slide .lbw-img { aspect-ratio: 16 / 10; }
 .lbw-slide-body { display: flex; flex-direction: column; flex: 1; padding: 12px 14px 14px; }
 .lbw-slide .lbw-actions { margin-top: auto; padding-top: 10px; flex-wrap: nowrap; }
-.lbw-slide .lbw-pill { flex: 1; min-width: 0; min-height: 44px; padding: 6px 10px; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }   /* v0.8.1.7: a long label ends in … inside the slide, never past its edge (H10: "On the website ↗" ran 40 px out) */
+.lbw-slide .lbw-pill { flex: 1; min-width: 0; min-height: 44px; padding: 6px 10px; font-size: 13px; line-height: 1.2; text-align: center; overflow-wrap: anywhere; }   /* v0.9.5: a long label wraps inside the slide (WCAG 1.4.12: an ellipsis cut it under text-spacing overrides; was nowrap + … since v0.8.1.7) */   /* v0.8.1.7: a long label ends in … inside the slide, never past its edge (H10: "On the website ↗" ran 40 px out) */
 .lbw-slide .lbw-pill.is-sent { padding-inline: 3px; }   /* v0.8.1.5: a sent slide button doesn't grow by its ✓ */
 .lbw-name { font: 600 14px/20px var(--lbw-font); margin: 2px 0 6px; }
 .lbw-price { font: 700 18px/24px var(--lbw-font); color: var(--lbw-accent-text, var(--lbw-accent)); }
@@ -106,13 +109,16 @@
 .lbw-form { display: flex; flex-direction: column; gap: 10px; }
 .lbw-form > .lbw-cta { width: 100%; min-height: 44px; margin-top: 2px; }   /* one shape for "send this card" in every widget */
 .lbw-form > .lbw-cta.is-sent { width: auto; align-self: flex-start; }   /* v0.8.1.9: a sent CTA reads as the visitor's answer (tint, accent ring, ✓), not a disabled full-width bar */
-.lbw-form > .lbw-cta:disabled:not(.is-sent) { background: var(--lbw-soft, #F5F5F7); color: var(--lbw-muted) !important; box-shadow: none; font-weight: 400; }
-.lbw-form > .lbw-cta:disabled:not(.is-sent)::before { content: "↑ "; white-space: pre; }   /* v0.8.1.13 · a ring and a question read as a text box (Callan critique): a soft fill and an arrow up to what is missing */   /* v0.8.1.7: 400 (house weights). Not ready yet: a faint ring and a label that says what is missing; a pale full-width bar read as a dead end (v0.8.1.3) */
+.lbw-form > .lbw-cta:disabled:not(.is-sent), .lbw-form > .lbw-cta[aria-disabled="true"]:not(.is-sent) { background: var(--lbw-soft, #F5F5F7); color: var(--lbw-muted) !important; box-shadow: none; font-weight: 400; }
+.lbw-form > .lbw-cta:disabled:not(.is-sent)::before, .lbw-form > .lbw-cta[aria-disabled="true"]:not(.is-sent)::before { content: "↑ "; white-space: pre; }   /* v0.8.1.13 · a ring and a question read as a text box (Callan critique): a soft fill and an arrow up to what is missing */   /* v0.8.1.7: 400 (house weights). Not ready yet: a faint ring and a label that says what is missing; a pale full-width bar read as a dead end (v0.8.1.3) */
 .lbw-step { display: flex; align-items: center; gap: 8px; }
 .lbw-step-l { flex: 1; display: flex; flex-direction: column; font-size: 14px; line-height: 18px; min-width: 0; } .lbw-step-l .lbw-muted { font-size: 12px; }
-.lbw-step-b { width: 44px; height: 44px; flex: none; border: 0; border-radius: 50%; background: var(--lbw-pill-bg, #fff); box-shadow: inset 0 0 0 1px var(--lbw-pill-ring, var(--lbw-ring)); font: 600 18px/1 var(--lbw-font); color: var(--lbw-ink); cursor: pointer; }
+.lbw-step-b { width: 44px; height: 44px; flex: none; border: 0; border-radius: 50%; background: var(--lbw-pill-bg, #fff); box-shadow: inset 0 0 0 1px var(--lbw-pill-ring, var(--lbw-control)); font: 600 18px/1 var(--lbw-font); color: var(--lbw-ink); cursor: pointer; }
 .lbw-step-b:disabled { opacity: 1; background: transparent; color: var(--lbw-muted); box-shadow: inset 0 0 0 1px var(--lbw-line); cursor: default; }   /* a soft fill read as "selected" on a tinted theme */
 .lbw-step-n { min-width: 24px; text-align: center; font-weight: 700; }
 .lbw-form.is-done .lbw-step-b, .lbw-form.is-done .lbw-tog { cursor: default; }
-.lbw-form.is-done .lbw-step-b, .lbw-form.is-done .lbw-tog:not([aria-pressed="true"]) { opacity: 1; background: transparent; color: var(--lbw-muted); box-shadow: none; }
-.lbw-form.is-done .lbw-tog[aria-pressed="true"] { box-shadow: inset 0 0 0 1px var(--lbw-ring); }   /* answers stay readable: they are part of the record */
+.lbw-form.is-done .lbw-step-b, .lbw-form.is-done .lbw-tog:not([aria-pressed="true"]):not([aria-checked="true"]) { opacity: 1; background: transparent; color: var(--lbw-muted); box-shadow: none; }
+.lbw-form.is-done .lbw-tog[aria-pressed="true"], .lbw-form.is-done .lbw-tog[aria-checked="true"] { box-shadow: inset 0 0 0 1px var(--lbw-ring); }   /* answers stay readable: they are part of the record */
+/* v0.9.5 · focus that the runtime moves to a title or a group (never to <body>): no ring on a non-control, the screen reader says it */
+.lbw [tabindex="-1"]:focus { outline: none; }
+.lbw button, .lbw a, .lbw select { scroll-margin-block: 72px; }   /* 2.4.11: a focused control is not hidden under the chat's header or composer */

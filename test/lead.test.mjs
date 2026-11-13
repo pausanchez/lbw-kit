@@ -114,7 +114,7 @@ test('review: a quote that is not a number can\'t be confirmed, and says why in 
   const c = byJson(patched('quote', (w) => { w.compute.per = 'total / (panels - 4)'; }));
   assert.deepEqual(c.result.errors, []);
   const m = c.bot('[[lg:quote panels=4]]'); c.LBW.scan(); await wait(20);
-  assert.equal(button(m, 'Confirm').disabled, true);
+  assert.equal(button(m, 'Confirm').getAttribute('aria-disabled'), 'true');   // v0.9.5: aria-disabled, still focusable
   assert.doesNotMatch(m.textContent, /NaN|Infinity|undefined/);
   assert.ok(c.dropped().some((x) => /quote: a compute line is not a number/.test(x)));
 });

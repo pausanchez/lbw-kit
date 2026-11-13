@@ -649,8 +649,10 @@
     return fn;
   }
   function transplant(o, el) {   // a card drawn late moves into the skeleton the tag already holds (its data-tag stays)
+    var back = H.keepPlace(o);   // v0.9.5: focus inside the old card goes to its twin in the new one, never to <body>
     while (o.firstChild) o.removeChild(o.firstChild);
     o.className = el.className; while (el.firstChild) o.appendChild(el.firstChild); o.box = el.box || o.querySelector('.lbw-box');
+    back();
   }
   var DMEMO = {};
   function liveW(c, name, w, lang, key, data) {   // the widget with the data's rows as its items; null: no row to draw
@@ -690,7 +692,7 @@
         var lw; try { lw = liveW(c, name, w, lang, key, d); } catch (e) { return; }
         var el = lw && build(c, name, lw, lang)(p, ctx); if (!el) return;
         var q = H.wasQuieted(o);   // v0.9.3: the visitor wrote since: the live card comes in quiet, as the saved one was
-        transplant(o, el); if (q) H.quietAgain(o); o.setAttribute('data-lbw-upgraded', '1');
+        transplant(o, el); if (q) H.quietAgain(o); o.setAttribute('data-lbw-upgraded', '1'); H.upgraded(o, lang);   // v0.9.5: "Updated: …"
       }, function () {});
     };
     return LBW.later(o, LBW.data.wait(key, has ? w.source.wait : Math.max(w.source.wait == null ? 1500 : w.source.wait, up)).then(function (d) { return liveW(c, name, w, lang, key, d); }),

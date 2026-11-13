@@ -59,10 +59,12 @@
     i.addEventListener('error', function () { i.remove(); f.classList.add('is-empty'); }); f.appendChild(i); return f;
   }
   function card(lang, cls) { var o = el('div', 'lbw' + (cls ? ' ' + cls : '')), b = el('div', 'lbw-box'); o.setAttribute('lang', lang); o.appendChild(b); o.box = b; return o; }
+  // v0.9.5 · the title is a level-3 heading (no visual change): a screen-reader user jumps card to card in a long chat
   function head(box, kicker, title, aside) {
-    var h = el('div', 'lbw-head'), l = el('div');
+    var h = el('div', 'lbw-head'), l = el('div'), t = el('div', 'lbw-title', title);
     if (kicker) l.appendChild(el('div', 'lbw-kicker', kicker));
-    l.appendChild(el('div', 'lbw-title', title)); h.appendChild(l); if (aside) h.appendChild(aside); box.appendChild(h); return h;
+    if (title) { t.setAttribute('role', 'heading'); t.setAttribute('aria-level', '3'); }
+    l.appendChild(t); h.appendChild(l); if (aside) h.appendChild(aside); box.appendChild(h); return h;
   }
   function row(parent, items, cls) { var r = el('div', 'lbw-actions' + (cls ? ' ' + cls : '')); items.forEach(function (a) { if (a) r.appendChild(a); }); parent.appendChild(r); return r; }
   function rows(box, pairs) {   // [[label, value], …]: null values skipped
@@ -143,24 +145,92 @@
     queue.push({ text: text, fields: fields, t0: Date.now() }); if (queue.length === 1) pump();
     return true;
   }
+  // ── v0.9.5 · accessibility: one polite live region per chat, and focus that never falls to <body> ──────────
+  // LBW.announce(text, lang, key): a short line for screen readers (a new card's title, a total, "Updated"), never a whole
+  // card. Lines that arrive together are said together, at most 3, one batch a second; a line with the same `key` replaces
+  // the one still waiting (a stepper pressed five times says its last value). The region is created on first use, at the
+  // end of <body> (outside every widget and the chat's own tree), and carries the line's lang. Logged in window.__lbwAnnounced (tests).
+  var live = null, liveQ = [], liveT = 0, liveLast = 0;
+  function liveEl() {
+    if (live && live.isConnected) return live;
+    // aria-live without role=status: say() reads a [role=status] in the chat window as "a reply is arriving"
+    live = el('div', 'lbw-live'); live.setAttribute('aria-live', 'polite'); live.setAttribute('aria-atomic', 'true');
+    var s = live.style; s.position = 'absolute'; s.width = s.height = '1px'; s.overflow = 'hidden'; s.clipPath = 'inset(50%)'; s.whiteSpace = 'nowrap'; s.margin = '-1px'; s.padding = '0'; s.border = '0';
+    (document.body || document.documentElement).appendChild(live); return live;   // the page's, never inside the chat's own (React) tree
+  }
+  function liveFlush() {
+    liveT = 0; var q = liveQ.splice(0, 3); if (!q.length) return;
+    var r = liveEl(), text = q.map(function (x) { return x.text; }).join('. ');
+    if (q[0].lang) r.setAttribute('lang', q[0].lang); else r.removeAttribute('lang');
+    r.textContent = ''; liveLast = Date.now(); log('__lbwAnnounced', text);
+    setTimeout(function () { r.textContent = text; }, 40);   // emptied first: the same words again are still said
+    if (liveQ.length) liveT = setTimeout(liveFlush, 1000);
+  }
+  function announce(text, lang, key) {
+    text = String(text == null ? '' : text).replace(/\s+/g, ' ').trim().slice(0, 160); if (!text) return false;
+    liveQ = liveQ.filter(function (x) { return x.text !== text && !(key && x.key === key); }); liveQ.push({ text: text, lang: lang || '', key: key || '' });
+    if (!liveT) liveT = setTimeout(liveFlush, Math.max(cfg.liveMs == null ? 350 : cfg.liveMs, liveLast + 1000 - Date.now()));
+    return true;
+  }
+  function langOf(n) { var w = n && n.closest && n.closest('[lang]'); return w ? w.getAttribute('lang') : ''; }
+  // "Kicker: Title" of a widget, or '' (chips and cards without a title say nothing)
+  function titleOf(w) {
+    var t = w && w.querySelector && w.querySelector('.lbw-title, [role="heading"]'); if (!t || !t.textContent.trim()) return '';
+    var k = w.querySelector('.lbw-kicker'); return (k && k.textContent.trim() ? k.textContent.trim() + ': ' : '') + t.textContent.trim();
+  }
+  function announceCard(w) { var t = titleOf(w); return t ? announce(t, w.getAttribute('lang'), 'card:' + t) : false; }
+  // a new widget is announced by its title, only in the newest message (a chat loading its history says one line);
+  // a skeleton says nothing until it has content (later() announces it then)
+  (subs.render = subs.render || []).push(function (e) {
+    var all = document.querySelectorAll('[data-lb-part="message"]');
+    if (e.el.classList.contains('is-loading') || (all.length && all[all.length - 1] !== e.message)) return;
+    announceCard(e.el);
+  });
+  // what can hold focus right now (no layout in tests: hidden is judged by attributes and the folded card's rule)
+  function canFocus(x, w) {
+    if (!x || !x.isConnected || x.disabled || x.hidden || x.closest('[hidden], [inert]')) return false;
+    if (w && w.classList.contains('is-collapsed') && !x.closest('.kit-sentline')) return false;
+    return x.tabIndex >= 0 || x.getAttribute('tabindex') === '-1';
+  }
+  function focusIn(x) { try { x.focus({ preventScroll: true }); } catch (e) { try { x.focus(); } catch (e2) {} } return document.activeElement === x; }
+  // focus left the widget's pressed control (disabled, folded away, redrawn): put it on the most useful thing in the same widget.
+  // The folded card's Show toggle, the sent answer, the group, then the card's title (focusable by script only)
+  function rescue(w, g) {
+    var a = document.activeElement; if (a && a !== document.body && a.isConnected && canFocus(a, w)) return a;
+    var c = [w.querySelector('.kit-sentline button'), g && g.querySelector('.is-sent'), w.querySelector('.is-sent'), g && g.getAttribute('tabindex') === '-1' ? g : null];
+    for (var i = 0; i < c.length; i++) if (canFocus(c[i], w) && focusIn(c[i])) return c[i];
+    var t = w.querySelector('.lbw-title, [role="heading"]') || w.querySelector('.lbw-box') || w;
+    if (!t.hasAttribute('tabindex')) t.setAttribute('tabindex', '-1');
+    focusIn(t); return t;
+  }
   // a button that says `text` (and writes `fields`) when clicked; `label` may be shorter than what it sends
   function reply(label, text, opts) {
     opts = opts || {};
     var b = btn(label, 'lbw-pill lbw-reply' + (opts.primary ? ' is-primary' : '') + (opts.cls ? ' ' + opts.cls : ''));
     b.setAttribute('data-say', text); if (opts.fields) b.setAttribute('data-store', JSON.stringify(opts.fields));
     b.addEventListener('click', function () {
-      if (b.disabled) return;
+      if (b.disabled || b.getAttribute('aria-disabled') === 'true') return;
       if (say(text, opts.fields)) { b.classList.add('is-sent'); var g = b.closest('.lbw-once'); if (g) done(g); if (opts.onSent) opts.onSent(b); }
     });
     return b;
   }
-  function done(g) { g.classList.add('is-done'); [].forEach.call(g.querySelectorAll('button'), function (x) { x.disabled = true; }); }
+  // v0.9.5 · the sent answer stays focusable (aria-disabled, not disabled): a keyboard or screen-reader user keeps their
+  // place and hears what they chose; the other buttons are disabled. If focus was inside, it is rescued once the click's
+  // handlers have run (after a form folds), so it never falls to <body>.
+  function done(g) {
+    var a = document.activeElement, had = !!(a && g.contains(a));
+    g.classList.add('is-done');
+    [].forEach.call(g.querySelectorAll('button'), function (x) { if (x.classList.contains('is-sent')) { x.disabled = false; x.setAttribute('aria-disabled', 'true'); } else x.disabled = true; });
+    if (had) Promise.resolve().then(function () { var w = g.closest('.lbw') || g; if (w.isConnected) rescue(w, g); });
+  }
   // a one-shot group: after one click (or once the visitor writes something else) every button in it is disabled
   function once(cls) { return el('div', 'lbw-once' + (cls ? ' ' + cls : '')); }
   // a multi-select: toggles + a CTA. Nothing is sent until the CTA; then send(keys) returns [text, fields] and both go
   // out together. multi([['vegan','Vegan'], …], 'Continue', function (keys) { return ['I eat: …', { diet: keys.join(',') }]; })
-  function multi(items, ctaLabel, send, pre) {
+  // v0.9.5: `label` (5th) names the group for screen readers
+  function multi(items, ctaLabel, send, pre, label) {
     var g = once('lbw-chips lbw-multi'), cta = btn(ctaLabel, 'lbw-pill is-primary');
+    g.setAttribute('role', 'group'); if (label) g.setAttribute('aria-label', label);
     function picked() { return [].filter.call(g.querySelectorAll('.lbw-tog'), function (b) { return b.getAttribute('aria-pressed') === 'true'; }).map(function (b) { return b.getAttribute('data-k'); }); }
     function sync() { var n = picked().length; cta.disabled = !n; cta.textContent = ctaLabel + (n ? ' · ' + n : ''); }
     items.forEach(function (it) {
@@ -169,7 +239,7 @@
       g.appendChild(b);
     });
     cta.addEventListener('click', function () {
-      var ks = picked(); if (!ks.length) return;
+      var ks = picked(); if (!ks.length || g.classList.contains('is-done')) return;
       var out = send(ks); cta.setAttribute('data-say', out[0]);
       if (say(out[0], out[1])) { cta.classList.add('is-sent'); done(g); }
     });
@@ -184,13 +254,25 @@
   function form(cls, o) {
     var g = once('lbw-form' + (cls ? ' ' + cls : '')), cta = btn(o.cta, 'lbw-pill is-primary lbw-cta'), f = { el: g, state: o.state || {}, cta: cta };
     f.add = function (node) { if (node) g.insertBefore(node, cta); return node; };
+    // v0.9.5 · not ready: aria-disabled, not disabled. The CTA stays in the Tab order and its label says what is missing
+    // ("↑ Pick a day"); pressing it says that line and takes focus to the first group with no answer
     f.update = function () {
       if (g.classList.contains('is-done')) return;
-      var r = o.ready ? o.ready(f.state) : true; cta.disabled = r !== true; cta.textContent = r === true || typeof r !== 'string' ? o.cta : r;
+      var r = o.ready ? o.ready(f.state) : true; cta.disabled = false; if (r === true) cta.removeAttribute('aria-disabled'); else cta.setAttribute('aria-disabled', 'true');
+      cta.textContent = r === true || typeof r !== 'string' ? o.cta : r;
       if (o.change) try { o.change(f.state); } catch (e) { drop('form change: ' + e.message); }
     };
+    function missingGroup() {
+      var gs = g.querySelectorAll('[role="radiogroup"], [role="group"]');
+      for (var i = 0; i < gs.length; i++) if (!gs[i].querySelector('[aria-checked="true"], [aria-pressed="true"]')) {
+        var t = gs[i].querySelector('[tabindex="0"]:not(:disabled)') || gs[i].querySelector('button:not(:disabled)'); if (t) return t;
+      }
+      return null;
+    }
     cta.addEventListener('click', function () {
-      if (cta.disabled || g.classList.contains('is-done')) return;
+      if (g.classList.contains('is-done')) return;
+      if (cta.getAttribute('aria-disabled') === 'true') { announce(cta.textContent, langOf(g), 'cta'); var m = missingGroup(); if (m) focusIn(m); return; }
+      if (cta.disabled) return;
       var out = o.send(f.state); if (!out || !out[0]) return;
       cta.setAttribute('data-say', out[0]);
       if (say(out[0], out[1])) { cta.classList.add('is-sent'); done(g); if (o.sent) o.sent(f.state); }
@@ -205,10 +287,16 @@
     var w = el('div', 'lbw-step'), tx = el('div', 'lbw-step-l'); tx.appendChild(el('span', null, label)); if (o.hint) tx.appendChild(el('span', 'lbw-muted', o.hint)); w.appendChild(tx);
     var minus = btn('−', 'lbw-step-b'), num = el('output', 'lbw-step-n'), plus = btn('+', 'lbw-step-b');
     minus.setAttribute('aria-label', (o.less || '−') + ' · ' + label); plus.setAttribute('aria-label', (o.more || '+') + ' · ' + label);
+    // v0.9.5 · a change the visitor made is announced ("Nights: 4"; a total that follows it is said with it), and the
+    // button that reaches its end hands focus to the other one instead of dropping it to <body>
     function set(v, quietly) {
       v = Math.max(min, Math.min(max, min + Math.round((v - min) / step) * step)); w.value = val = +v.toFixed(6);
       var shown = o.format ? String(o.format(val)) : String(val); num.textContent = shown; num.setAttribute('aria-label', label + ': ' + shown);
-      minus.disabled = val <= min; plus.disabled = val >= max; if (!quietly && o.change) o.change(val);
+      var a = document.activeElement;
+      minus.disabled = val <= min; plus.disabled = val >= max;
+      if (a === minus && minus.disabled && !plus.disabled) focusIn(plus); else if (a === plus && plus.disabled && !minus.disabled) focusIn(minus);
+      if (!quietly) announce(label + ': ' + shown, langOf(w), 'step:' + label);
+      if (!quietly && o.change) o.change(val);
     }
     w.set = function (v) { set(v); };   // presets ("$2,000", "$5,000") call it
     minus.addEventListener('click', function () { if (!w.closest('.is-done')) set(val - step); });
@@ -402,9 +490,9 @@
       var hostMsg = o.closest && o.closest('[data-lb-part="message"]'), near = null; try { var sc1 = hostMsg && scroller(hostMsg); near = sc1 ? atEnd(sc1, 240, null) : null; } catch (e) {}
       settle(); var r; try { r = fill(data); } catch (e) { return gone('error: ' + e.message); }
       if (r !== false && hostMsg) reveal(hostMsg, near);   // a card that grew from its skeleton
-      if (r === false) gone('nothing to show');
+      if (r === false) gone('nothing to show'); else announceCard(o);   // v0.9.5: the skeleton became a card: say its title
     }, function (e) {
-      settle(); if (fallback) { try { o.box.textContent = ''; fallback(e); drop((o.getAttribute('data-tag') || 'widget') + ' (data unavailable: fallback)'); return; } catch (x) {} }
+      settle(); if (fallback) { try { o.box.textContent = ''; fallback(e); drop((o.getAttribute('data-tag') || 'widget') + ' (data unavailable: fallback)'); announceCard(o); return; } catch (x) {} }
       gone('data unavailable: ' + (e && e.message));
     });
     return o;
@@ -720,7 +808,10 @@
     on: function (name, fn) { if (typeof fn === 'function') (subs[name] = subs[name] || []).push(fn); return root.LBW; },
     // LBW.widget('card', function (p, ctx) { …return an element or null… }, { last: true })
     widget: function (name, fn, opts) { W[String(name).toLowerCase()] = { render: fn, last: !!(opts && opts.last) }; return root.LBW; },
-    ui: { el: el, link: link, tel: tel, btn: btn, img: img, loading: loading, card: card, head: head, row: row, rows: rows, reply: reply, once: once, multi: multi, done: done, form: form, stepper: stepper, ics: ics },
+    ui: { el: el, link: link, tel: tel, btn: btn, img: img, loading: loading, card: card, head: head, row: row, rows: rows, reply: reply, once: once, multi: multi, done: done, form: form, stepper: stepper, ics: ics,
+          announce: announce, announceCard: announceCard, titleOf: titleOf, rescue: rescue },   // v0.9.5
+    // LBW.announce(text, lang, key): one short line in the chat's polite live region (v0.9.5)
+    announce: announce,
     day: { num: dayNum, parts: dayParts, read: dayRead, today: dayToday, format: dayFormat, str: dayStr, easter: dayEaster, nth: dayNth, next: dayNext, on: dayOn },
     time: { now: timeNow, read: timeRead, format: timeFmt, state: timeState, nextOpen: timeNextOpen },
     cal: { google: gcal, ics: icsText },
