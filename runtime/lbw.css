@@ -1,4 +1,4 @@
-/* lbw.css · base look for Landbot AI Widgets (v0.9.5.1)
+/* lbw.css · base look for Landbot AI Widgets (v0.9.5.2)
    The ChatKit-gallery language measured in retos 16-19: white cards, 18px radius, a hairline and a soft shadow; a small
    kicker above an 18px title; pill buttons (primary filled, secondary an inset ring) under the card. Re-skin it by
    overriding the variables below in your Custom CSS; keep the class names, the test harness reads some of them. */
@@ -124,3 +124,7 @@
 .lbw button, .lbw a, .lbw select { scroll-margin-block: 72px; }   /* 2.4.11: a focused control is not hidden under the chat's header or composer */
 /* v0.9.5 · a send that failed: "Not sent. · Retry" under the control (lbw.js unmark); the control is no longer marked sent */
 .lbw-unsent { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 8px 0 0; font: 400 13px/18px var(--lbw-font); color: var(--lbw-muted); }
+/* v0.9.5.2 · the line goes after the control that failed: inside a row of buttons that doesn't wrap (a slide's footer) it squeezed
+   that button to one letter. It takes a line of its own, and its row may wrap while it is there */
+.lbw-unsent { flex: 1 0 100%; min-width: 0; }
+.lbw :has(> .lbw-unsent) { flex-wrap: wrap; }
