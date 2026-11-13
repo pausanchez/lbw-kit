@@ -1,0 +1,12 @@
+/* lbw guard · v0.9.5. Goes in the bot's OWN Custom CSS, never in a file loaded from the CDN (if the CDN is down, the guard
+   must still be there): npm run bot writes it into custom_css.css.
+   CSS can't match text, so it can't hide "a message with a tag". It hides the text of every bot message until the runtime is
+   ready (the class lbw-ready on <html>) or fallback.js took over (lbw-off). After that, new messages are scanned in the
+   same task that inserts them, before the browser paints. The wait is capped: after --lbw-guard-wait (4 s) the text shows
+   whatever happened, so nothing is ever hidden for good. !important on the animation only: a site's
+   "animation: none !important" for reduced motion must not keep the text hidden. */
+html:not(.lbw-ready):not(.lbw-off) [data-lb-part="message"][data-lb-author="bot"] [data-lb-part="message-text"] {
+  visibility: hidden;
+  animation: lbw-guard 0s linear var(--lbw-guard-wait, 4s) 1 normal forwards !important;
+}
+@keyframes lbw-guard { to { visibility: visible; } }

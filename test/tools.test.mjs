@@ -16,7 +16,7 @@ test('bot-code: by URL it writes the pinned load line, the setup call and the fa
   const out = tmp(), r = run('kit/example/config.json', '--out', out, '--theme', 'kit/example/theme.css');
   assert.equal(r.status, 0, r.stderr);
   const js = fs.readFileSync(path.join(out, 'custom_js.html'), 'utf8'), css = fs.readFileSync(path.join(out, 'custom_css.css'), 'utf8');
-  assert.match(js, new RegExp(`^<script src="https://cdn\\.jsdelivr\\.net/gh/[^"]+@v${pkg.version.replace(/\./g, '\\.')}/dist/lbw-kit\\.min\\.js" integrity="sha384-[A-Za-z0-9+/=]+" crossorigin="anonymous"></script><script>LBW\\.landbot&&LBW\\.landbot\\(this\\);LBW\\.kit\\.setup\\(\\{`));
+  assert.match(js, new RegExp(`^<script src="https://cdn\\.jsdelivr\\.net/gh/[^"]+@v${pkg.version.replace(/\./g, '\\.')}/dist/lbw-kit\\.min\\.js" integrity="sha384-[A-Za-z0-9+/=]+" crossorigin="anonymous"></script><script>if\\(window\\.LBW&&LBW\\.kit\\)\\{LBW\\.landbot&&LBW\\.landbot\\(this\\);LBW\\.kit\\.setup\\(\\{`));
   assert.equal(scriptsOf(js).length, 3);
   assert.match(css, /^@import url\("https:\/\/cdn\.jsdelivr\.net\/[^"]+lbw-kit\.min\.css"\);\n/);
   assert.match(css, /--lbw-accent/);
@@ -102,7 +102,7 @@ test('bot-code 0.8.1.9: a literal no-break space is written as \\xA0 (kept by th
   const js = fs.readFileSync(path.join(out, 'custom_js.html'), 'utf8');
   assert.ok(!js.includes(' '), 'no literal U+00A0 left');
   assert.match(js, /"Hasta 21\\xA0m² más"/);
-  const setup = scriptsOf(js)[1].replace(/^LBW\.landbot&&LBW\.landbot\(this\);LBW\.kit\.setup\(/, '').replace(/\);?\s*$/, '');
+  const setup = scriptsOf(js)[1].replace(/^if\(window\.LBW&&LBW\.kit\)\{LBW\.landbot&&LBW\.landbot\(this\);LBW\.kit\.setup\(/, '').replace(/\);?\}?\s*$/, '');
   assert.equal(new Function('return ' + setup)().widgets.service.items.extension.line, 'Hasta 21 m² más');
 });
 

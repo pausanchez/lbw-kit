@@ -2,7 +2,7 @@
 //   node scripts/bot-code.mjs src/config.json --out build [--widgets src/widgets.js] [--theme src/theme.css] [--skin build/chat-skin.css] [--all | --inline]
 // Writes into --out:
 //   custom_js.html    the library's load line (pinned version, integrity) + LBW.kit.setup(config) + your own widgets + the fallback
-//   custom_css.css    the library's @import + the theme + the chat skin
+//   custom_css.css    the library's @import + the guard (v0.9.5: bot text hidden until the runtime is ready, 4 s at most) + the theme + the chat skin
 //   mock-widgets.js   the same setup call and widgets as one script, for tools/build-mock.py (after kit/kit.js, kit/setup.js and kit/setup-check.js)
 // --inline puts the library's code in both files instead of loading it by URL (for a page that blocks outside hosts).
 // --all loads the bundle that carries its own CSS: custom_css then has no @import of the library, and a client with a
@@ -36,12 +36,13 @@ const repo = typeof pkg.repository === 'string' ? pkg.repository.replace(/^githu
 if (!opt.inline && !repo) { console.error('package.json has no "repository": use --inline'); process.exit(1); }
 // --lib X.Y.Z pins the library a bot loads (a rebuild for a CSS change must not move a live bot to the newest version);
 // --lib keep reads the version from the custom_js.html already in --out. The integrity comes from that tag in this repo.
-let libVersion = pkg.version, libManifest = manifest, libFallback = null;
+let libVersion = pkg.version, libManifest = manifest, libFallback = null, libGuard = undefined, oldJs = '';
 // --css-only must write the CSS that goes with the custom_js.html already there: its library version and its way of
 // loading (by URL, one file with its CSS, or inline). So it keeps both.
 if (opt.cssOnly) {
   let old = ''; try { old = fs.readFileSync(path.join(opt.out, 'custom_js.html'), 'utf8'); } catch (e) {}
   if (!old) { console.error('--css-only: no ' + path.join(opt.out, 'custom_js.html') + ' to go with (build once without --css-only)'); process.exit(1); }
+  oldJs = old;
   const byUrl = /@v\d+(?:\.\d+){2,3}\/dist\/lbw-kit(\.all)?\.min\.js/.exec(old);
   if (byUrl) { opt.inline = false; opt.all = !!byUrl[1]; opt.lib = opt.lib || 'keep'; }
   else { opt.inline = true; opt.all = false; if (opt.lib) { console.error('--css-only: the custom_js.html there is inline (no library URL): --lib has nothing to pin'); process.exit(1); }
@@ -56,7 +57,7 @@ if (opt.lib && !opt.inline) {
   if (v !== pkg.version) {
     const show = (f) => { try { return execFileSync('git', ['show', `v${v}:${f}`], { cwd: new URL('..', import.meta.url), encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }); } catch (e) { return null; } };
     const m = show('dist/manifest.json'); if (!m) { console.error(`--lib ${v}: no tag v${v} with a dist/manifest.json in this repo`); process.exit(1); }
-    libManifest = JSON.parse(m); libFallback = show('dist/fallback.min.js'); libVersion = v;
+    libManifest = JSON.parse(m); libFallback = show('dist/fallback.min.js'); libGuard = show('dist/guard.min.css'); libVersion = v;
     if (opt.all && !libManifest.files['lbw-kit.all.min.js']) { console.error(`v${v} has no lbw-kit.all.min.js (it came with v0.7.4): drop --all`); process.exit(1); }
     console.error(`⚠ the config was checked by v${pkg.version} but the bot will run v${v}: a type or option added since then won't work there.`);
   }
@@ -78,7 +79,8 @@ const min = async (text, loader) => (text ? (await transform(text, { loader, min
 // Widget.sendMessage (custom_data in the same message) instead of the legacy bridge. Guarded: a pinned older library has no LBW.landbot
 // v0.9.5 · every "<" of the config is written \x3C (a string escape Landbot keeps): "</script" or "<!--<script" in a text can't
 // end the block early or put the HTML parser in its double-escaped state
-const setup = `LBW.landbot&&LBW.landbot(this);LBW.kit.setup(${JSON.stringify(config).replace(/\u00a0/g, '\\xA0').replace(/</g, '\\x3C')});`, own = (await min(file(opt.widgets), 'js')).replace(/\u00a0/g, '\\xA0');
+// v0.9.5 · guarded: with the library blocked, an unguarded `LBW.…` threw "LBW is not defined" on every page view
+const setup = `if(window.LBW&&LBW.kit){LBW.landbot&&LBW.landbot(this);LBW.kit.setup(${JSON.stringify(config).replace(/\u00a0/g, '\\xA0').replace(/</g, '\\x3C')});}`, own = (await min(file(opt.widgets), 'js')).replace(/\u00a0/g, '\\xA0');
 const scripts = [setup, own].filter(Boolean);
 // inside <script>…</script> a literal "</script" would end the block early
 for (const s of scripts) if (/<\/script|<!--|<script/i.test(s)) { console.error('the widgets contain "</script", "<script" or "<!--": write the "<" as "\\x3C"'); process.exit(1); }
@@ -86,11 +88,17 @@ for (const s of scripts) if (/<\/script|<!--|<script/i.test(s)) { console.error(
 const tag = (s) => `<script>${s}</script>`;
 const load = opt.inline ? read('dist/inline/custom_js.html').trim()
   : `<script src="${base}${opt.all ? 'lbw-kit.all.min.js' : 'lbw-kit.min.js'}" integrity="${libManifest.files[opt.all ? 'lbw-kit.all.min.js' : 'lbw-kit.min.js'].integrity}" crossorigin="anonymous"></script>`;
-const js = load + scripts.map(tag).join('') + (opt.inline ? '' : tag((libFallback || read('dist/fallback.min.js')).trim())) + '\n';
+// v0.9.5 · the fallback goes into an inline build too: a config script that doesn't parse leaves the runtime loaded but never
+// ready, and only the fallback removes the tags then
+const js = load + scripts.map(tag).join('') + tag((libFallback || read('dist/fallback.min.js')).trim()) + '\n';
 // @import must come before any other rule: the fonts that the theme or the skin import go to the top, with the library's
 const imports = opt.inline || opt.all ? [] : [`@import url("${base}lbw-kit.min.css");`];
+// the guard only goes with a library that ends it (0.9.5 or later sets lbw-ready): with an older one every bot message would
+// wait the guard's 4 s. A pinned older tag has no dist/guard.min.css; an inline --css-only build is checked in its JS
+const guard = libGuard !== undefined ? (libGuard || '').trim()
+  : opt.cssOnly && opt.inline && !/lbw-ready/.test(oldJs) ? '' : read('dist/guard.min.css').trim();
 const mine = [file(opt.theme), file(opt.skin)].filter(Boolean).join('\n').replace(/@import\s+(?:url\([^)]*\)|"[^"]*"|'[^']*')[^;]*;/g, (m) => { imports.push(m.trim()); return ''; });
-const cssOut = imports.concat(opt.inline ? [read('dist/lbw-kit.min.css').trim()] : [], [await min(mine, 'css')].filter(Boolean)).join('\n') + '\n';
+const cssOut = imports.concat([guard].filter(Boolean), opt.inline ? [read('dist/lbw-kit.min.css').trim()] : [], [await min(mine, 'css')].filter(Boolean)).join('\n') + '\n';
 
 fs.mkdirSync(opt.out, { recursive: true });
 const out = opt.cssOnly ? { 'custom_css.css': cssOut } : { 'custom_js.html': js, 'custom_css.css': cssOut, 'mock-widgets.js': scripts.join('\n') + '\n' };

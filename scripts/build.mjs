@@ -36,6 +36,8 @@ const out = {
   'lbw-kit.min.css': `${banner('lbw.css + kit.css')}\n${lbwCss}\n${kitCss}\n`,
   'host-modal.min.js': `${banner('lbw kit host-modal (for the host page)')}\n${await js('kit/host-modal.js')}\n`,
   'fallback.min.js': `${await js('runtime/fallback.js')}\n`,
+  // v0.9.5 · the guard: goes into the bot's own Custom CSS (never loaded from the CDN), hides bot text until the runtime is ready
+  'guard.min.css': `${await css('runtime/guard.css')}\n`,
 };
 // the inline target: what goes into Custom JS when nothing may load from outside
 out['inline/custom_js.html'] = `<script>${out['lbw-kit.min.js'].trim()}</script>\n`;
@@ -72,7 +74,7 @@ if (repo) {
     js: base + 'lbw-kit.min.js',
     css: base + 'lbw-kit.min.css',
     custom_js: `<script src="${base}lbw-kit.min.js"></script><script>${out['fallback.min.js'].trim()}</script>`,
-    custom_css: `@import url("${base}lbw-kit.min.css");`,
+    custom_css: `@import url("${base}lbw-kit.min.css");\n${out['guard.min.css'].trim()}`,
   };
 }
 fs.writeFileSync(new URL('manifest.json', dist), JSON.stringify(manifest, null, 2) + '\n');

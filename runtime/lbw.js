@@ -109,25 +109,31 @@
     drop('no way to store fields'); return false;
   }
   function store(fields) { log('__lbwStored', fields); return setData(fields); }
-  function post(text, fields) {
-    if (fields) log('__lbwStored', fields);
-    log('__lbwSent', text); emit('say', { text: text, fields: fields || null });
+  // v0.9.5 · a send can fail: offline, sendMessage rejected for the network (measured live: "Failed to fetch", then the
+  // legacy bridge failed the same way and the click was lost with its card locked). post() reports back through cb(ok):
+  // a network failure stops at once (no deprecated Landbot.exec after it), and so does "no way to send".
+  function offline() { return typeof navigator !== 'undefined' && navigator.onLine === false; }
+  function netErr(e) { return offline() || !!(e && (e.name === 'TypeError' || e instanceof TypeError) && /failed to fetch|networkerror|network error|load failed|network request failed/i.test(e.message || '')); }
+  function post(text, fields, cb) {
+    cb = cb || function () {};
+    if (offline()) { drop('not sent (offline): ' + text); return cb(false); }
     var lb = root._landbot, ways = [], msg = { type: 'text', message: text };
     if (fields) msg.custom_data = fields;
     if (bound) ways.push(['widget', bound]);
     if (lb && lb !== bound && typeof lb.sendMessage === 'function') ways.push(['_landbot', lb]);
     function next(i) {
-      if (i >= ways.length) return legacy(text, fields);
+      if (i >= ways.length) return legacy(text, fields, cb);
       var r;
-      try { r = ways[i][1].sendMessage(msg); } catch (e) { drop('send failed (' + ways[i][0] + '): ' + text + ' (' + e.message + ')'); return next(i + 1); }
-      if (r && typeof r.then === 'function') r.then(null, function (e) { drop('send failed (' + ways[i][0] + '): ' + text + ' (' + (e && e.message || e) + ')'); next(i + 1); });
+      try { r = ways[i][1].sendMessage(msg); } catch (e) { drop('send failed (' + ways[i][0] + '): ' + text + ' (' + e.message + ')'); return netErr(e) ? cb(false) : next(i + 1); }
+      if (r && typeof r.then === 'function') r.then(function () { cb(true); }, function (e) { drop('send failed (' + ways[i][0] + '): ' + text + ' (' + (e && e.message || e) + ')'); if (netErr(e)) cb(false); else next(i + 1); });
+      else cb(true);
     }
     next(0);
   }
-  function legacy(text, fields) {
+  function legacy(text, fields, cb) {
     var L = root.Landbot;
     if (L && typeof L.exec === 'function') {
-      try { if (fields) L.exec('landbot-custom-data', fields); L.exec('landbot-msg-send', { type: 'text', message: text }); return; } catch (e) {}
+      try { if (fields) L.exec('landbot-custom-data', fields); L.exec('landbot-msg-send', { type: 'text', message: text }); return cb(true); } catch (e) {}
     } else if (fields) setData(fields);
     // last resort: type it. v0.9.4.1 · the v4 chat's box is an <input> ("Type here…", measured live 13 Nov 2026), not a
     // textarea; never one of our own widgets' fields. v0.9.5 (security review) · only Landbot's own text box, the one in (or
@@ -137,25 +143,87 @@
     [].some.call(document.querySelectorAll(F + ' textarea, ' + F + ' input, textarea' + F + ', input' + F), function (x) {
       if (x.closest('.lbw') || x.disabled || (x.tagName === 'INPUT' && !/^(text|search)?$/i.test(x.getAttribute('type') || ''))) return false; box = x; return true;
     });
-    if (!box) { drop('no way to send: ' + text); return; }
+    if (!box) { drop('no way to send: ' + text); return cb(false); }
     Object.getOwnPropertyDescriptor((box.tagName === 'INPUT' ? HTMLInputElement : HTMLTextAreaElement).prototype, 'value').set.call(box, text);
     box.dispatchEvent(new Event('input', { bubbles: true }));
     box.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true }));
+    cb(true);
   }
   function quiet() { return !document.querySelector('[data-lb-part="window"] [role="status"]') && Date.now() - quietSince > cfg.quietMs; }
   // say(): one send per 1.2 s (double clicks), queued until the chat is quiet: a click while the agent's reply is still
   // arriving otherwise lands ABOVE that reply. Returns true when accepted (mark the control as sent right away).
   // Sends that wait go out in the order they were clicked: one queue, one timer (two waits on their own timers could swap).
-  var queue = [];
+  // v0.9.5 · each send is a job: queued → sending → sent | failed. A failed job is never sent twice: it goes out again only
+  // from the failed state (the `online` event, or the visitor's tap on "Retry"), and a new click in its group cancels it.
+  var queue = [], unsent = [];
   function pump() {
     if (!queue.length) return;
-    if (quiet() || Date.now() - queue[0].t0 > cfg.maxWaitMs) { var q = queue.shift(); try { post(q.text, q.fields); } catch (e) { drop('send failed: ' + q.text + ' (' + e.message + ')'); } if (!queue.length) return; }
+    if (quiet() || Date.now() - queue[0].t0 > cfg.maxWaitMs) {
+      var q = queue.shift(); q.state = 'sending';
+      if (!q.tries++) { if (q.fields) log('__lbwStored', q.fields); log('__lbwSent', q.text); emit('say', { text: q.text, fields: q.fields || null }); }
+      try { post(q.text, q.fields, function (ok) { settled(q, ok); }); } catch (e) { drop('send failed: ' + q.text + ' (' + e.message + ')'); settled(q, false); }
+      if (!queue.length) return;
+    }
     setTimeout(pump, 250);
   }
-  function say(text, fields) {
-    if (!text || Date.now() - lock < 1200) return false; lock = Date.now();
-    queue.push({ text: text, fields: fields, t0: Date.now() }); if (queue.length === 1) pump();
+  function settled(q, ok) {
+    if (q.state !== 'sending') return;   // a way that answers twice
+    if (ok) { q.state = 'sent'; if (q.ui) clearUnsent(q.ui); return; }
+    q.state = 'failed'; unsent.push(q); emit('unsent', { text: q.text, fields: q.fields || null });
+    if (q.ui) unmark(q);
+  }
+  function enqueue(text, fields, ui) {
+    if (!text || Date.now() - lock < 1200) return null; lock = Date.now();
+    var q = { text: text, fields: fields, t0: Date.now(), state: 'queued', tries: 0, ui: ui || null };
+    queue.push(q); return q;
+  }
+  function go(q) { if (queue[0] === q && queue.length === 1) pump(); }   // the first in line starts the timer (else it is running)
+  function say(text, fields) { var q = enqueue(text, fields, null); if (q) go(q); return !!q; }
+  function forget(q) { var i = unsent.indexOf(q); if (i >= 0) unsent.splice(i, 1); }
+  // the visitor moved on: the control is gone, its group went quiet, or the scan took its "Retry" line away (they wrote after it)
+  function stale(ui) { return !ui.ctl.isConnected || !!(ui.g && ui.g.classList.contains('is-stale')) || !!(ui.line && !ui.line.isConnected); }
+  function retry(q) {
+    if (!q || q.state !== 'failed') return false;
+    forget(q);
+    if (q.ui && stale(q.ui)) { q.state = 'cancelled'; clearUnsent(q.ui); return false; }
+    q.state = 'queued'; q.t0 = lock = Date.now();
+    if (q.ui) mark(q.ui);
+    queue.push(q); go(q);
     return true;
+  }
+  if (root.addEventListener) root.addEventListener('online', function () { unsent.slice().forEach(retry); });
+  // the control that sent: marked at once (as before), unmarked when its job fails, marked again when it is retried
+  function mark(ui) {
+    var c = ui.ctl, g = ui.g; clearUnsent(ui);
+    c.classList.add('is-sent');
+    if (g) { if (!g.classList.contains('is-done')) ui.was = [].filter.call(g.querySelectorAll('button'), function (x) { return x.disabled; }); done(g); }
+    if (ui.after) ui.after(c);
+  }
+  var UNSENT = { en: ['Not sent.', 'Retry'], es: ['No se ha enviado.', 'Reintentar'], ca: ['No s\'ha enviat.', 'Torna-ho a provar'], fr: ['Non envoyé.', 'Réessayer'],
+    de: ['Nicht gesendet.', 'Erneut senden'], it: ['Non inviato.', 'Riprova'], pt: ['Não enviado.', 'Tentar de novo'] };
+  function unmark(q) {
+    var ui = q.ui, c = ui.ctl, g = ui.g;
+    c.classList.remove('is-sent');
+    if (stale(ui)) { forget(q); q.state = 'cancelled'; return; }   // the visitor already moved on: no retry offered
+    if (g) { g.classList.remove('is-done'); [].forEach.call(g.querySelectorAll('button'), function (x) { x.disabled = (ui.was || []).indexOf(x) >= 0; }); }
+    c.classList.add('is-unsent');
+    // the card's language: cfg.labels[lang].unsent / .retry override the built-in words
+    var host = c.closest('[lang]'), lang = String((host && host.getAttribute('lang')) || cfg.defaultLang).toLowerCase(), base = lang.split(/[-_]/)[0];
+    var mine = (cfg.labels && (cfg.labels[lang] || cfg.labels[base])) || {}, std = UNSENT[base] || UNSENT.en;
+    var line = el('div', 'lbw-unsent'), r = btn(mine.retry || std[1], 'lbw-pill lbw-retry');
+    line.setAttribute('role', 'alert'); line.appendChild(el('span', null, mine.unsent || std[0])); line.appendChild(r);
+    r.addEventListener('click', function () { retry(q); });
+    (g || c).insertAdjacentElement('afterend', line); ui.line = line;
+    try { c.dispatchEvent(new CustomEvent('lbw-unsent', { bubbles: true, detail: { text: q.text } })); } catch (e) {}   // a card that changed itself on send undoes it (kit)
+  }
+  function clearUnsent(ui) { ui.ctl.classList.remove('is-unsent'); if (ui.line) { ui.line.remove(); ui.line = null; } }
+  // a widget's control sends: a failed job of the same control and text is retried (never a second message); any other
+  // click in its group cancels the failed one and sends what was clicked now
+  function sendFrom(ctl, g, text, fields, after) {
+    var holder = g || ctl, old = holder.__lbwJob;
+    if (old && old.state === 'failed') { if (old.ui.ctl === ctl && old.text === text) return retry(old); forget(old); old.state = 'cancelled'; clearUnsent(old.ui); }
+    var ui = { ctl: ctl, g: g, after: after }, q = enqueue(text, fields, ui); if (!q) return false;
+    holder.__lbwJob = q; mark(ui); go(q); return true;   // marked before it can fail (a send may settle at once)
   }
   // a button that says `text` (and writes `fields`) when clicked; `label` may be shorter than what it sends
   function reply(label, text, opts) {
@@ -164,7 +232,7 @@
     b.setAttribute('data-say', text); if (opts.fields) b.setAttribute('data-store', JSON.stringify(opts.fields));
     b.addEventListener('click', function () {
       if (b.disabled) return;
-      if (say(text, opts.fields)) { b.classList.add('is-sent'); var g = b.closest('.lbw-once'); if (g) done(g); if (opts.onSent) opts.onSent(b); }
+      sendFrom(b, b.closest('.lbw-once'), text, opts.fields, opts.onSent);
     });
     return b;
   }
@@ -185,7 +253,7 @@
     cta.addEventListener('click', function () {
       var ks = picked(); if (!ks.length) return;
       var out = send(ks); cta.setAttribute('data-say', out[0]);
-      if (say(out[0], out[1])) { cta.classList.add('is-sent'); done(g); }
+      sendFrom(cta, g, out[0], out[1]);
     });
     g.appendChild(cta); sync(); return g;
   }
@@ -207,7 +275,7 @@
       if (cta.disabled || g.classList.contains('is-done')) return;
       var out = o.send(f.state); if (!out || !out[0]) return;
       cta.setAttribute('data-say', out[0]);
-      if (say(out[0], out[1])) { cta.classList.add('is-sent'); done(g); if (o.sent) o.sent(f.state); }
+      sendFrom(cta, g, out[0], out[1], o.sent ? function () { o.sent(f.state); } : null);
     });
     g.appendChild(cta); setTimeout(f.update, 0); return f;
   }
@@ -464,7 +532,9 @@
     var w = null;
     try { w = def.render(p, ctx); } catch (e) { return { why: 'error: ' + e.message }; }
     if (!w) return { why: 'widget returned null' };
-    w.setAttribute('data-tag', tag); w.setAttribute('data-widget', name); if (def.last) w.setAttribute('data-last', '1');
+    // v0.9.5 · a string or a fragment threw below, outside any try, and left the whole message raw for good
+    if (w.nodeType !== 1 || typeof w.setAttribute !== 'function') return { why: 'widget returned ' + (w.nodeType === 11 ? 'a fragment' : typeof w) + ', not an element' };
+    try { w.setAttribute('data-tag', tag); w.setAttribute('data-widget', name); if (def.last) w.setAttribute('data-last', '1'); } catch (e) { return { why: 'error: ' + e.message }; }
     return { w: w };
   }
   // ── async widgets: render() must answer at once, so it returns a skeleton and fills it later ──────
@@ -720,13 +790,49 @@
     if (wait && !telT) telT = setTimeout(function () { telT = 0; try { keepTel(); } catch (e) {} }, cfg.quietMs + 60);
   }
   function scan() {
-    try { scanTags(); } finally { try { keepTel(); } catch (e) {} }   // phones after the tags: never inside one
+    try { scanTags(); } finally { try { keepTel(); } catch (e) {} try { watchRaw(); } catch (e) {} }   // phones after the tags: never inside one
+  }
+  // v0.9.5 · what the scan left: any [[prefix: still in a text node of the page once the chat has been still for rawMs
+  // (1.5 s; 6 s at most while it keeps changing). It is the early warning that Landbot changed its DOM (a renamed
+  // data-lb-part or data-lb-author, an author set late, text re-rendered into a bubble already done): logged in
+  // __lbwDropped as "raw tag left: …" (and LBW.on('drop')), then removed from the text (cfg.stripRaw: false keeps it).
+  // Not looked at: the widgets, the visitor's own messages, code, inputs.
+  var rawT = 0, rawFirst = 0, rawSeen = typeof WeakMap === 'function' ? new WeakMap() : null;
+  function watchRaw() {
+    var now = Date.now(); if (!rawFirst) rawFirst = now;
+    if (rawT) clearTimeout(rawT);
+    var ms = cfg.rawMs == null ? 1500 : cfg.rawMs;
+    rawT = setTimeout(function () { rawT = 0; rawFirst = 0; try { rawSweep(); } catch (e) {} }, Math.max(0, Math.min(ms, rawFirst + 6000 - now)));
+  }
+  function rawRe(g) { return new RegExp('`?\\[\\[\\s*' + cfg.prefix + ':[^\\]]*(\\]\\]`?|$)', g ? 'gi' : 'i'); }
+  function strip(box) {   // what fallback.js does: every [[…]] out of the text, nothing else touched
+    var walker = document.createTreeWalker(box, NodeFilter.SHOW_TEXT), n;
+    while ((n = walker.nextNode())) if (n.nodeValue.indexOf('[[') >= 0 && !(n.parentNode && n.parentNode.closest && n.parentNode.closest('.lbw'))) n.nodeValue = n.nodeValue.replace(/`?\[\[[^\]]*\]\]`?|`?\[\[[^\]]*$/g, '').replace(/\s+$/, '');
+  }
+  function rawSweep() {
+    var b = document.body; if (!b || b.textContent.indexOf('[[') < 0) return;
+    var test = rawRe(false), walker = document.createTreeWalker(b, NodeFilter.SHOW_TEXT), found = [], n;
+    while ((n = walker.nextNode())) {
+      if (n.nodeValue.indexOf('[[') < 0 || !test.test(n.nodeValue)) continue;
+      var pe = n.parentNode; if (!pe || !pe.closest || pe.closest('.lbw, [data-lb-author="user"], script, style, noscript, code, pre, textarea, template')) continue;
+      found.push(n);
+    }
+    found.forEach(function (t) {
+      var v = t.nodeValue; if (!rawSeen || rawSeen.get(t) !== v) drop('raw tag left: ' + (v.match(rawRe(false)) || [''])[0].slice(0, 120));
+      if (cfg.stripRaw === false) { if (rawSeen) rawSeen.set(t, v); return; }
+      t.nodeValue = v.replace(rawRe(true), '').replace(/\s+$/, '');
+    });
   }
   function scanTags() {
     var sel = '[data-lb-part="message"][data-lb-author="bot"] [data-lb-part="message-text"]:not([data-lbw])', passWas;
     [].forEach.call(document.querySelectorAll(sel), function (box) {
       if (box.textContent.indexOf('[[') < 0) return;
       box.setAttribute('data-lbw', '1');
+      // v0.9.5 · one message at a time: an exception anywhere in it (a widget, the DOM) no longer leaves it raw, and
+      // never stops the messages after it. Its tags are removed and logged; the widgets it already drew stay
+      try { one(box); } catch (e) { drop('message failed: ' + (e && e.message) + ' (its tags removed)'); strip(box); }
+    });
+    function one(box) {
       var host = box.closest('[data-lb-part="message"]') || box, made = [], late = [], held = [];
       var whole = box.textContent, names = [], left = eachTag(whole, function (m, name) { names.push(String(name).toLowerCase()); return ''; });
       // v0.9.5 (security review) · a widget fed by a flow (LBW.widget(name, fn, { flow: true })) is written by a flow message
@@ -783,10 +889,11 @@
       made.forEach(function (w) { host.appendChild(w); emit('render', { widget: w.getAttribute('data-widget'), tag: w.getAttribute('data-tag'), lang: w.getAttribute('lang'), el: w, message: host }); });
       if (made.length) host.classList.add('has-lbw');
       if (made.length) reveal(host, wasAtEnd);
-    });
+    }
     // one-shot groups nobody used go quiet once the visitor has written after them
     var all = document.querySelectorAll('[data-lb-part="message"]'), lastU = -1;
     [].forEach.call(all, function (m, i) { if (m.getAttribute('data-lb-author') === 'user') lastU = i; });
+    [].forEach.call(all, function (m, i) { if (i < lastU) [].forEach.call(m.querySelectorAll('.lbw-unsent'), function (x) { x.remove(); }); });   // v0.9.5: the visitor moved on
     [].forEach.call(all, function (m, i) { if (i < lastU) [].forEach.call(m.querySelectorAll('.lbw-once:not(.is-done)'), function (g) { g.classList.add('is-stale'); done(g); var w = g.closest('.lbw'); if (w && !w.querySelector('.is-sent')) w.classList.add('is-spent'); }); });   // v0.8.1.9: is-spent: nothing was sent from this card
   }
   function start() {
@@ -796,16 +903,21 @@
       if (list.some(function (r) { var x = r.target.nodeType === 1 ? r.target : r.target.parentElement; return x && x.closest && x.closest('[data-lb-part="message"]') && !x.closest('.lbw'); })) quietSince = Date.now();
       scan();
     }).observe(document.documentElement, { childList: true, subtree: true, characterData: true });
-    setTimeout(scan, 0);   // after the current script: init() runs before the widgets are registered
+    // after the current script: init() runs before the widgets are registered. v0.9.5 · then the runtime is READY: LBW.ready
+    // and the class lbw-ready on <html>, which ends the guard CSS's hiding of bot text (dist/guard.min.css) and stops
+    // fallback.js. LBW.on('ready') is told once
+    setTimeout(function () { try { scan(); } finally { root.LBW.ready = true; try { document.documentElement.classList.add('lbw-ready'); } catch (e) {} emit('ready', { version: root.LBW.version }); } }, 0);
   }
 
   root.LBW = {
     version: '0.9.4.2',
+    ready: false,   // v0.9.5: true once init() ran and the first scan is done
     // LBW.init({ prefix, langs, defaultLang, labels: {en:{…}}, links: ['https://shop.example/', 'tel:', 'mailto:', 'https://calendar.google.com/'], maxPerMessage, quietMs, timeZone: 'Europe/Madrid' })
     init: function (o) { for (var k in o) cfg[k] = o[k]; start(); return root.LBW; },
     // LBW.landbot(this) at the top level of the bot's Custom JS: messages go through the v4 widget's sendMessage. true if taken
     landbot: bind,
     // LBW.on('render', function (e) { e.widget, e.tag, e.lang, e.el, e.message }) · 'say' → { text, fields } · 'drop' → the reason
+    // · 'unsent' → { text, fields } (v0.9.5: every way failed; the control offers Retry) · 'ready' → { version }
     on: function (name, fn) { if (typeof fn === 'function') (subs[name] = subs[name] || []).push(fn); return root.LBW; },
     // LBW.widget('card', function (p, ctx) { …return an element or null… }, { last: true })
     // v0.9.5 · { flow: true } for a widget a flow message writes with field values in it ([[p:review texto=@{review}|lang=@{lang}]]):

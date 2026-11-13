@@ -116,3 +116,5 @@
 .lbw-form.is-done .lbw-step-b, .lbw-form.is-done .lbw-tog { cursor: default; }
 .lbw-form.is-done .lbw-step-b, .lbw-form.is-done .lbw-tog:not([aria-pressed="true"]) { opacity: 1; background: transparent; color: var(--lbw-muted); box-shadow: none; }
 .lbw-form.is-done .lbw-tog[aria-pressed="true"] { box-shadow: inset 0 0 0 1px var(--lbw-ring); }   /* answers stay readable: they are part of the record */
+/* v0.9.5 · a send that failed: "Not sent. · Retry" under the control (lbw.js unmark); the control is no longer marked sent */
+.lbw-unsent { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 8px 0 0; font: 400 13px/18px var(--lbw-font); color: var(--lbw-muted); }
