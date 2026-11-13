@@ -133,6 +133,18 @@ test('say: with no send API it types into the chat\'s box and presses Enter', as
   c.close();
 });
 
+test('say (v0.9.4.1): the v4 chat\'s box is an <input>: typed there, never into a widget\'s own field', async () => {
+  const c = chat({ landbot: false }), field = c.d.createElement('div'), box = c.d.createElement('input');
+  box.type = 'text'; box.placeholder = 'Type here…';
+  const mine = c.d.createElement('div'); mine.className = 'lbw'; const own = c.d.createElement('input'); own.type = 'text'; mine.appendChild(own); c.d.body.appendChild(mine);
+  field.setAttribute('data-lb-part', 'input-field'); field.appendChild(box); c.d.body.appendChild(field);
+  let enter = 0; box.addEventListener('keydown', (e) => { if (e.key === 'Enter') enter++; });
+  await wait(40);
+  c.LBW.say('Typed in v4'); await wait(400);
+  assert.equal(box.value, 'Typed in v4'); assert.equal(enter, 1); assert.equal(own.value, '');
+  c.close();
+});
+
 test('once: chips nobody used go quiet when the visitor writes after them', () => {
   const c = chat(), m = c.bot('Pick [[t:size]]');
   c.LBW.scan(); c.user('something else'); c.LBW.scan();
