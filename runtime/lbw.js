@@ -419,6 +419,36 @@
     if (!allowed(url)) { drop('page not allowed: ' + url); return Promise.reject(new Error('not allowed')); }
     return cached('page', url, o, function (t) { return new DOMParser().parseFromString(String(t).slice(0, 1e6), 'text/html'); });
   }
+  // ── LBW.data (v0.8.2): data the flow hands to the widgets, by name ──────────────────────────────────
+  // A flow Code block runs in the chat's own window, before the next message (docs/13 §2c): LBW.data.put('tarifas', x),
+  // x an object, a list or a JSON text (a webhook's answer kept in a field). A kit widget with "source": { "data": "tarifas" }
+  // then draws from it. What is put here is untrusted data: a JSON copy is kept (500 KB at most), never code, in memory only.
+  // put(key, x) → true | false (unreadable: logged, and widgets waiting on it draw their saved copy) · get(key) → the copy |
+  // undefined · wait(key, ms) → a Promise of the copy, rejected when it was unreadable or after ms (1500) · clear(key)
+  var dataBox = Object.create(null), dataWaits = Object.create(null), DATA_KEY = /^[a-z][a-z0-9_]{0,39}$/;
+  function dataPut(key, x) {
+    key = String(key == null ? '' : key); if (!DATA_KEY.test(key)) { drop('data: bad key "' + key.slice(0, 40) + '"'); return false; }
+    var s, v, why = null;
+    try {
+      s = typeof x === 'string' ? x : JSON.stringify(x);
+      if (typeof s !== 'string') why = 'not JSON'; else if (s.length > 5e5) why = 'over 500 KB';
+      else { v = JSON.parse(s); if (typeof v === 'string' && /^\s*[\[{]/.test(v)) v = JSON.parse(v);   // a JSON text written as a JSON string
+        if (!v || typeof v !== 'object') why = 'not an object or a list'; }
+    } catch (e) { why = 'not JSON'; }
+    dataBox[key] = why ? { bad: why } : { v: v }; if (why) drop('data: "' + key + '" is unreadable (' + why + ')');
+    (dataWaits[key] || []).splice(0).forEach(function (f) { f(); });
+    return !why;
+  }
+  function dataGet(key) { var r = dataBox[String(key)]; return r && !r.bad ? r.v : undefined; }
+  function dataWait(key, ms) {
+    key = String(key);
+    return new Promise(function (res, rej) {
+      var t = 0, go = function () { var r = dataBox[key]; if (!r) return false; clearTimeout(t); if (r.bad) rej(new Error('data "' + key + '" is unreadable')); else res(r.v); return true; };
+      if (go()) return;
+      var l = dataWaits[key] = dataWaits[key] || []; l.push(go);
+      t = setTimeout(function () { var i = l.indexOf(go); if (i >= 0) l.splice(i, 1); rej(new Error('no data "' + key + '"')); }, ms == null ? 1500 : ms);
+    });
+  }
   function prevUser(hostMsg) {   // the visitor's last message before this bot message (to drop a chip that repeats it)
     var t = '';
     [].forEach.call(document.querySelectorAll('[data-lb-part="message"][data-lb-author="user"]'), function (u) {
@@ -607,4 +637,5 @@
     cal: { google: gcal, ics: icsText },
     later: later, csv: csv, json: json, page: page, parseCSV: parseCSV, say: say, store: store, drop: drop, missing: missing, parse: parse, scan: scan
   };
+  root.LBW.data = { put: dataPut, get: dataGet, wait: dataWait, clear: function (key) { delete dataBox[String(key)]; } };   // v0.8.2, above
 })(window);

@@ -7,7 +7,7 @@
   'use strict';
   var LBW = root.LBW; if (!LBW || !LBW.kit || !LBW.kit.setup || !LBW.kit.setup._) return;
   var K = LBW.kit, I = K.setup._, own = I.own, pick = I.pick, isArr = I.isArr, isObj = I.isObj, isStr = I.isStr, isPair = I.isPair, WORD = I.WORD, CODE = I.CODE,
-      HOLE = I.HOLE, SLOT = I.SLOT, compile = I.compile, loc = I.loc, langsOf = I.langsOf, dfltOf = I.dfltOf, resolve = I.resolve, reply = I.reply, timeOf = I.timeOf;
+      HOLE = I.HOLE, SLOT = I.SLOT, PTYPES = I.PTYPES, PNUM = I.PNUM, PSKIP = I.PSKIP, compile = I.compile, loc = I.loc, langsOf = I.langsOf, dfltOf = I.dfltOf, resolve = I.resolve, reply = I.reply, timeOf = I.timeOf;
 
   // v0.8.1.4 · the kit's icon and tone names, here too: the command-line checker runs without kit.js (scripts/lib.mjs).
   // test/status.test.mjs keeps them equal to LBW.kit.h.icons and LBW.kit.h.tones.
@@ -16,23 +16,23 @@
   // ── checking a config: every problem as a sentence, nothing drawn, never a throw ─────────────────
   var TOP = '$schema version prefix langs defaultLang timeZone maxPerMessage links labels quietMs maxWaitMs reveal photos actions replies widgets'.split(' ');
   var KEYS = {
-    cards: 'type cls param items item kicker disclaimer single fallback pointsCls allowDup lang reply links status',
-    table: 'type cls param items item kicker fold pick same allowDup lang reply links fallback',
-    form: 'type cls lang kicker title cta note preset steps summary fields allowDup collapse',
-    contact: 'type cls lang kicker title big rows hours note buttons buttonsWithSummary summary compact allowDup',
-    chips: 'type cls lang max items own carriedBy crowd',
-    carousel: 'type cls lang allowDup items source filter kicker title titles lead note reply links max',
-    calc: 'type cls lang kicker title cta state controls tables compute money result send notes links allowDup collapse',
-    stats: 'type cls lang allowDup items item reply links',
-    people: 'type cls lang kicker title note allowDup items filter reply',
-    consent: 'type cls lang icon title text yes no link allowDup',
-    slots: 'type cls lang kicker title cta note sep h12 collapse allowDup ics days weekly say',
-    confirm: 'type cls lang allowDup form status title rows steps note actions',
-    review: 'type cls lang kicker title cta note collapse allowDup state tables compute money lines total discard send',
-    chart: 'type cls lang kicker title sub note links allowDup kind stack height state tables compute money x series y mark summary',
-    compare: 'type cls lang kicker title titles param items rows min max empty note same primary allowDup',
-    season: 'type cls lang kicker ranges words rows note reply links allowDup',
-    rating: 'type cls lang kicker title text kind min max labels bands send note allowDup'
+    cards: 'type cls param items item kicker disclaimer single fallback pointsCls allowDup lang reply links status params money source',
+    table: 'type cls param items item kicker fold pick same allowDup lang reply links fallback params money source',
+    form: 'type cls lang kicker title cta note preset steps summary fields allowDup collapse params money',
+    contact: 'type cls lang kicker title big rows hours note buttons buttonsWithSummary summary compact allowDup params money',
+    chips: 'type cls lang max items own carriedBy crowd params money',
+    carousel: 'type cls lang allowDup items source filter kicker title titles lead note reply links max params money',
+    calc: 'type cls lang kicker title cta state controls tables compute money result send notes links allowDup collapse params',
+    stats: 'type cls lang allowDup items item reply links params money source',
+    people: 'type cls lang kicker title note allowDup items filter reply params money source',
+    consent: 'type cls lang icon title text yes no link allowDup params money',
+    slots: 'type cls lang kicker title cta note sep h12 collapse allowDup ics days weekly say params money',
+    confirm: 'type cls lang allowDup form status title rows steps note actions params money',
+    review: 'type cls lang kicker title cta note collapse allowDup state tables compute money lines total discard send params',
+    chart: 'type cls lang kicker title sub note links allowDup kind stack height state tables compute money x series y mark summary params',
+    compare: 'type cls lang kicker title titles param items rows min max empty note same primary allowDup params money source',
+    season: 'type cls lang kicker ranges words rows note reply links allowDup params money',
+    rating: 'type cls lang kicker title text kind min max labels bands send note allowDup params money'
   };
   var ITEM = { table: 'kicker title cols rows note source link'.split(' '), cards: 'kicker title who line points pointsCls pointsTitle rows note noteCls link status badge'.split(' '), stats: 'kicker title stats source'.split(' '), people: 'name role img note'.split(' '),
     slide: 'id img badge kicker name sub price save status desc reply link gallery until'.split(' '), compare: 'name values reply link'.split(' ') };
@@ -177,6 +177,126 @@
         only(v, ['text', 'tone'], where);
         if (v.tone != null && TONES.indexOf(v.tone) < 0) err(where + '.tone "' + v.tone + '" is not a tone. Known: ' + TONES.join(', '));
       }
+      // v0.8.2 · params: typed values from the tag. Shape, bounds, tag keys that don't collide, and the format each placeholder needs
+      function walkStr(x, at, fn) { if (typeof x === 'string') fn(x, at); else if (isArr(x)) x.forEach(function (y, i) { walkStr(y, at + '[' + i + ']', fn); }); else if (isObj(x)) Object.keys(x).forEach(function (k) { if (!own(PSKIP, k)) walkStr(x[k], at ? at + '.' + k : k, fn); }); }
+      function paramsCheck(w) {
+        var P = w.params; if (!isObj(P) || !Object.keys(P).length) { err('"params" is an object of typed values the tag carries: { "plazas": { "type": "int", "min": 0, "max": 99 } }'); return; }
+        var read = ['lang'], keys = [], taken = [], RES = 'id ids lang title name role text value label band max i day from to names'.split(' ');
+        if (['cards', 'table', 'stats'].indexOf(w.type) >= 0 && w.item == null) read.push(w.type === 'stats' ? 'id' : w.param || 'id');
+        if (w.type === 'compare') read.push(w.param || 'ids'); if (w.type === 'carousel') read.push('ids');
+        [w.status, w.filter, w.preset].forEach(function (x) { if (isObj(x) && isStr(x.param || x.by)) read.push(x.param || x.by); });
+        if (isObj(w.state)) Object.keys(w.state).forEach(function (k) { var d = w.state[k]; read.push(isObj(d) && isStr(d.param) ? d.param : k); taken.push(k); });
+        ['tables', 'compute'].forEach(function (k) { if (isObj(w[k])) taken = taken.concat(Object.keys(w[k])); });
+        if (isArr(w.steps)) w.steps.forEach(function (st) { if (isObj(st) && isStr(st.key)) taken.push(st.key); });
+        [w.item].concat(isObj(w.items) && w.type === 'table' ? Object.keys(w.items).map(function (k) { return w.items[k]; }) : []).forEach(function (t) { if (w.type === 'table' && isObj(t) && isArr(t.cols)) t.cols.forEach(function (c) { if (isArr(c) && isStr(c[0])) taken.push(c[0]); }); });
+        var day = function (x) { return x === 'today' || LBW.day.read(x) != null; }, whole = function (x) { return typeof x === 'number' && x % 1 === 0; };
+        Object.keys(P).forEach(function (k) {
+          var d = P[k], at = 'params.' + k;
+          if (!WORD.test(k)) { err(at + ': a param\'s name is a lower-case word (a-z, 0-9, _), as it is a {placeholder}'); return; }
+          if (RES.indexOf(k) >= 0) err(at + ': "' + k + '" is a name the kit already fills in texts ({' + k + '}); call it something else');
+          if (taken.indexOf(k) >= 0) err(at + ' has the name of a state key, a table, a compute line, a form step or a column');
+          if (!isObj(d) || PTYPES.indexOf(d.type) < 0) { err(at + '.type is one of ' + PTYPES.join(', ')); return; }
+          var more = { one: 'values labels', list: 'values labels max', int: 'min max', num: 'min max', money: 'min max cents', text: 'max', day: 'min max', time: '' }[d.type];
+          only(d, ['type', 'param', 'required', 'default'].concat(more ? more.split(' ') : []), at);
+          var key = d.param == null ? k : d.param; if (d.param != null) param(d.param, at + '.param');
+          if (read.indexOf(key) >= 0) err(at + ': the tag key "' + key + '" is already read by this widget' + (key === 'lang' ? ' (the language)' : ''));
+          else if (keys.indexOf(key) >= 0) err(at + ': the tag key "' + key + '" is read by another param'); keys.push(key);
+          if (d.required != null && d.required !== true) err(at + '.required is true or left out');
+          if (d.required === true && d['default'] != null) err(at + ': "required" or a "default", not both (a required value that is missing draws nothing)');
+          var dv = d['default'];
+          if (d.type === 'one' || d.type === 'list') {
+            if (!isArr(d.values) || !d.values.length || !d.values.every(function (v) { return isStr(v) && /^[a-z0-9][a-z0-9_-]{0,39}$/.test(v); })) err(at + '.values is a list of lower-case words (a-z, 0-9, _ and -), the only values the tag may carry');
+            else {
+              if (d.labels != null) { if (!isObj(d.labels)) err(at + '.labels is { value: label }'); else { Object.keys(d.labels).forEach(function (v) { if (d.values.indexOf(v) < 0) err(at + '.labels.' + v + ' is not one of its values'); else if (typeof d.labels[v] !== 'string') err(at + '.labels.' + v + ' must be text'); }); d.values.forEach(function (v) { if (!own(d.labels, v)) err(at + '.labels has no label for "' + v + '"'); }); } }
+              if (dv != null && (d.type === 'one' ? d.values.indexOf(dv) < 0 : !(isArr(dv) && dv.length && dv.every(function (v) { return d.values.indexOf(v) >= 0; })))) err(at + '.default is not ' + (d.type === 'one' ? 'one of its values' : 'a list of its values'));
+            }
+            if (d.type === 'list' && d.max != null && !(whole(d.max) && d.max >= 1)) err(at + '.max is how many values the tag may list: a whole number, 1 or more');
+          }
+          if (d.type === 'int' || d.type === 'num') {
+            if (typeof d.min !== 'number' || typeof d.max !== 'number' || d.min > d.max) err(at + ' needs "min" and "max" (numbers, min first): a value outside them is not shown');
+            else if (d.type === 'int' && !(whole(d.min) && whole(d.max))) err(at + ': "min" and "max" of an int are whole numbers');
+            if (dv != null && (typeof dv !== 'number' || (d.type === 'int' && !whole(dv)) || dv < d.min || dv > d.max)) err(at + '.default is a number between min and max');
+          }
+          if (d.type === 'money') {
+            if (!(whole(d.max) && d.max > 0)) err(at + '.max is the highest amount in cents (a whole number: 100000 is 1,000.00): a value above it is not shown');
+            if (d.min != null && !(whole(d.min) && d.min >= 0 && (!whole(d.max) || d.min <= d.max))) err(at + '.min is the lowest amount in cents, 0 or more and not above max');
+            if (d.cents != null && typeof d.cents !== 'boolean') err(at + '.cents is true (the tag carries whole cents, 3499) or left out (34.99)');
+            if (dv != null && !(whole(dv) && dv >= (d.min || 0) && (!whole(d.max) || dv <= d.max))) err(at + '.default is an amount in cents between min and max');
+          }
+          if (d.type === 'text') { if (d.max != null && !(whole(d.max) && d.max >= 1 && d.max <= 300)) err(at + '.max is a whole number from 1 to 300 (80 by default)'); if (dv != null && typeof dv !== 'string') err(at + '.default must be text'); }
+          if (d.type === 'day') {
+            ['min', 'max', 'default'].forEach(function (x) { if (d[x] != null && !(isStr(d[x]) && day(d[x]))) err(at + '.' + x + ' is "today" or a date, D/M/YYYY'); });
+            if ([d.min, d.max, dv].indexOf('today') >= 0 && !isStr(cfg.timeZone)) err(at + ': "today" needs "timeZone" in the config (the day ends where the client is)');
+            if (isStr(d.min) && isStr(d.max) && d.min !== 'today' && d.max !== 'today' && LBW.day.read(d.min) > LBW.day.read(d.max)) err(at + ': "min" is after "max"');
+          }
+          if (d.type === 'time' && dv != null && LBW.time.read(dv) == null) err(at + '.default is a time, HH:MM');
+        });
+        // every placeholder that names a param: the format its type needs
+        walkStr(w, '', function (t, where) {
+          t.replace(HOLE, function (m, body) {
+            var x = SLOT.exec(body), d = x && own(P, x[1]) && isObj(P[x[1]]) ? P[x[1]] : null; if (!d) return m;
+            var f = (x[2].match(/:(label|labels|money|date|dmy|time)\b/g) || []), ty = d.type, at = where + ': "' + m + '"';
+            if (f.length > 1) err(at + ' has two formats: one of :label :labels :money :date :dmy :time (then :lower if wanted)');
+            else if (ty === 'money' && f[0] !== ':money') err(at + ' is an amount in cents: write {' + x[1] + ':money}');
+            else if (ty === 'day' && f[0] !== ':date' && f[0] !== ':dmy') err(at + ' is a day: write {' + x[1] + ':date} or {' + x[1] + ':dmy}');
+            else if (ty === 'time' && f[0] !== ':time') err(at + ' is a time: write {' + x[1] + ':time}');
+            else if (f[0] && ['money', 'day', 'time'].indexOf(ty) < 0 && !((ty === 'one' || ty === 'list') && /^:labels?$/.test(f[0]))) err(at + ': "' + x[1] + '" is a ' + ty + ' param, which takes ' + (ty === 'one' || ty === 'list' ? 'no format or :label' : 'no format'));
+            else if (/^:labels?$/.test(f[0] || '') && !isObj(d.labels)) err(at + ' asks for a label, and params.' + x[1] + ' has no "labels"');
+            return m;
+          });
+        });
+      }
+      // the widget as the rest of the checks see it: each param placeholder filled with a sample value
+      function sampled(x, P) {
+        if (typeof x === 'string') return x.replace(HOLE, function (m, body) { var y = SLOT.exec(body); return y && own(P, y[1]) ? 'x' : m; });
+        if (isArr(x)) return x.map(function (y) { return sampled(y, P); });
+        if (!isObj(x)) return x;
+        var o = {}; Object.keys(x).forEach(function (k) { if (k !== '__proto__') o[k] = own(PSKIP, k) ? x[k] : sampled(x[k], P); }); return o;
+      }
+      // v0.8.2 · "source": { "data": … }: a key of LBW.data, or { "param": a "one" param whose values are keys
+      function dataCheck(sc, P) {
+        if (sc.data == null) return;
+        if (isStr(sc.data)) { if (!/^[a-z][a-z0-9_]{0,39}$/.test(sc.data)) err('source.data "' + sc.data + '" is a key of LBW.data: a lower-case word (a-z, 0-9, _), 40 at most'); }
+        else if (isObj(sc.data) && isStr(sc.data.param) && Object.keys(sc.data).length === 1) {
+          var d = isObj(P) && own(P, sc.data.param) ? P[sc.data.param] : null;
+          if (!isObj(d) || d.type !== 'one') err('source.data.param "' + sc.data.param + '" names a param of type "one" (its values are the keys the tag may name)');
+          else if (isArr(d.values) && d.values.some(function (v) { return !/^[a-z][a-z0-9_]{0,39}$/.test(v); })) err('params.' + sc.data.param + '.values are keys of LBW.data: lower-case words (a-z, 0-9, _), starting with a letter');
+        } else err('source.data is a key of LBW.data ("tarifas"), or { "param": "src" } to let the tag name it');
+        if (sc.wait != null && !(typeof sc.wait === 'number' && sc.wait >= 0 && sc.wait <= 8000)) err('source.wait is how long to wait for the data, in milliseconds: 0 to 8000 (1500 by default)');
+      }
+      function itemSource(w, P) {
+        var so = w.source, ty = w.type, single = w.item != null;
+        if (!isObj(so)) { err('"source" is { "data": a key of LBW.data, "map": { part: "{column}" } }'); return; }
+        only(so, ['data', 'wait', 'path', 'id', 'map', 'merge', 'max'], 'source');
+        if (so.data == null) err('source.data is missing: the key of LBW.data the rows are in (a flow\'s Code block puts them there)'); else dataCheck(so, P);
+        if (so.path != null && !(isStr(so.path) && /^[A-Za-z0-9_]+(\.[A-Za-z0-9_]+)*$/.test(so.path))) err('source.path is the dotted key of the list inside the data, as "data.items"');
+        if (ty === 'table' && !isObj(w.item)) err('a table with a "source" is one table: give "item" (its title and cols); the data gives its rows');
+        if (so.id != null && (single || ty === 'table')) err('source.id: ' + (ty === 'table' ? 'a table\'s rows' : 'a single card ("item")') + ' need no id column');
+        else if (so.id != null && !(isStr(so.id) && /^[A-Za-z0-9_]+(\.[A-Za-z0-9_]+)*$/.test(so.id))) err('source.id is the name of the id column');
+        if (so.merge != null && so.merge !== true && so.merge !== false) err('source.merge is true or false');
+        if (so.merge === true && (ty === 'table' || !(single || (isObj(w.items) && Object.keys(w.items).length)))) err('source.merge needs saved items ("items" or "item"): the saved one with the same id fills what a row lacks' + (ty === 'table' ? ' (a table\'s rows are not merged)' : ''));
+        var top = ty === 'table' ? 30 : 5000;
+        if (so.max != null && !(typeof so.max === 'number' && so.max % 1 === 0 && so.max >= 1 && so.max <= top)) err('source.max is how many rows are read: a whole number from 1 to ' + top);
+        var mp = so.map; if (!isObj(mp)) { err('source.map is missing: { part: "{column}", … }'); return; }
+        var COL = /\{[A-Za-z0-9_.]+(\|text)?\}/, has = function (x) { return COL.test(JSON.stringify(x)); };
+        var cols = function (x, at) { walkStr(x, at, function (t, wh) { (t.match(/\{[^{}]*\}/g) || []).forEach(function (m) { if (!/^\{[A-Za-z0-9_]+(\.[A-Za-z0-9_]+)*(\|text)?\}$/.test(m)) err(wh + ': "' + m + '" is not a column name (letters, digits, _; dots for a nested key, as {title.rendered}; {key|text} reads HTML as text)'); }); }); };
+        var txt = function (k) { if (mp[k] != null) { if (!isStr(mp[k])) err('source.map.' + k + ' must be text, as "{column}"'); else cols(mp[k], 'source.map.' + k); } };
+        var pair = function (k, v, at) { if (!isPair(v)) err(at + ' is [text, text], as ["Precio", "{precio} €"]'); else cols(v, at); };
+        var TEXT = { cards: 'kicker title who line note pointsTitle', stats: 'kicker title source', people: 'name role note img', compare: 'name', table: '' }[ty].split(' ').filter(Boolean);
+        var LIST = { cards: ['points', 'rows', 'link', 'badge', 'status'], stats: ['stats'], people: [], compare: ['values', 'link'], table: [] }[ty];
+        var tcols = ty === 'table' && isObj(w.item) && isArr(w.item.cols) ? w.item.cols.map(function (c) { return isArr(c) ? c[0] : null; }).filter(isStr) : [];
+        if (own(mp, 'reply') || own(mp, 'fields')) err('source.map can\'t fill "reply" or "fields": a cell would become a sentence the visitor sends, or a value Landbot saves');
+        only(mp, ty === 'table' ? tcols : TEXT.concat(LIST), 'source.map');
+        (ty === 'table' ? tcols : TEXT).forEach(txt);
+        if (mp.points != null) { if (!isArr(mp.points)) err('source.map.points is a list of texts'); else mp.points.forEach(function (x, i) { if (!isStr(x)) err('source.map.points[' + i + '] must be text'); else cols(x, 'source.map.points[' + i + ']'); }); }
+        ['rows', 'stats'].forEach(function (k) { if (mp[k] != null) { if (!isArr(mp[k])) err('source.map.' + k + ' is a list of [label, "{column}"]'); else mp[k].forEach(function (x, i) { pair(k, x, 'source.map.' + k + '[' + i + ']'); }); } });
+        if (mp.link != null) pair('link', mp.link, 'source.map.link');
+        if (mp.badge != null && !isStr(mp.badge) && !(isObj(mp.badge) && isStr(mp.badge.text))) err('source.map.badge is "{column}" or { "text": "{column}", "tone": … }'); else if (mp.badge != null) cols(mp.badge, 'source.map.badge');
+        if (mp.status != null) { if (!(isObj(mp.status) && isStr(mp.status.text))) err('source.map.status is { "text": "{column}", "tone": … }'); else { only(mp.status, ['text', 'tone'], 'source.map.status'); cols(mp.status, 'source.map.status'); } }
+        if (mp.values != null) { var rk = isArr(w.rows) ? w.rows.map(function (r) { return isArr(r) ? r[0] : null; }) : []; if (!isObj(mp.values)) err('source.map.values is { row key: "{column}" }'); else Object.keys(mp.values).forEach(function (k) { if (rk.indexOf(k) < 0) err('source.map.values.' + k + ' is not one of the rows (' + rk.join(', ') + ')'); else if (!isStr(mp.values[k])) err('source.map.values.' + k + ' must be text'); else cols(mp.values[k], 'source.map.values.' + k); }); }
+        if (!Object.keys(mp).some(function (k) { return has(mp[k]); })) err('source.map fills nothing from the data: name at least one column, as "{precio}"');
+        (I.NEEDS[ty] || []).forEach(function (k) { if (!has(mp[k] == null ? '' : mp[k]) && so.merge !== true) err('source.map.' + k + ' must name a column, as "{' + k + '}" (a row without it is skipped), or leave it to the saved item with "merge": true'); });
+      }
       function url(pair, where) { if (pair == null) return; if (!isPair(pair)) err(where + ' is [label, url]'); else if (!linkOK(pair[1])) err(where + ': "' + pair[1] + '" is not under any entry of "links"'); }
 
       try {
@@ -184,7 +304,12 @@
         if (!isObj(w) || !isStr(w.type) || !own(KEYS, w.type)) { err('unknown type "' + (isObj(w) ? w.type : w) + '". Known: ' + Object.keys(KEYS).join(', ')); return; }
         var known = KEYS[w.type].split(' ');
         Object.keys(w).forEach(function (k) { if (known.indexOf(k) < 0) err('unknown option "' + k + '" for ' + w.type + '. Known: ' + known.join(', ')); });
-        NEED[w.type].forEach(function (k) { if (w[k] == null) err('missing "' + k + '"'); });
+        NEED[w.type].forEach(function (k) { if (w[k] == null && !(k === 'items' && w.source != null)) err('missing "' + k + '"'); });
+        var pdefs = isObj(w.params) ? w.params : {};
+        if (w.params != null) { paramsCheck(w); w = sampled(w, pdefs); }
+        if (w.source != null && w.type !== 'carousel') itemSource(w, pdefs);
+        // v0.8.2 · "money" formats {x:money} in every type (a money param): { cur, after, dec, th, cents, space }
+        if (w.money != null && ['calc', 'review', 'chart'].indexOf(w.type) < 0) { if (!isObj(w.money)) err('"money" is { "cur": "€", "after": true, "dec": ",", "th": "." }'); else only(w.money, ['cur', 'after', 'dec', 'th', 'cents', 'space'], 'money'); }
         ['links', 'buttons', 'buttonsWithSummary', 'actions'].forEach(function (k) { list(w[k], k, function (a, at) { act(a, err, at, w.type === 'calc' && k === 'links'); }); });
         rep(w.reply, 'reply', { cards: ['id', 'title'], table: ['id', 'title'], stats: ['id', 'title'], people: ['id', 'name', 'role'] }[w.type] || null);
         strs(w, ['cls', 'lang', 'kicker', 'title', 'cta', 'note', 'text', 'big', 'sub', 'disclaimer', 'lead'], '');
@@ -192,7 +317,7 @@
 
         // v0.8.1.10 · a table: 2 to 5 columns [key, label, align], 1 to 30 rows of that many texts; "pick" over the column keys
         if (w.type === 'table') {
-          if (!w.items && !w.item) err('missing "items" (or "item" for a single table)');
+          if (!w.items && !w.item) err('missing "items" (or "item" for a single table)' + (w.source != null ? ': a table with a "source" is one table, its "item" (title and cols)' : ''));
           if (w.items != null && !isObj(w.items)) err('"items" must be an object of tables by id');
           var ts = isObj(w.item) ? { item: w.item } : isObj(w.items) ? w.items : {}, ckeys = null;
           Object.keys(ts).forEach(function (id) {
@@ -207,6 +332,7 @@
               if (c[2] != null && ['start', 'end'].indexOf(c[2]) < 0) err(id + '.cols[' + i + ']: align is "start" or "end" (numbers)');
             });
             if (ckeys && ckeys.join() !== ks.join() && isObj(w.pick)) err(id + '.cols: with "pick", every table has the same column keys (' + ckeys.join(', ') + ')'); if (!ckeys) ckeys = ks;
+            if (w.source != null && t.rows == null) return;   // v0.8.2: the rows come from the data (no saved copy)
             if (!isArr(t.rows) || !t.rows.length || t.rows.length > 30) err(id + '.rows holds 1 to 30 rows (more is a page, not a card: link it)');
             else t.rows.forEach(function (r, i) {
               if (!isArr(r) || r.length !== t.cols.length) err(id + '.rows[' + i + '] has ' + (isArr(r) ? r.length : 0) + ' values for ' + t.cols.length + ' columns');
@@ -226,7 +352,7 @@
         }
 
         if (w.type === 'cards') {
-          if (!w.items && !w.item) err('missing "items" (or "item" for a single card)');
+          if (!w.items && !w.item && w.source == null) err('missing "items" (or "item" for a single card)');
           if (w.items != null && !isObj(w.items)) err('"items" must be an object of cards by id');
           var cs = isObj(w.item) ? { item: w.item } : isObj(w.items) ? w.items : {};
           Object.keys(cs).forEach(function (id) { var it = cs[id]; if (!isObj(it) || !isStr(it.title)) { err('card "' + id + '" has no "title"'); return; } strs(it, ['kicker', 'who', 'line', 'note', 'pointsTitle'], id); only(it, ITEM.cards, id); toned(it.status, id + '.status', true); toned(it.badge, id + '.badge', false); url(it.link, id + '.link'); pairs(it.rows, id + '.rows'); list(it.points, id + '.points', function (x, at) { if (!isStr(x)) err(at + ' must be text'); }); });
@@ -292,13 +418,13 @@
             var sc = w.source, slideKeys = ITEM.slide.concat(isObj(w.filter) && isStr(w.filter.by) ? [w.filter.by] : []);
             if (!isObj(sc)) err('"source" is { "csv" | "json": an https URL, "id": the id column, "map": { "name": "{column}", … } }');
             else {
-              only(sc, ['csv', 'json', 'path', 'id', 'map', 'merge', 'order', 'max', 'maxAge', 'prefetch'], 'source');
+              only(sc, ['csv', 'json', 'data', 'wait', 'path', 'id', 'map', 'merge', 'order', 'max', 'maxAge', 'prefetch'], 'source'); dataCheck(sc, w.params);
               if (sc.order != null && (sc.order !== 'items' || !(isArr(w.items) && w.items.length))) err('source.order is "items": the slides follow the saved items\' order (it needs "items")');
               if (sc.merge != null && (sc.merge !== true && sc.merge !== false)) err('source.merge is true or false');
               if (sc.merge === true && !(isArr(w.items) && w.items.length)) err('source.merge needs "items": the saved item with the same id fills what a live row lacks');
-              if ((sc.csv == null) === (sc.json == null)) err('source needs one of "csv" or "json"');
+              if ([sc.csv, sc.json, sc.data].filter(function (x) { return x != null; }).length !== 1) err('source needs one of "csv" or "json" (or "data", a key of LBW.data)');
               ['csv', 'json'].forEach(function (k) { if (sc[k] != null && (!isStr(sc[k]) || !/^(https:\/\/|http:\/\/(localhost|127\.0\.0\.1)(:\d+)?\/)[^\s"'<>]+$/.test(sc[k]))) err('source.' + k + ' must be an https URL (http://localhost is accepted, to try a map against a saved copy)'); });
-              if (sc.path != null && (sc.json == null || !isStr(sc.path))) err('source.path is the dotted key of the list inside a "json" answer');
+              if (sc.path != null && ((sc.json == null && sc.data == null) || !isStr(sc.path))) err('source.path is the dotted key of the list inside a "json" answer (or the data)');
               if (sc.id != null && (!isStr(sc.id) || !(sc.csv != null ? /^[a-z0-9_]+$/ : /^[A-Za-z0-9_]+(\.[A-Za-z0-9_]+)*$/).test(sc.id))) err('source.id is the name of the id column' + (sc.csv != null ? ' (lower-case: a CSV\'s headers are read lower-cased)' : ''));
               if (sc.max != null && !(typeof sc.max === 'number' && sc.max % 1 === 0 && sc.max >= 1 && sc.max <= 5000)) err('source.max is how many rows are read: a whole number from 1 to 5000');
               if (sc.maxAge != null && !(typeof sc.maxAge === 'number' && sc.maxAge >= 10000)) err('source.maxAge is in milliseconds, 10000 at least (60000 by default)');
@@ -340,6 +466,7 @@
           ['state', 'result', 'send'].forEach(function (k) { if (w[k] != null && !isObj(w[k])) err('"' + k + '" must be an object'); });
           ['tables', 'compute', 'money'].forEach(function (k) { if (w[k] != null && !isObj(w[k])) err('"' + k + '" must be an object'); });
           var skeys = Object.keys(st), nums = [], pickKeys = [], vals = skeys.slice();
+          Object.keys(pdefs).forEach(function (k) { if (isObj(pdefs[k]) && own(PNUM, pdefs[k].type)) { vals.push(k); nums.push(k); } });   // v0.8.2: a number the tag carries
           if (isObj(w.state) && !skeys.length) err('"state" is empty');
           skeys.forEach(function (k) {
             var d = st[k]; if (!isObj(d)) { err('state.' + k + ' must be an object'); return; }
@@ -435,7 +562,8 @@
           var rk = [];
           list(w.rows, 'rows', function (r, at) { if (!isArr(r) || !isStr(r[0]) || !isStr(r[1]) || (r[2] != null && !isStr(r[2]))) err(at + ' is [key, label] or [key, label, class]'); else rk.push(r[0]); });
           if (isArr(w.rows) && !w.rows.length) err('"rows" is empty');
-          if (!isObj(w.items) || Object.keys(w.items).length < 2) err('"items" must hold at least two items by id');
+          if (w.source != null && w.items == null) {}   // v0.8.2: the items come from the data (no saved copy)
+          else if (!isObj(w.items) || Object.keys(w.items).length < 2) err('"items" must hold at least two items by id');
           else {
             Object.keys(w.items).forEach(function (id) {
               var it = w.items[id]; if (!isObj(it) || !isStr(it.name)) { err('"' + id + '" has no "name"'); return; }
@@ -452,7 +580,7 @@
         }
 
         if (w.type === 'stats') {
-          if (!w.items && !w.item) err('missing "items" (or "item" for a single card)');
+          if (!w.items && !w.item && w.source == null) err('missing "items" (or "item" for a single card)');
           if (w.items != null && !isObj(w.items)) err('"items" must be an object of cards by id');
           var ss = isObj(w.item) ? { item: w.item } : isObj(w.items) ? w.items : {};
           Object.keys(ss).forEach(function (id) { var it = ss[id]; if (!isObj(it)) { err('"' + id + '" must be an object'); return; } strs(it, ['kicker', 'title', 'source'], id); only(it, ITEM.stats, id); pairs(it.stats, id + '.stats'); if (!isArr(it.stats) || it.stats.length < 2 || it.stats.length > 4) err(id + '.stats holds 2 to 4 [value, label]'); if (!isStr(it.source)) err(id + ' has no "source": say where and when the numbers were read'); });
@@ -460,7 +588,8 @@
         }
 
         if (w.type === 'people') {
-          if (!isObj(w.items) || !Object.keys(w.items).length) err('"items" must be an object of people by id');
+          if (w.source != null && w.items == null) {}   // v0.8.2: the people come from the data (no saved copy)
+          else if (!isObj(w.items) || !Object.keys(w.items).length) err('"items" must be an object of people by id');
           else Object.keys(w.items).forEach(function (id) { var x = w.items[id]; if (!isObj(x) || !isStr(x.name) || !isStr(x.role)) { err('"' + id + '" needs "name" and "role"'); return; } strs(x, ['note'], id); only(x, ITEM.people, id); if (x.img != null && !linkOK(x.img)) err(id + '.img is not under any entry of "links"'); });
           if (w.filter != null) { if (!isObj(w.filter) || !isStr(w.filter.param)) err('filter is { "param": the tag key that lists ids }'); else param(w.filter.param, 'filter.param'); }
           if (isObj(w.items) && Object.keys(w.items).length > 4 && w.filter == null) err('a people card shows 4 at most: add "filter": { "param": "who" } so the tag picks them');

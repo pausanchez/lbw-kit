@@ -21,6 +21,9 @@
    Languages: any text may be { "en": "Hours", "es": "Horario" } (the keys are languages of `langs`); the tag's lang picks one,
    and a missing one falls back to defaultLang. A carousel item with "until": "D/M/YYYY" is left out after that day.
    Dates and times (slots, confirm): {day:date} "Friday, November 13" (in the chat's language), {day:dmy} 13/11/2026, {from:time} 10:00.
+   v0.8.2 · any widget may declare "params" (typed values from the tag: one list int num money text day time), shown in its
+   texts as {name}; and cards, table, stats, people, compare and carousel take "source": { "data": "key", "map": {…} }: rows
+   that a flow's Code block put in LBW.data, with "items" (or "item") as the saved copy.
    What still needs your own script after setup(): slots read from an API (Calendly), a chart's own y format. */
 (function (root) {
   'use strict';
@@ -137,6 +140,75 @@
   var FORMS = {};   // form name → its items by step key, for a confirm card's :label
   function timeOf(x) { return typeof x === 'number' ? x : LBW.time.read(x); }
 
+  // ── rows read live (v0.7.6; shared by every type since v0.8.2): a CSV, a JSON or LBW.data → items ─────────────────
+  // Every cell is untrusted: text only, cut at 300 characters; an id is a lower-case word (40 at most) and unique, or the row
+  // is skipped; a part with an empty cell is left out whole (no "From  €"), except a line of rows, stats, points or values,
+  // which is left out alone. A URL outside "links" is never drawn (the runtime's link and img refuse it).
+  // src = { path, id, map, merge, order, max }; o = { saved: [items with id] | null, need: [parts a row must fill],
+  // img: 'img' | 'url' (how a mapped photo is written out), single: true (no id; an object is one row), table: true (rows of
+  // one table: no id, an empty row skipped) }. Throws when the answer isn't a list (a sign-in page, an error object): the
+  // caller draws the saved copy then.
+  var ROWID = /^[a-z0-9][a-z0-9_-]{0,39}$/, PER = { rows: 1, stats: 1, points: 1, values: 1 };
+  function dig(o, path) { return String(path).split('.').reduce(function (x, k) { return x != null && typeof x === 'object' && own(x, k) ? x[k] : null; }, o); }
+  function mapRows(cfg, name, src, data, lang, o) {
+    var rows = src.path ? dig(data, src.path) : data, ids = !o.single && !o.table;
+    if (o.single && isObj(rows)) rows = [rows];
+    var seen = Object.create(null), out = [], idCol = src.id || 'id';
+    if (!isArr(rows)) throw new Error('the source did not answer a list');
+    if (!rows.length) throw new Error('the source has no rows');   // an emptied sheet or a page that isn't the file: can't tell them apart
+    // a JSON key may be dotted ("title.rendered", as WordPress nests it); every step is an own property
+    var raw = function (r, k) { var v = dig(r, k); return v == null || typeof v === 'object' ? '' : String(v).trim(); };
+    var cut = function (v) { return v.length > 300 ? Array.from(v).slice(0, 300).join('') : v; };
+    // {column|text}: the cell is HTML (a WordPress title). Read as text in an inert document (nothing runs or loads), with
+    // script and style left out and a space where a block or a <br> ends; decoded first, cut after.
+    var text = function (v) {
+      var d = new DOMParser().parseFromString(v.slice(0, 20000), 'text/html');
+      [].forEach.call(d.querySelectorAll('script,style,template,noscript'), function (n) { n.remove(); });
+      [].forEach.call(d.querySelectorAll('br,p,div,li,h1,h2,h3,h4,h5,h6,tr,td'), function (n) { n.insertAdjacentText(n.tagName === 'BR' ? 'beforebegin' : 'afterend', ' '); });
+      return (d.body ? d.body.textContent : '').replace(/\s+/g, ' ').trim();
+    };
+    if (ids && !rows.some(function (r) { return r && typeof r === 'object' && raw(r, idCol) !== ''; })) throw new Error('the source has no "' + idCol + '" column');
+    var saved = function (id) { return o.single ? (o.saved || [])[0] : (o.saved || []).filter(function (s) { return isObj(s) && String(s.id) === id; })[0]; };
+    rows.slice(0, src.max || 2000).forEach(function (r) {
+      if (!r || typeof r !== 'object') return;
+      var get = function (k, t) { var v = (lang && k.indexOf('.') < 0 && raw(r, k + '_' + lang)) || raw(r, k); return cut(t && v ? text(v) : v); };
+      var id = ids ? cut(raw(r, idCol)) : '', at = ids ? 'id "' + id + '"' : 'row ' + out.length;
+      if (ids && (!ROWID.test(id) || seen[id])) { LBW.drop(name + ': source row skipped (id "' + id.slice(0, 40) + '")'); return; }
+      var it = ids ? { id: id } : {};
+      Object.keys(src.map).forEach(function (k) {
+        if (k === '__proto__') return;
+        var gap = false, put = function (x, per) {
+          if (typeof x === 'string') return x.replace(/\{([A-Za-z0-9_.]+)(\|text)?\}/g, function (m, c, t) { var v = get(c, t); if (!v) gap = true; return v; });
+          if (!isArr(x) && !isObj(x)) return x;
+          var res = isArr(x) ? [] : {};
+          Object.keys(x).forEach(function (j) {
+            if (j === '__proto__') return; var g0 = gap; if (per) gap = false;
+            var y = put(x[j]); if (per && gap) { gap = g0; return; } if (per) gap = g0;   // a line with an empty cell: that line only
+            if (isArr(res)) res.push(y); else res[j] = y;
+          });
+          if (per && !Object.keys(res).length) gap = true;
+          return res; }, v = put(src.map[k], own(PER, k));
+        if (!gap) it[k] = v;   // a part with an empty cell is left out whole (no "From  €", no link with no URL)
+      });
+      // v0.8.1.12 · a mapped photo may be { "photo": "set:{column}" } (people: "set:{column}"): written out from "photos" here
+      if (it.img != null && photoRef(it.img)) { var pi = photo(cfg.photos, it.img, o.img || 'img', it.name, function (m) { LBW.drop(name + ': source row ' + at + ': ' + m); }); if (pi === undefined) delete it.img; else it.img = pi; }
+      // "merge": true · the saved item with the same id gives the parts the map doesn't fill (a photo, a description, a
+      // name by language when "name" isn't mapped). A mapped part comes only from the data: an emptied cell stays empty,
+      // and a saved "until" never hides a live row. Never a saved status beside live data (v0.8.1.4).
+      var sv = src.merge ? saved(id) : null;
+      if (isObj(sv)) Object.keys(sv).forEach(function (k) { if (k !== 'id' && k !== 'until' && k !== 'status' && k !== '__proto__' && !own(src.map, k)) it[k] = sv[k]; });
+      var miss = (o.need || []).filter(function (k) { return it[k] == null || it[k] === '' || (isArr(it[k]) && !it[k].length); })[0];
+      if (miss) { LBW.drop(name + ': source row skipped (no ' + miss + ', ' + at + ')'); return; }
+      if (it.until != null && LBW.day.read(it.until) == null) { LBW.drop(name + ': source row skipped (' + at + ': "until" is not D/M/YYYY)'); return; }
+      if (o.table && !Object.keys(it).some(function (k) { return it[k] !== ''; })) return;
+      if (ids) seen[id] = 1; out.push(it);
+    });
+    // "order": "items" · the saved items' order (an API that sorts its own way); rows that aren't saved go last, as they came
+    if (src.order === 'items' && ids) { var pos = Object.create(null); (o.saved || []).forEach(function (s, i) { if (isObj(s)) pos[String(s.id)] = i; });
+      out = out.map(function (it, i) { return [it, i]; }).sort(function (a, b) { var x = a[0].id in pos ? pos[a[0].id] : 1e9, y = b[0].id in pos ? pos[b[0].id] : 1e9; return x - y || a[1] - b[1]; }).map(function (q) { return q[0]; }); }
+    return o.single ? out.slice(0, 1) : out;
+  }
+
   // ── one maker per type ───────────────────────────────────────────────────────────────────────────
   var MAKE = {
     cards: function (cfg, name, w, lang) {
@@ -197,57 +269,17 @@
       // API with CORS); "items" is then the snapshot shown when the source can't be read. Every cell is text, cut at 300
       // characters; a row with a bad or repeated id, or with no name, is skipped; a URL outside "links" draws no link or photo.
       // A map never fills "reply": a cell must not become a sentence the visitor sends to the agent.
-      var load = src && function () { var o = { maxAge: src.maxAge }; return src.csv ? LBW.csv(src.csv, o) : LBW.json(src.json, o); };
+      // v0.8.2 · "data": "key" reads LBW.data (a flow's Code block put it there) instead of a URL: no fetch, a short wait
+      var load = src && function () { if (src.data != null) return LBW.data.wait(src.data, src.wait); var o = { maxAge: src.maxAge }; return src.csv ? LBW.csv(src.csv, o) : LBW.json(src.json, o); };
       var memo = null;   // the rows of the last answer read: one pass, and one log line per skipped row, per fetch
       function live(data) {   // throws when the answer isn't the list (a sign-in page, an error object): the saved items are drawn then
         if (memo && memo.data === data) return memo.rows;
-        var rows = src.json && src.path ? String(src.path).split('.').reduce(function (o, k) { return o != null && typeof o === 'object' && own(o, k) ? o[k] : null; }, data) : data;
-        var seen = Object.create(null), out = [], idCol = src.id || 'id';
-        if (!Array.isArray(rows)) throw new Error('the source did not answer a list');
-        if (!rows.length) throw new Error('the source has no rows');   // an emptied sheet or a page that isn't the file: can't tell them apart
-        // a JSON key may be dotted ("title.rendered", as WordPress nests it); every step is an own property
-        var raw = function (r, k) { var v = String(k).split('.').reduce(function (o, j) { return o != null && typeof o === 'object' && own(o, j) ? o[j] : null; }, r); return v == null || typeof v === 'object' ? '' : String(v).trim(); };
-        var cut = function (v) { return v.length > 300 ? Array.from(v).slice(0, 300).join('') : v; };
-        // {column|text}: the cell is HTML (a WordPress title). Read as text in an inert document (nothing runs or loads), with
-        // script and style left out and a space where a block or a <br> ends; decoded first, cut after.
-        var text = function (v) {
-          var d = new DOMParser().parseFromString(v.slice(0, 20000), 'text/html');
-          [].forEach.call(d.querySelectorAll('script,style,template,noscript'), function (n) { n.remove(); });
-          [].forEach.call(d.querySelectorAll('br,p,div,li,h1,h2,h3,h4,h5,h6,tr,td'), function (n) { n.insertAdjacentText(n.tagName === 'BR' ? 'beforebegin' : 'afterend', ' '); });
-          return (d.body ? d.body.textContent : '').replace(/\s+/g, ' ').trim();
-        };
-        if (!rows.some(function (r) { return r && typeof r === 'object' && raw(r, idCol) !== ''; })) throw new Error('the source has no "' + idCol + '" column');
-        rows.slice(0, src.max || 2000).forEach(function (r) {
-          if (!r || typeof r !== 'object') return;
-          var get = function (k, t) { var v = (lang && k.indexOf('.') < 0 && raw(r, k + '_' + lang)) || raw(r, k); return cut(t && v ? text(v) : v); };
-          var id = cut(raw(r, idCol)); if (!/^[a-z0-9][a-z0-9_-]{0,39}$/.test(id) || seen[id]) { LBW.drop(name + ': source row skipped (id "' + id.slice(0, 40) + '")'); return; }
-          var it = { id: id };
-          Object.keys(src.map).forEach(function (k) {
-            var gap = false, put = function (x) {
-              if (typeof x === 'string') return x.replace(/\{([A-Za-z0-9_.]+)(\|text)?\}/g, function (m, c, t) { var v = get(c, t); if (!v) gap = true; return v; });
-              if (Array.isArray(x)) return x.map(put);
-              if (x && typeof x === 'object') { var o = {}; Object.keys(x).forEach(function (j) { o[j] = put(x[j]); }); return o; }
-              return x; }, v = put(src.map[k]);
-            if (!gap) it[k] = v;   // a field with an empty cell is left out whole (no "From  €", no link with no URL)
-          });
-          // "merge": true · the saved item with the same id gives the parts the map doesn't fill (a photo, a description, a
-          // name by language when "name" isn't mapped). A mapped part comes only from the file: an emptied cell stays empty,
-          // and a saved "until" never hides a live row.
-          // v0.8.1.12 · a mapped photo may be { "photo": "set:{column}" }: written out from "photos" here, row by row
-          if (it.img != null && photoRef(it.img)) { var pi = photo(cfg.photos, it.img, 'img', it.name, function (m) { LBW.drop(name + ': source row ' + id + ': ' + m); }); if (pi === undefined) delete it.img; else it.img = pi; }
-          if (src.merge) (w.items || []).some(function (s) { if (String(s.id) !== id) return false; Object.keys(s).forEach(function (k) { if (k !== 'id' && k !== 'until' && k !== 'status' && !own(src.map, k)) it[k] = s[k]; }); /* v0.8.1.4: never a saved status beside live data */ return true; });
-          if (!it.name) { LBW.drop(name + ': source row skipped (no name, id "' + id + '")'); return; }
-          if (it.until != null && LBW.day.read(it.until) == null) { LBW.drop(name + ': source row skipped (id "' + id + '": "until" is not D/M/YYYY)'); return; }
-          seen[id] = 1; out.push(it);
-        });
-        // "order": "items" · the saved items' order (an API that sorts its own way); rows that aren't saved go last, as they came
-        if (src.order === 'items') { var pos = Object.create(null); (w.items || []).forEach(function (s, i) { pos[String(s.id)] = i; });
-          out = out.map(function (it, i) { return [it, i]; }).sort(function (a, b) { var x = a[0].id in pos ? pos[a[0].id] : 1e9, y = b[0].id in pos ? pos[b[0].id] : 1e9; return x - y || a[1] - b[1]; }).map(function (p) { return p[0]; }); }
+        var out = mapRows(cfg, name, src, data, lang, { saved: w.items, need: ['name'], img: 'img' });
         memo = { data: data, rows: out };
         return out;
       }
       // fetched once when the chat loads; with a URL per language, only the default language's
-      if (load && src.prefetch !== false && typeof fetch === 'function' && (!lang || lang === (cfg.defaultLang && (cfg.langs || []).indexOf(cfg.defaultLang) >= 0 ? cfg.defaultLang : (cfg.langs || [lang])[0]))) { try { load().then(null, function () {}); } catch (e) {} }
+      if (load && src.data == null && src.prefetch !== false && typeof fetch === 'function' && (!lang || lang === (cfg.defaultLang && (cfg.langs || []).indexOf(cfg.defaultLang) >= 0 ? cfg.defaultLang : (cfg.langs || [lang])[0]))) { try { load().then(null, function () {}); } catch (e) {} }
       K.carousel(name, merge(pick(w, ['cls', 'lang', 'allowDup']), {
         select: function (p) {
           var k = by ? p.one(param, vals) : null, today = LBW.day.today();
@@ -324,7 +356,7 @@
       K.stats(name, o);
     },
     people: function (cfg, name, w, lang) {
-      var o = pick(w, ['cls', 'lang', 'kicker', 'title', 'note', 'items', 'allowDup']), r = reply(cfg, w.reply), ids = Object.keys(w.items);
+      var o = pick(w, ['cls', 'lang', 'kicker', 'title', 'note', 'items', 'allowDup']), r = reply(cfg, w.reply), ids = Object.keys(w.items || {});   // v0.8.2: none saved when the people come from LBW.data
       // [[p:team who=ana,ben]] shows those; no `who` shows everyone; a `who` that names nobody known shows nothing
       if (w.filter) o.select = function (p) { var l = p.list(w.filter.param, ids, 4); return l.length ? l : p.has(w.filter.param) ? [] : ids; };
       if (r) o.reply = function (id, x) { var sc = plain({ id: id, name: x.name, role: x.role }); return [tpl(r[0], sc), tpl(r[1], sc), fieldsOf(r[2], sc)]; };
@@ -425,7 +457,7 @@
   // { "en": "Hours", "es": "Horario" }: every key a language of `langs`, every value a text or a list. Objects that are
   // maps by a name of yours are never read that way, whatever their keys: actions, replies, widgets, titles, fields, own,
   // carriedBy, tables, state, compute, map, week, and `items` in the types that keep items by id.
-  var MAPS = { actions: 1, replies: 1, widgets: 1, own: 1, carriedBy: 1, titles: 1, tables: 1, fields: 1, state: 1, compute: 1, map: 1, week: 1, values: 1 };
+  var MAPS = { actions: 1, replies: 1, widgets: 1, own: 1, carriedBy: 1, titles: 1, tables: 1, fields: 1, state: 1, compute: 1, map: 1, week: 1, values: 1, params: 1 };
   var BYID = { cards: 1, table: 1, stats: 1, people: 1, chips: 1, compare: 1 }, CODE = /^[a-z]{2,3}$/;
   function langsOf(cfg) { return isObj(cfg) && isArr(cfg.langs) && cfg.langs.length && cfg.langs.every(isStr) ? cfg.langs : [isObj(cfg) && isStr(cfg.defaultLang) ? cfg.defaultLang : 'en']; }
   function dfltOf(cfg, langs) { return isObj(cfg) && isStr(cfg.defaultLang) && langs.indexOf(cfg.defaultLang) >= 0 ? cfg.defaultLang : langs[0]; }
@@ -516,6 +548,127 @@
     });
     return out;
   }
+  // ── params (v0.8.2): typed values a tag carries, for every type ──────────────────────────────────────────────────
+  // "params": { "plazas": { "type": "int", "min": 0, "max": 99, "required": true }, "precio": { "type": "money", "max": 100000 },
+  //             "fecha": { "type": "day" }, "zona": { "type": "one", "values": ["norte", "sur"], "labels": { … } }, "nota": { "type": "text", "max": 60 } }
+  // A flow writes them from fields (@{plazas}), or the agent copies them from a source; they are facts to show, so they are
+  // read strictly: a value that isn't one is never clamped or guessed. Missing or not valid → the "default", else nothing; a
+  // "required" one that is missing or not valid → the widget draws nothing. In any text of the widget they are placeholders
+  // ({plazas}, {precio:money}, {fecha:date}, {zona:label}); in a calc, review or chart the numbers are names for formulas.
+  var PTYPES = ['one', 'list', 'int', 'num', 'money', 'text', 'day', 'time'], PNUM = { int: 1, num: 1, money: 1, day: 1, time: 1 };
+  var PSKIP = { params: 1, compute: 1, tables: 1, state: 1, source: 1, type: 1 }, PSENT = { send: 1, say: 1, reply: 1, fields: 1, pick: 1, discard: 1, yes: 1, no: 1 };
+  function dayAt(x) { return x === 'today' ? LBW.day.today() : LBW.day.read(x); }
+  function pread(d, p, key) {   // the value of one param from the tag, or null when it isn't one of its type
+    var raw = String(p.raw[key]).trim(), t = d.type, n, m;
+    if (t === 'one') return p.one(key, d.values || []);
+    if (t === 'list') { var l = p.list(key, d.values || [], d.max || 99); return l.length ? l : null; }
+    if (t === 'text') { var x = p.text(key, d.max || 80).replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim(); return x || null; }
+    if (t === 'day') { n = p.day(key); return n != null && (d.min == null || n >= dayAt(d.min)) && (d.max == null || n <= dayAt(d.max)) ? n : null; }
+    if (t === 'time') return LBW.time.read(raw);
+    if (t === 'money') {   // "34.99", "34,99", "34" (in the currency's units), or whole cents with "cents": true; no thousands separators
+      m = d.cents ? /^(\d{1,12})$/.exec(raw) : /^(?:[€$£]\s?)?(\d{1,10})(?:[.,](\d{1,2}))?(?:\s?[€$£])?$/.exec(raw); if (!m) return null;
+      n = d.cents ? +m[1] : +m[1] * 100 + (m[2] ? +(m[2] + '0').slice(0, 2) : 0);
+    } else if (!(t === 'int' ? /^-?\d{1,12}$/ : /^-?\d{1,12}(?:[.,]\d{1,6})?$/).test(raw)) return null;
+    else n = +raw.replace(',', '.');
+    return isFinite(n) && n >= (d.min == null ? (t === 'money' ? 0 : -Infinity) : d.min) && n <= (d.max == null ? Infinity : d.max) ? n : null;
+  }
+  function pdefault(d) { var v = d['default']; return v == null ? null : d.type === 'day' ? dayAt(v) : d.type === 'time' ? LBW.time.read(v) : v; }
+  function params(name, defs, p) {   // → { name: value } or null (a required one is missing or not valid)
+    var out = {}, ok = true;
+    Object.keys(defs).forEach(function (k) {
+      if (!ok || k === '__proto__') return; var d = defs[k], key = d.param || k, v = null;
+      if (p.has(key)) { v = pread(d, p, key); if (v == null) LBW.drop(name + ': bad value ' + key + '=' + String(p.raw[key]).slice(0, 40)); }
+      if (v == null) v = pdefault(d);
+      if (v == null && d.required) { LBW.drop(name + ': ' + key + ' is required'); ok = false; return; }
+      if (v != null) out[k] = v;
+    });
+    return ok ? out : null;
+  }
+  // the widget with every param placeholder written out. A param with no value leaves its text empty, and a field it fills is
+  // left out (never emptied in Landbot). In a URL a value is encoded; a value never brings a { } of its own.
+  function withParams(w, defs, vals, lang) {
+    var names = Object.keys(defs), items = {};
+    names.forEach(function (k) { var lb = defs[k].labels; if (isObj(lb)) items[k] = Object.keys(lb).map(function (v) { return [v, lb[v]]; }); });
+    var sc = function (sent) { return { v: vals, items: items, money: function (n) { return H.money(n, merge(w.money, sent ? { nb: false } : null)); }, lang: w.lang || lang, sep: w.sep, h12: w.h12 }; };
+    function str(x, sent) {
+      var url = /^(https?:|tel:|mailto:)/i.test(x), empty = false;
+      var r = x.replace(HOLE, function (m, body) {
+        var y = SLOT.exec(body); if (!y || names.indexOf(y[1]) < 0) return m;
+        if (!own(vals, y[1])) { empty = true; return ''; }
+        var v = tpl(m, sc(sent)).replace(/[{}]/g, ''); return url ? encodeURIComponent(v) : v;
+      });
+      return [r, empty];
+    }
+    function walk(x, sent, fields) {
+      if (typeof x === 'string') { var r = str(x, sent); return fields && r[1] && r[0] === '' ? undefined : r[0]; }
+      if (isArr(x)) return x.map(function (y, i) { return walk(y, sent, i === 2 && isObj(y)); });
+      if (!isObj(x)) return x;
+      var o = {}; Object.keys(x).forEach(function (k) {
+        if (k === '__proto__') return; if (own(PSKIP, k)) { o[k] = x[k]; return; }
+        var v = walk(x[k], sent || own(PSENT, k), fields || k === 'fields'); if (v !== undefined) o[k] = v;
+      });
+      return o;
+    }
+    var out = walk(w, false, false);
+    // the numbers are names in formulas: they join the tables (a calc, a review or a chart reads both)
+    if (w.type === 'calc' || w.type === 'review' || w.type === 'chart') { var nums = {}; names.forEach(function (k) { if (own(PNUM, defs[k].type) && own(vals, k)) nums[k] = vals[k]; }); out.tables = merge(w.tables, nums); }
+    return out;
+  }
+
+  // ── "source": { "data": "key" } for every type that keeps items (v0.8.2) ─────────────────────────────────────────
+  // The rows come from LBW.data (a flow's Code block put them there); "items" (or "item") is the saved copy, drawn when the
+  // data is missing after "wait" ms or unreadable. Already there when the tag is read (a Code block runs before the next
+  // message): drawn at once; not yet: a skeleton, then the data or the saved copy.
+  var NEEDS = { cards: ['title'], stats: ['stats'], people: ['name', 'role'], compare: ['name'], table: [] };
+  function build(c, name, w, lang) {   // the maker's widget function for this copy of the widget
+    var fn = null, real = LBW.widget;
+    LBW.widget = function (n, f) { fn = f; return LBW; };
+    try { MAKE[w.type](c, name, w, lang); } finally { LBW.widget = real; }
+    return fn;
+  }
+  function transplant(o, el) {   // a card drawn late moves into the skeleton the tag already holds (its data-tag stays)
+    while (o.firstChild) o.removeChild(o.firstChild);
+    o.className = el.className; while (el.firstChild) o.appendChild(el.firstChild); o.box = el.box || o.querySelector('.lbw-box');
+  }
+  var DMEMO = {};
+  function liveW(c, name, w, lang, key, data) {   // the widget with the data's rows as its items; null: no row to draw
+    var src = w.source, single = !!w.item && w.type !== 'table', mk = name + '|' + lang + '|' + key, m = DMEMO[mk];
+    if (!(m && m.data === data && m.w === w)) {
+      var saved = single ? [w.item] : isObj(w.items) ? Object.keys(w.items).map(function (id) { return merge(w.items[id], { id: id }); }) : [];
+      var rows = mapRows(c, name, src, data, lang, { saved: saved, need: NEEDS[w.type], img: w.type === 'people' ? 'url' : 'img', single: single, table: w.type === 'table' });
+      var out = null;
+      if (w.type === 'table') { var cols = isObj(w.item) && isArr(w.item.cols) ? w.item.cols : [];
+        if (rows.length) out = merge(w, { item: merge(w.item, { rows: rows.slice(0, src.max || 30).map(function (r) { return cols.map(function (cl) { return r[cl[0]] == null ? '' : String(r[cl[0]]); }); }) }) }); }
+      else if (rows.length) {
+        if (single) out = merge(w, { item: rows[0] });
+        else { var by = {}; rows.forEach(function (r) { var x = merge(r, {}); delete x.id; Object.defineProperty(by, r.id, { value: x, enumerable: true, writable: true, configurable: true }); }); out = merge(w, { items: by }); delete out.item; }
+      }
+      m = DMEMO[mk] = { data: data, w: w, out: out };
+    }
+    return m.out;
+  }
+  function fromData(c, name, w, lang, p, ctx) {
+    var key = w.source.data, has = w.item ? !(w.type === 'table' && !(isArr(w.item.rows) && w.item.rows.length)) : isObj(w.items) && Object.keys(w.items).length > 0;
+    var saved = function () { return build(c, name, w, lang)(p, ctx); };
+    var cur = LBW.data.get(key);
+    if (cur !== undefined) {
+      var lw; try { lw = liveW(c, name, w, lang, key, cur); } catch (e) { LBW.drop(name + ': data "' + key + '": ' + e.message + ' (the saved copy)'); return has ? saved() : null; }
+      return lw ? build(c, name, lw, lang)(p, ctx) : null;
+    }
+    var o = U.loading(lang, 'kit-' + w.type);
+    return LBW.later(o, LBW.data.wait(key, w.source.wait).then(function (d) { return liveW(c, name, w, lang, key, d); }),
+      function (lw) { var el = lw && build(c, name, lw, lang)(p, ctx); if (!el) return false; transplant(o, el); },
+      has ? function () { var el = saved(); if (!el) throw new Error('nothing to show'); transplant(o, el); } : null);
+  }
+  // a widget with params or a data source is made again for each tag, from its copy in the tag's language
+  function dyn(c, name, lang, p, ctx) {
+    var w = c.widgets[name];
+    if (isObj(w.params)) { var vals = params(name, w.params, p); if (!vals) return null; w = withParams(w, w.params, vals, lang);
+      // "data": { "param": "src" } · the key is the value of a "one" param ([[p:tarifas src=tarifas_es]])
+      if (isObj(w.source) && isObj(w.source.data)) { var dk = vals[w.source.data.param]; if (!isStr(dk)) return null; w = merge(w, { source: merge(w.source, { data: dk }) }); } }
+    if (isObj(w.source) && w.source.data != null && w.type !== 'carousel') return fromData(c, name, w, lang, p, ctx);
+    return build(c, name, w, lang)(p, ctx);
+  }
   function setup(cfg) {
     // the checker is a separate file (kit/setup-check.js): `npm run bot` runs it before a config is uploaded, and the
     // bundle a bot loads leaves it out. Without it a config is taken as checked, and a widget that fails is skipped.
@@ -530,13 +683,16 @@
       if (bad.indexOf(name) >= 0) return;
       // a text may be { en: …, es: … }: the maker runs once per language on a copy with that language's texts, and the
       // widget registered under `name` picks the one for the tag's lang
-      var fns = {}, opts, cur, real = LBW.widget;
+      var fns = {}, cs = {}, opts, cur, real = LBW.widget, w0 = cfg.widgets[name];
+      // v0.8.2 · params, or rows from LBW.data: made again for each tag (dyn) from its copy by language; every other widget is
+      // made once, as before. A carousel reads its own source (its select() waits for the data).
+      var isDyn = isObj(w0) && (isObj(w0.params) || (isObj(w0.source) && w0.source.data != null && w0.type !== 'carousel'));
       try {
         LBW.widget = function (n, fn, o) { fns[cur] = fn; opts = o || opts; return LBW; };
-        try { langs.forEach(function (l) { cur = l; var c = loc(cfg, { lang: l, langs: langs, dflt: dflt }, '', false, null); MAKE[c.widgets[name].type](c, name, c.widgets[name], l); }); }
+        try { langs.forEach(function (l) { cur = l; var c = loc(cfg, { lang: l, langs: langs, dflt: dflt }, '', false, null); if (isDyn) cs[l] = c; MAKE[c.widgets[name].type](c, name, c.widgets[name], l); }); }
         finally { LBW.widget = real; }
-        var fixed = cfg.widgets[name].lang;   // a widget with its own `lang` always speaks it
-        LBW.widget(name, function (p, ctx) { return (fns[isStr(fixed) && own(fns, fixed) ? fixed : ctx.lang] || fns[dflt])(p, ctx); }, opts);
+        var fixed = w0.lang, pickL = function (ctx) { return isStr(fixed) && own(fns, fixed) ? fixed : own(fns, ctx.lang) ? ctx.lang : dflt; };   // a widget with its own `lang` always speaks it
+        LBW.widget(name, isDyn ? function (p, ctx) { var l = pickL(ctx); return dyn(cs[l], name, l, p, ctx); } : function (p, ctx) { return (fns[isStr(fixed) && own(fns, fixed) ? fixed : ctx.lang] || fns[dflt])(p, ctx); }, opts);
         made.push(name);
       } catch (e) { root.__kitSetupErrors.push(name + ': ' + e.message); LBW.drop('setup: ' + name + ': ' + e.message); }
     });
@@ -545,6 +701,6 @@
   setup.types = Object.keys(MAKE);
   // for kit/setup-check.js
   setup._ = { own: own, pick: pick, isArr: isArr, isObj: isObj, isStr: isStr, isPair: isPair, WORD: WORD, CODE: CODE, HOLE: HOLE, SLOT: SLOT,
-    compile: compile, loc: loc, photosIn: photosIn, srcsetOf: srcsetOf, photoRef: photoRef, photoSet: photoSet, langsOf: langsOf, dfltOf: dfltOf, resolve: resolve, reply: reply, timeOf: timeOf };
+    compile: compile, loc: loc, PTYPES: PTYPES, PNUM: PNUM, PSKIP: PSKIP, NEEDS: NEEDS, photosIn: photosIn, srcsetOf: srcsetOf, photoRef: photoRef, photoSet: photoSet, langsOf: langsOf, dfltOf: dfltOf, resolve: resolve, reply: reply, timeOf: timeOf };
   K.setup = setup;
 })(typeof window !== 'undefined' ? window : this);
