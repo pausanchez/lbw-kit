@@ -419,7 +419,8 @@
             var sc = w.source, slideKeys = ITEM.slide.concat(isObj(w.filter) && isStr(w.filter.by) ? [w.filter.by] : []);
             if (!isObj(sc)) err('"source" is { "csv" | "json": an https URL, "id": the id column, "map": { "name": "{column}", … } }');
             else {
-              only(sc, ['csv', 'json', 'data', 'wait', 'path', 'id', 'map', 'merge', 'order', 'max', 'maxAge', 'prefetch'], 'source'); dataCheck(sc, w.params);
+              only(sc, ['csv', 'json', 'data', 'wait', 'upgrade', 'path', 'id', 'map', 'merge', 'order', 'max', 'maxAge', 'prefetch'], 'source'); dataCheck(sc, w.params);
+              if (sc.upgrade != null && sc.data == null) err('source.upgrade is for a carousel read from "data" (a flow\'s Code block, which runs late): a "csv" or "json" source is fetched when the chat loads, and has none');
               if (sc.order != null && (sc.order !== 'items' || !(isArr(w.items) && w.items.length))) err('source.order is "items": the slides follow the saved items\' order (it needs "items")');
               if (sc.merge != null && (sc.merge !== true && sc.merge !== false)) err('source.merge is true or false');
               if (sc.merge === true && !(isArr(w.items) && w.items.length)) err('source.merge needs "items": the saved item with the same id fills what a live row lacks');

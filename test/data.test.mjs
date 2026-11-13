@@ -196,3 +196,43 @@ test('data (v0.9.1): data that lands after the saved copy replaces it, unless th
   // the checker
   const bad = CFG(); bad.widgets.tour.source.upgrade = 90000; assert.match(errors(bad), /source\.upgrade/);
 });
+
+test('data (v0.9.2): a carousel\'s saved slides are replaced by data that lands late, unless the visitor used it; with no saved slides the skeleton waits', async () => {
+  const RUTAS = [{ id: 'r1', name: 'Ruta del faro', sub: '2 h', precio: 15 }, { id: 'r2', name: 'Ruta del puerto' }];
+  const cfg = CFG(); cfg.widgets.rutas.source.wait = 30; cfg.widgets.rutas.source.upgrade = 400;
+  cfg.widgets.rutas.items[0].reply = ['La quiero', 'Quiero la ruta guardada']; cfg.widgets.rutas.reply = ['Ver todas', 'Quiero ver todas las rutas'];
+  const names = (m) => [...m.querySelectorAll('.lbw-name')].map((x) => x.textContent);
+  const withUp = (up) => { const x = JSON.parse(JSON.stringify(cfg)); x.widgets.rutas.source.upgrade = up; return x; };
+  const c = chat(cfg), m = draw(c, '[[p:rutas]]'); await wait(60);
+  assert.deepEqual(names(m), ['Ruta guardada']);
+  c.put('rutas', RUTAS); await wait(30);
+  const w = m.widgets()[0];
+  assert.deepEqual(names(m), ['Ruta del faro', 'Ruta del puerto']); assert.equal(w.getAttribute('data-lbw-upgraded'), '1');
+  assert.equal(w.getAttribute('data-widget'), 'rutas'); assert.ok(w.getAttribute('data-tag'));
+  assert.equal(w.querySelectorAll('.lbw-strip').length, 1); assert.equal(w.querySelector('.lbw-strip').scrollLeft, 0);
+  assert.equal(w.querySelectorAll('.kit-actions').length, 1);                                     // the footer reply once, not twice
+  assert.ok(w.box && w.contains(w.box));
+  // a slide's reply pressed before the data came: kept, and logged
+  const c2 = chat(cfg), m2 = draw(c2, '[[p:rutas]]'); await wait(60);
+  m2.widgets()[0].querySelector('.lbw-slide .lbw-reply').click(); c2.put('rutas', RUTAS); await wait(30);
+  assert.deepEqual(names(m2), ['Ruta guardada']); assert.ok(c2.dropped().some((x) => /rutas: data "rutas" came late; the saved copy stays/.test(x)));
+  // the footer reply pressed: kept
+  const c2b = chat(cfg), m2b = draw(c2b, '[[p:rutas]]'); await wait(60);
+  m2b.widgets()[0].querySelector('.kit-actions .lbw-reply').click(); c2b.put('rutas', RUTAS); await wait(30);
+  assert.deepEqual(names(m2b), ['Ruta guardada']);
+  // past the window: kept
+  const c3 = chat(cfg), m3 = draw(c3, '[[p:rutas]]'); await wait(500); c3.put('rutas', RUTAS); await wait(30);
+  assert.deepEqual(names(m3), ['Ruta guardada']); assert.equal(m3.widgets()[0].getAttribute('data-lbw-upgraded'), null);
+  // upgrade 0 = never
+  const c0 = chat(withUp(0)), m0 = draw(c0, '[[p:rutas]]'); await wait(60); c0.put('rutas', RUTAS); await wait(30);
+  assert.deepEqual(names(m0), ['Ruta guardada']);
+  // no saved slides: the skeleton waits for the upgrade window, not just "wait"
+  delete cfg.widgets.rutas.items; const c4 = chat(cfg), m4 = draw(c4, '[[p:rutas]]'); await wait(100);
+  assert.ok(m4.widgets()[0].classList.contains('is-loading')); c4.put('rutas', RUTAS); await wait(30);
+  assert.deepEqual(names(m4), ['Ruta del faro', 'Ruta del puerto']);
+  // the checker: a range, and only with "data"
+  const bad = (f) => { const x = CFG(); f(x.widgets.rutas); return errors(x); };
+  assert.equal(bad((x) => { x.source.upgrade = 5000; }), '');
+  assert.match(bad((x) => { x.source.upgrade = 90000; }), /source\.upgrade is how long/);
+  assert.match(bad((x) => { delete x.source.data; x.source.csv = 'https://tours.example/r.csv'; x.source.upgrade = 5000; }), /source\.upgrade is for a carousel read from "data"/);
+});
