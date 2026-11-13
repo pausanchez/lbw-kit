@@ -31,32 +31,32 @@
           open: 'Open now · until {t}', closed: 'Closed now · opens {d} at {t}', closedLong: 'Closed now', today: 'today', tomorrow: 'tomorrow',
           days: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'], localTime: 'Local time: {t}', sent: 'Sent', show: 'Show', hide: 'Hide', busy: 'Busy', pick: 'Pick a time', confirm: 'Confirm', yes: 'Yes', no: 'No',
           close: 'Close', prev: 'Previous photo', next: 'Next photo', photos: 'Photos', enlarge: 'Enlarge on the page', cSame: 'The same in all:', cSame2: 'The same in both:',
-          sOpen: 'Open today', sClosed: 'Closed today', sUntil: 'Open until', sOpens: 'Opens', sIn: 'Opens in', sCloses: 'Season', sDay: '1 day', sDays: '{n} days', sUnknown: 'The next dates aren’t published yet.' , rateOf: '{n} of {max}', tMore: 'See all {n} rows', tLess: 'See fewer', tPick: 'Choose', tPicked: 'Chosen', tTotal: 'Total' },
+          sOpen: 'Open today', sClosed: 'Closed today', sUntil: 'Open until', sOpens: 'Opens', sIn: 'Opens in', sCloses: 'Season', sDay: '1 day', sDays: '{n} days', sUnknown: 'The next dates aren’t published yet.' , rateOf: '{n} of {max}', tMore: 'See all {n} rows', tLess: 'See fewer', tPick: 'Choose', tPicked: 'Chosen', tTotal: 'Total', updated: 'Updated', photoOf: 'photo {n} of {max}', day: 'Day' },
     es: { copy: 'Copiar', copied: 'Copiado ✓', select: 'Selecciona el texto y cópialo', summary: 'Tu resumen',
           open: 'Abierto ahora · hasta las {t}', closed: 'Cerrado ahora · abre {d} a las {t}', closedLong: 'Cerrado ahora', today: 'hoy', tomorrow: 'mañana',
           days: ['el domingo', 'el lunes', 'el martes', 'el miércoles', 'el jueves', 'el viernes', 'el sábado'], localTime: 'Hora local: {t}', sent: 'Enviado', show: 'Ver', hide: 'Ocultar', busy: 'Ocupado', pick: 'Elige una hora', confirm: 'Confirmar', yes: 'Sí', no: 'No',
           close: 'Cerrar', prev: 'Foto anterior', next: 'Foto siguiente', photos: 'Fotos', enlarge: 'Ampliar en la página', cSame: 'Igual en todas:', cSame2: 'Igual en las dos:',
-          sOpen: 'Abierto hoy', sClosed: 'Cerrado hoy', sUntil: 'Abierto hasta', sOpens: 'Abre', sIn: 'Abre en', sCloses: 'Temporada', sDay: '1 día', sDays: '{n} días', sUnknown: 'Las próximas fechas aún no están publicadas.' , rateOf: '{n} de {max}', tMore: 'Ver las {n} filas', tLess: 'Ver menos', tPick: 'Elegir', tPicked: 'Elegido', tTotal: 'Total' },
+          sOpen: 'Abierto hoy', sClosed: 'Cerrado hoy', sUntil: 'Abierto hasta', sOpens: 'Abre', sIn: 'Abre en', sCloses: 'Temporada', sDay: '1 día', sDays: '{n} días', sUnknown: 'Las próximas fechas aún no están publicadas.' , rateOf: '{n} de {max}', tMore: 'Ver las {n} filas', tLess: 'Ver menos', tPick: 'Elegir', tPicked: 'Elegido', tTotal: 'Total', updated: 'Actualizado', photoOf: 'foto {n} de {max}', day: 'Día' },
     it: { copy: 'Copia', copied: 'Copiato ✓', select: 'Seleziona il testo e copialo', summary: 'Il tuo riepilogo',
           open: 'Aperto ora · fino alle {t}', closed: 'Chiuso ora · apre {d} alle {t}', closedLong: 'Chiuso ora', today: 'oggi', tomorrow: 'domani',
           days: ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato'], localTime: 'Ora locale: {t}', sent: 'Inviato', show: 'Mostra', hide: 'Nascondi', busy: 'Occupato', pick: 'Scegli un orario', confirm: 'Conferma', yes: 'Sì', no: 'No',
           close: 'Chiudi', prev: 'Foto precedente', next: 'Foto successiva', photos: 'Foto', enlarge: 'Ingrandisci nella pagina', cSame: 'Uguale in tutte:', cSame2: 'Uguale in entrambe:',
-          sOpen: 'Aperto oggi', sClosed: 'Chiuso oggi', sUntil: 'Aperto fino a', sOpens: 'Apre', sIn: 'Apre tra', sCloses: 'Stagione', sDay: '1 giorno', sDays: '{n} giorni', sUnknown: 'Le prossime date non sono ancora pubblicate.' , rateOf: '{n} su {max}', tMore: 'Vedi tutte le {n} righe', tLess: 'Vedi meno', tPick: 'Scegli', tPicked: 'Scelto', tTotal: 'Totale' },
+          sOpen: 'Aperto oggi', sClosed: 'Chiuso oggi', sUntil: 'Aperto fino a', sOpens: 'Apre', sIn: 'Apre tra', sCloses: 'Stagione', sDay: '1 giorno', sDays: '{n} giorni', sUnknown: 'Le prossime date non sono ancora pubblicate.' , rateOf: '{n} su {max}', tMore: 'Vedi tutte le {n} righe', tLess: 'Vedi meno', tPick: 'Scegli', tPicked: 'Scelto', tTotal: 'Totale', updated: 'Aggiornato', photoOf: 'foto {n} di {max}', day: 'Giorno' },
     de: { copy: 'Kopieren', copied: 'Kopiert ✓', select: 'Text markieren und kopieren', summary: 'Deine Zusammenfassung',
           open: 'Jetzt geöffnet · bis {t} Uhr', closed: 'Jetzt geschlossen · öffnet {d} um {t} Uhr', closedLong: 'Jetzt geschlossen', today: 'heute', tomorrow: 'morgen',
           days: ['am Sonntag', 'am Montag', 'am Dienstag', 'am Mittwoch', 'am Donnerstag', 'am Freitag', 'am Samstag'], localTime: 'Ortszeit: {t}', sent: 'Gesendet', show: 'Anzeigen', hide: 'Ausblenden', busy: 'Belegt', pick: 'Uhrzeit wählen', confirm: 'Bestätigen', yes: 'Ja', no: 'Nein',
           close: 'Schließen', prev: 'Vorheriges Foto', next: 'Nächstes Foto', photos: 'Fotos', enlarge: 'Auf der Seite vergrößern', cSame: 'Bei allen gleich:', cSame2: 'Bei beiden gleich:',
-          sOpen: 'Heute geöffnet', sClosed: 'Heute geschlossen', sUntil: 'Geöffnet bis', sOpens: 'Öffnet', sIn: 'Öffnet in', sCloses: 'Saison', sDay: '1 Tag', sDays: '{n} Tagen', sUnknown: 'Die nächsten Termine sind noch nicht veröffentlicht.' , rateOf: '{n} von {max}', tMore: 'Alle {n} Zeilen anzeigen', tLess: 'Weniger anzeigen', tPick: 'Wählen', tPicked: 'Gewählt', tTotal: 'Gesamt' },
+          sOpen: 'Heute geöffnet', sClosed: 'Heute geschlossen', sUntil: 'Geöffnet bis', sOpens: 'Öffnet', sIn: 'Öffnet in', sCloses: 'Saison', sDay: '1 Tag', sDays: '{n} Tagen', sUnknown: 'Die nächsten Termine sind noch nicht veröffentlicht.' , rateOf: '{n} von {max}', tMore: 'Alle {n} Zeilen anzeigen', tLess: 'Weniger anzeigen', tPick: 'Wählen', tPicked: 'Gewählt', tTotal: 'Gesamt', updated: 'Aktualisiert', photoOf: 'Foto {n} von {max}', day: 'Tag' },
     fr: { copy: 'Copier', copied: 'Copié ✓', select: 'Sélectionnez le texte et copiez-le', summary: 'Votre résumé',
           open: 'Ouvert · jusqu’à {t}', closed: 'Fermé · ouvre {d} à {t}', closedLong: 'Fermé', today: 'aujourd’hui', tomorrow: 'demain',
           days: ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'], localTime: 'Heure locale : {t}', sent: 'Envoyé', show: 'Voir', hide: 'Masquer', busy: 'Occupé', pick: 'Choisissez une heure', confirm: 'Confirmer', yes: 'Oui', no: 'Non',
           close: 'Fermer', prev: 'Photo précédente', next: 'Photo suivante', photos: 'Photos', enlarge: 'Agrandir sur la page', cSame: 'Identique pour toutes :', cSame2: 'Identique pour les deux :',
-          sOpen: 'Ouvert aujourd’hui', sClosed: 'Fermé aujourd’hui', sUntil: 'Ouvert jusqu’au', sOpens: 'Ouverture', sIn: 'Ouvre dans', sCloses: 'Saison', sDay: '1 jour', sDays: '{n} jours', sUnknown: 'Les prochaines dates ne sont pas encore publiées.' , rateOf: '{n} sur {max}', tMore: 'Voir les {n} lignes', tLess: 'Voir moins', tPick: 'Choisir', tPicked: 'Choisi', tTotal: 'Total' },
+          sOpen: 'Ouvert aujourd’hui', sClosed: 'Fermé aujourd’hui', sUntil: 'Ouvert jusqu’au', sOpens: 'Ouverture', sIn: 'Ouvre dans', sCloses: 'Saison', sDay: '1 jour', sDays: '{n} jours', sUnknown: 'Les prochaines dates ne sont pas encore publiées.' , rateOf: '{n} sur {max}', tMore: 'Voir les {n} lignes', tLess: 'Voir moins', tPick: 'Choisir', tPicked: 'Choisi', tTotal: 'Total', updated: 'Mis à jour', photoOf: 'photo {n} sur {max}', day: 'Jour' },
     ca: { copy: 'Copia', copied: 'Copiat ✓', select: 'Selecciona el text i copia’l', summary: 'El teu resum',
           open: 'Obert ara · fins a les {t}', closed: 'Tancat ara · obre {d} a les {t}', closedLong: 'Tancat ara', today: 'avui', tomorrow: 'demà',
           days: ['diumenge', 'dilluns', 'dimarts', 'dimecres', 'dijous', 'divendres', 'dissabte'], localTime: 'Hora local: {t}', sent: 'Enviat', show: 'Mostra', hide: 'Amaga', busy: 'Ocupat', pick: 'Tria una hora', confirm: 'Confirma', yes: 'Sí', no: 'No',
           close: 'Tanca', prev: 'Foto anterior', next: 'Foto següent', photos: 'Fotos', enlarge: 'Amplia a la pàgina', cSame: 'Igual a totes:', cSame2: 'Igual a les dues:',
-          sOpen: 'Obert avui', sClosed: 'Tancat avui', sUntil: 'Obert fins al', sOpens: 'Obre', sIn: 'Obre d’aquí a', sCloses: 'Temporada', sDay: '1 dia', sDays: '{n} dies', sUnknown: 'Les properes dates encara no estan publicades.' , rateOf: '{n} de {max}', tMore: 'Veure les {n} files', tLess: 'Veure’n menys', tPick: 'Tria', tPicked: 'Triat', tTotal: 'Total' }
+          sOpen: 'Obert avui', sClosed: 'Tancat avui', sUntil: 'Obert fins al', sOpens: 'Obre', sIn: 'Obre d’aquí a', sCloses: 'Temporada', sDay: '1 dia', sDays: '{n} dies', sUnknown: 'Les properes dates encara no estan publicades.' , rateOf: '{n} de {max}', tMore: 'Veure les {n} files', tLess: 'Veure’n menys', tPick: 'Tria', tPicked: 'Triat', tTotal: 'Total', updated: 'Actualitzat', photoOf: 'foto {n} de {max}', day: 'Dia' }
   };
   function words(lang) { return L[lang] || L.en; }
   function fill(s, o) { return String(s).replace(/\{(\w+)\}/g, function (m, k) { return o[k] == null ? '' : o[k]; }); }
@@ -142,17 +142,42 @@
     return b;
   }
   function listy(g, items, at) { if (items.some(function (it) { return !!at(it); })) g.classList.add('is-list'); return g; }
-  function choice(title, items, cur, pick) {   // one of [[key, label], …]; returns the block
-    var w = el('div', 'kit-q'); if (title) w.appendChild(el('p', 'kit-ql', title)); var g = listy(el('div', 'lbw-chips'), items, function (it) { return it[2]; });
+  // v0.9.5 · a question names its group: the title is the group's label (role=group / radiogroup + aria-labelledby);
+  // with no title, `aria` (a word) names it
+  var QID = 0;
+  function question(title, g, aria) {
+    var w = el('div', 'kit-q');
+    if (title) { var q = el('p', 'kit-ql', title); q.id = 'lbw-kq' + (++QID); w.appendChild(q); g.setAttribute('aria-labelledby', q.id); }
+    else if (aria) g.setAttribute('aria-label', aria);
+    return w;
+  }
+  // v0.9.5 · one of several is a radiogroup (WAI-ARIA radio pattern): role=radio + aria-checked, one Tab stop (the checked
+  // one, or the first), arrows and Home/End move and choose. Buttons added later (slots redraw) call the returned rove().
+  function radioGroup(g) {
+    g.setAttribute('role', 'radiogroup');
+    var live = function () { return [].filter.call(g.querySelectorAll('[role="radio"]'), function (b) { return !b.disabled; }); };
+    function rove() { var bs = live(), on = bs.filter(function (b) { return b.getAttribute('aria-checked') === 'true'; })[0] || bs[0]; bs.forEach(function (b) { b.tabIndex = b === on ? 0 : -1; }); }
+    g.addEventListener('keydown', function (e) {
+      var k = e.key, dir = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[k];
+      if (!dir && k !== 'Home' && k !== 'End') return; if (g.closest('.is-done')) return;
+      var bs = live(), i = bs.indexOf(document.activeElement); if (i < 0 || !bs.length) return;
+      e.preventDefault(); var n = k === 'Home' ? 0 : k === 'End' ? bs.length - 1 : (i + dir + bs.length) % bs.length;
+      bs[n].focus(); bs[n].click();
+    });
+    return rove;
+  }
+  function radio(b, on) { b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', on ? 'true' : 'false'); return b; }
+  function choice(title, items, cur, pick, aria) {   // one of [[key, label], …]; returns the block
+    var g = listy(el('div', 'lbw-chips'), items, function (it) { return it[2]; }), w = question(title, g, aria), rove = radioGroup(g);
     items.forEach(function (it) {
-      var b = described(U.btn(it[1], 'lbw-tog'), it[1], it[2]); b.setAttribute('data-k', it[0]); b.setAttribute('aria-pressed', it[0] === cur ? 'true' : 'false');
-      b.addEventListener('click', function () { if (b.closest('.is-done')) return; [].forEach.call(g.children, function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); }); pick(it[0]); });
+      var b = radio(described(U.btn(it[1], 'lbw-tog'), it[1], it[2]), it[0] === cur); b.setAttribute('data-k', it[0]);
+      b.addEventListener('click', function () { if (b.closest('.is-done')) return; [].forEach.call(g.children, function (x) { x.setAttribute('aria-checked', x === b ? 'true' : 'false'); }); rove(); pick(it[0]); });
       g.appendChild(b);
     });
-    w.appendChild(g); return w;
+    rove(); w.appendChild(g); return w;
   }
   function multiChoice(title, items, cur, pick, none) {   // any of them; the `none` key clears the rest and the rest clear it
-    var w = el('div', 'kit-q'); if (title) w.appendChild(el('p', 'kit-ql', title)); var g = listy(el('div', 'lbw-chips'), items, function (it) { return it[2]; }); cur = cur || [];
+    var g = listy(el('div', 'lbw-chips'), items, function (it) { return it[2]; }), w = question(title, g); g.setAttribute('role', 'group'); cur = cur || [];
     function keys() { return [].filter.call(g.children, function (x) { return x.getAttribute('aria-pressed') === 'true'; }).map(function (x) { return x.getAttribute('data-k'); }); }
     items.forEach(function (it) {
       var b = described(U.btn(it[1], 'lbw-tog'), it[1], it[2]); b.setAttribute('data-k', it[0]); b.setAttribute('aria-pressed', cur.indexOf(it[0]) >= 0 ? 'true' : 'false');
@@ -509,13 +534,13 @@
   //           save, status: { text, ok }, desc, reply: [label, say, fields], link: [label, url] }   (every key optional but name)
   // Prices arrive formatted (LBW.kit.h.money): the kit never does arithmetic on your data.
   function slideEl(s) {
-    var sl = el('article', 'lbw-slide kit-slide'); sl.setAttribute('role', 'listitem'); if (s.id) sl.setAttribute('data-id', s.id);
+    var sl = el('div', 'lbw-slide kit-slide'); sl.setAttribute('role', 'listitem');   /* v0.9.5: an <article> may not be a listitem (axe) */ if (s.id) sl.setAttribute('data-id', s.id);
     // v0.8.1.7 · a slide's photo is drawn ~70 % of a phone's width, ~300 px on a wide column: ask for that, not the 90vw default
     if (s.img) { var io = s.img.sizes ? s.img : Object.assign({}, s.img, { sizes: '(max-width: 480px) 65vw, 300px' });   /* v0.8.1.8: 65vw keeps a 2× phone on a ~500 px copy (72vw sent it to the ~960 px one: 4× the bytes, H10 live) */ var im = U.img(s.img.src, 'kit-img' + (s.img.cls ? ' ' + s.img.cls : ''), io); if (s.badge) im.appendChild(el('span', 'kit-badge', s.badge)); sl.appendChild(im);
       if (s.gallery && s.gallery.photos && s.gallery.photos.length) zoomable(im, s.gallery, s.name); }   // v0.3: the photo opens LBW.kit.h.lightbox
     var b = el('div', 'lbw-slide-body'); sl.appendChild(b);
     if (s.kicker) b.appendChild(el('div', 'kit-slide-kicker', s.kicker));
-    b.appendChild(el('div', 'lbw-name', s.name));
+    var nm = b.appendChild(el('div', 'lbw-name', s.name)); nm.setAttribute('role', 'heading'); nm.setAttribute('aria-level', '4');   // v0.9.5: under the card's level-3 title
     if (s.sub) b.appendChild(el('div', 'lbw-muted kit-sub', s.sub));
     if (s.price) { var pr = el('div', 'kit-price'); pr.appendChild(el('strong', null, s.price.now)); if (s.price.unit) pr.appendChild(el('span', 'kit-unit', s.price.unit)); if (s.price.list) pr.appendChild(el('s', 'kit-list', s.price.list)); b.appendChild(pr); }
     if (s.save) b.appendChild(el('div', 'kit-save', s.save));
@@ -535,6 +560,7 @@
       function fill(o, sel) {   // → false when there is nothing to show
         if (!sel || !sel.items || !sel.items.length) return false;
         var st = el('div', 'lbw-strip'); st.tabIndex = 0; st.setAttribute('role', 'list');
+        if (sel.title || sel.kicker) st.setAttribute('aria-label', sel.title || sel.kicker);   // v0.9.5: a focusable list has a name
         sel.items.forEach(function (x, i) { var s = cfg.slide(x, ctx), wh = "carousel('" + name + "') slide " + i;
           if (s && s.gallery && !s.gallery.lang) s = Object.assign({}, s, { gallery: Object.assign({}, s.gallery, { lang: lang }) });   // v0.8.1.7: the lightbox and its label speak the card's language
           if (!s || !s.name) { warn(wh, 'no name: the slide was left out'); return; }
@@ -571,9 +597,9 @@
             // v0.9.2 · upgrade(o) → a promise of the selection from data that came late (null: keep these slides). Drawn on a
             // fresh card and moved in: the strip starts again at the first slide, the tag's attributes stay.
             if (sel.upgrade) sel.upgrade(o).then(function (s2) { var n = U.card(lang, 'kit-carousel ' + cls); if (!s2 || !fill(n, s2)) return;
-              var q = wasQuieted(o);   // v0.9.3: the conversation moved on: the live slides come in quiet too
+              var q = wasQuieted(o), back = keepPlace(o);   // v0.9.3: the conversation moved on: the live slides come in quiet too
               while (o.firstChild) o.removeChild(o.firstChild); o.className = n.className; while (n.firstChild) o.appendChild(n.firstChild); o.box = n.box;
-              if (q) quietAgain(o); o.setAttribute('data-lbw-upgraded', '1'); }, function () {}); } : null);
+              if (q) quietAgain(o); o.setAttribute('data-lbw-upgraded', '1'); back(); upgraded(o, lang); }, function () {}); } : null);   // v0.9.5: focus kept, "Updated" said
       }
       o = U.card(lang, 'kit-carousel ' + cls);
       return fill(o, sel) ? o : null;
@@ -596,11 +622,12 @@
     LBW.widget(name, function (p, ctx) {
       if (!cfg.allowDup && dup(ctx, cls)) return null;
       var state = cfg.state(p, ctx); if (!state) return null;
-      var lang = langOf(cfg, ctx), o = U.card(lang, 'kit-calc ' + cls), out = el('div', 'kit-out'), said = '';
+      var lang = langOf(cfg, ctx), o = U.card(lang, 'kit-calc ' + cls), out = el('div', 'kit-out'), said = '', was = null;
       var f = U.form('kit-calcform', { state: state, cta: cfg.cta, ready: cfg.ready,
         send: function (s) { var r = cfg.send(s); said = r && r[0]; return r; },
         sent: function (s) { if (cfg.collapse !== false && said) fold(o, said, lang); if (cfg.sent) cfg.sent(s); },
-        change: function (s) { out.textContent = ''; cfg.result(s, out, ctx); } });
+        // v0.9.5 · a changed total is said (the total lines only, never the breakdown), after the control that changed it
+        change: function (s) { out.textContent = ''; cfg.result(s, out, ctx); var t = totalsText(out); if (was != null && t && t !== was) LBW.announce(t, lang, 'total:' + name); was = t; } });
       U.head(o.box, val(cfg.kicker, p, ctx, state) || '', val(cfg.title, p, ctx, state)); o.box.appendChild(f.el);
       cfg.controls.forEach(function (c) {
         if (c.stepper) f.add(U.stepper(c.label, f.state[c.stepper], { min: c.min, max: c.max, step: c.step, format: c.format, less: c.less, more: c.more, hint: c.hint, change: function (v) { f.state[c.stepper] = v; f.update(); } }));
@@ -622,6 +649,7 @@
     var cur = o.cur == null ? '' : o.cur; return (neg ? '−' : '') + (o.after ? n + (cur ? sp + cur : '') : (cur ? cur + (o.space === false ? '' : sp) : '') + n);
   }
   // a label/value line in bold, for a total or a due date: total(out, 'Importe total', 'S/ 247.00', 'is-due')
+  function totalsText(box) { return [].map.call(box.querySelectorAll('.kit-total'), function (t) { return [].map.call(t.children, function (c) { return c.textContent.trim(); }).join(' '); }).join('. '); }
   function total(box, labelText, value, cls) { var t = el('div', 'kit-total' + (cls ? ' ' + cls : '')); t.appendChild(el('span', null, labelText)); t.appendChild(el('strong', null, value)); box.appendChild(t); return t; }
 
   // ── overlays (v0.3): a lightbox drawn inside the chat, and a hand-off to a page-level modal ──
@@ -639,7 +667,9 @@
     if (document.querySelector('.kit-ovl')) return null;
     var w = words(g.lang || 'en'), i = Math.max(0, Math.min(start || 0, g.photos.length - 1));
     var ov = el('div', 'kit-ovl is-lightbox'); ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true'); ov.setAttribute('aria-label', g.title || w.photos || 'Photos');
+    ov.setAttribute('lang', g.lang || (opener && opener.closest && opener.closest('[lang]') ? opener.closest('[lang]').getAttribute('lang') : 'en'));   // v0.9.5: on <body>, outside the widget: its own lang
     var top = el('div', 'kit-ovl-top'), cap = el('span', 'kit-ovl-cap'), x = U.btn('×', 'kit-ovl-x'); x.setAttribute('aria-label', w.close || 'Close');
+    cap.setAttribute('aria-live', 'polite'); cap.setAttribute('aria-atomic', 'true');   // v0.9.5: ←/→ say which photo (the chat's region is inert under the dialog)
     top.appendChild(cap); top.appendChild(x); ov.appendChild(top);
     var stage = el('div', 'kit-ovl-stage'); ov.appendChild(stage);
     var prev = U.btn('‹', 'kit-ovl-nav is-prev'), next = U.btn('›', 'kit-ovl-nav is-next');
@@ -657,7 +687,8 @@
     }
     function show() {
       stage.textContent = ''; var p = g.photos[i];
-      stage.appendChild(U.img(p.src, 'kit-ovl-img', { srcset: p.srcset, sizes: '100vw', alt: p.alt || g.title || '' }));
+      var n = g.photos.length, of = n > 1 ? fill(w.photoOf, { n: i + 1, max: n }) : '';   // v0.9.5: no two photos with the same alt
+      stage.appendChild(U.img(p.src, 'kit-ovl-img', { srcset: p.srcset, sizes: '100vw', alt: [p.alt || g.title || '', of].filter(Boolean).join(', ') }));
       [i - 1, i + 1].forEach(function (k) { var q = g.photos[k]; if (q) U.img(q.src, '', { srcset: q.srcset, sizes: '100vw' }); });   // v0.8.1.8: the photos next to it load ahead (detached: the browser fetches, nothing is drawn)
       cap.textContent = (g.title ? g.title + ' · ' : '') + (i + 1) + ' / ' + g.photos.length;
       prev.disabled = i === 0; next.disabled = i === g.photos.length - 1;
@@ -779,16 +810,17 @@
           var ex = cfg.ics ? [U.ics(cfg.ics.label || '📅', { title: cfg.ics.title, day: s.day, from: s.from, to: s.to, where: cfg.ics.where, file: cfg.ics.file || 'visita' }, 'kit-sent-ics')] : [];
           if (cfg.collapse !== false && said) fold(o, said, lang, ex); if (cfg.sent) cfg.sent(s); } });
       U.head(o.box, cfg.kicker || '', cfg.title || ''); o.box.appendChild(f.el);
-      f.add(choice('', days.map(function (d) { return [String(d.day), dayLabel(d.day)]; }), String(days[0].day), function (k) { f.state.day = +k; f.state.from = f.state.to = null; drawDay(); f.update(); }));
-      var list = f.add(el('div', 'kit-slotlist'));
+      f.add(choice('', days.map(function (d) { return [String(d.day), dayLabel(d.day)]; }), String(days[0].day), function (k) { f.state.day = +k; f.state.from = f.state.to = null; drawDay(); f.update(); }, w.day));
+      var list = f.add(el('div', 'kit-slotlist')), rove = radioGroup(list); list.setAttribute('aria-label', w.pick);   // v0.9.5: the times are one of several
       function drawDay() {
         list.textContent = ''; var d = days.filter(function (x) { return x.day === f.state.day; })[0]; if (!d) return;
         d.slots.slice().sort(function (a, b) { return a[0] - b[0]; }).forEach(function (sl) {
-          var busy = sl[2] === 'busy', b = U.btn((busy ? w.busy + ' · ' : '') + fmtT(sl[0]) + '–' + fmtT(sl[1]), 'kit-slot' + (busy ? ' is-busy' : ''));
-          if (busy) { b.disabled = true; } else { b.setAttribute('aria-pressed', 'false');
-            b.addEventListener('click', function () { if (b.closest('.is-done')) return; [].forEach.call(list.children, function (x) { if (!x.disabled) x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); }); f.state.from = sl[0]; f.state.to = sl[1]; f.update(); }); }
+          var busy = sl[2] === 'busy', t = fmtT(sl[0]) + '–' + fmtT(sl[1]), b = radio(U.btn((busy ? w.busy + ' · ' : '') + t, 'kit-slot' + (busy ? ' is-busy' : '')), false);
+          if (busy) { b.disabled = true; b.setAttribute('aria-label', t + ' · ' + w.busy); }   // the time first, as on the free ones
+          else b.addEventListener('click', function () { if (b.closest('.is-done')) return; [].forEach.call(list.children, function (x) { if (!x.disabled) x.setAttribute('aria-checked', x === b ? 'true' : 'false'); }); rove(); f.state.from = sl[0]; f.state.to = sl[1]; f.update(); });
           list.appendChild(b);
         });
+        rove();
       }
       drawDay(); note(o.box, val(cfg.note, p, ctx), 'is-muted');
       return o;
@@ -823,9 +855,9 @@
     LBW.widget(name, function (p, ctx) {
       if (!cfg.allowDup && dup(ctx, cls)) return null;
       var state = cfg.state(p, ctx); if (!state) return null;
-      var lang = langOf(cfg, ctx), o = U.card(lang, 'kit-review ' + cls), said = '', vals = [];
+      var lang = langOf(cfg, ctx), o = U.card(lang, 'kit-review ' + cls), said = '', vals = [], was = null;
       var f = U.form('kit-reviewform', { state: state, cta: cfg.cta, ready: cfg.ready,
-        change: function (s) { vals.forEach(function (v) { v.node.textContent = v.fn(s); }); if (tot) tot.textContent = cfg.total.value(s); },
+        change: function (s) { vals.forEach(function (v) { v.node.textContent = v.fn(s); }); if (tot) { var t = cfg.total.value(s); tot.textContent = t; if (was != null && t !== was) LBW.announce(cfg.total.label + ' ' + t, lang, 'total:' + name); was = t; } },   // v0.9.5
         send: function (s) { var r = cfg.send(s); said = r && r[0]; return r; },
         sent: function (s) { if (cfg.collapse !== false && said) fold(o, said, lang); if (cfg.sent) cfg.sent(s); } });
       U.head(o.box, cfg.kicker || '', cfg.title || ''); o.box.appendChild(f.el);
@@ -849,7 +881,25 @@
   // v0.9.3 · late data and the visitor's own messages. The runtime quiets every one-shot group above the visitor's last
   // message (is-stale + is-done + is-spent), so "used" is only what the visitor pressed: a sent button or a ticked toggle.
   // Measured live: a message typed or sent before the data landed kept untouched cards on their saved copy.
-  function usedByVisitor(o) { return !!o.querySelector('.is-sent, [aria-pressed="true"]'); }
+  function usedByVisitor(o) { return !!o.querySelector('.is-sent, [aria-pressed="true"], [aria-checked="true"]'); }
+  // v0.9.5 · a card redrawn in place (the late-data upgrade, setup's transplant) keeps the keyboard's place: before the swap
+  // keepPlace(o) notes what had focus (the same sentence, slide, option or strip); the function it returns puts focus on its
+  // twin in the new content, or on the card's title. Nothing happens when focus wasn't in the card.
+  function keepPlace(o) {
+    var a = document.activeElement; if (!a || !o.contains(a)) return function () {};
+    var say = a.getAttribute('data-say'), k = a.getAttribute('data-k'), sl = a.closest('[data-id]'), id = sl && sl.getAttribute('data-id'), strip = a.classList.contains('lbw-strip');
+    var same = function (sel, at, v) { return [].filter.call(o.querySelectorAll(sel), function (x) { return x.getAttribute(at) === v; })[0] || null; };
+    return function () {
+      var t = say != null ? same('[data-say]', 'data-say', say) : null;
+      if (!t && k != null) t = same('[data-k]', 'data-k', k);
+      if (!t && id != null) { var s2 = same('[data-id]', 'data-id', id); t = s2 && s2.querySelector('button:not(:disabled), a[href]'); }
+      if (!t && strip) t = o.querySelector('.lbw-strip');
+      if (t && !t.disabled) { try { t.focus({ preventScroll: true }); } catch (e) {} if (document.activeElement === t) return; }
+      U.rescue(o, null);
+    };
+  }
+  // the late data replaced a card the visitor could see: "Updated: Rooms" in the chat's live region
+  function upgraded(o, lang) { lang = lang || o.getAttribute('lang'); var t = U.titleOf(o), w = words(lang); LBW.announce(t ? w.updated + ': ' + t : w.updated, lang, 'card:' + t); }
   function wasQuieted(o) { return !!o.querySelector('.lbw-once.is-stale') || o.classList.contains('is-spent'); }
   function quietAgain(o) { [].forEach.call(o.querySelectorAll('.lbw-once'), function (g) { g.classList.add('is-stale'); U.done(g); }); o.classList.add('is-spent'); }
   // ── chart: a card around LBW.kit.h.chart ────────────────────────────────────────────────────────
@@ -922,7 +972,7 @@
     LBW.widget(name, function (p, ctx) {
       if (!cfg.allowDup && dup(ctx, cls)) return null;
       var o = U.card(langOf(cfg, ctx), 'kit-consent ' + cls);
-      var ci = el('span', 'kit-consent-i'), cg = icon(ICON[cfg.icon] || ICON.check); if (cg) ci.appendChild(cg); o.box.appendChild(ci); o.box.appendChild(el('p', 'kit-consent-t', cfg.title)); if (cfg.text) o.box.appendChild(el('p', 'kit-consent-x', cfg.text));
+      var ci = el('span', 'kit-consent-i'), cg = icon(ICON[cfg.icon] || ICON.check); if (cg) ci.appendChild(cg); o.box.appendChild(ci); var ct = o.box.appendChild(el('p', 'kit-consent-t', cfg.title)); ct.setAttribute('role', 'heading'); ct.setAttribute('aria-level', '3'); if (cfg.text) o.box.appendChild(el('p', 'kit-consent-x', cfg.text));
       var g = U.once('kit-consent-b'); g.appendChild(U.reply(cfg.yes[0], cfg.yes[1], { primary: true, fields: cfg.yes[2] })); g.appendChild(U.reply(cfg.no[0], cfg.no[1], { fields: cfg.no[2] })); o.box.appendChild(g);
       if (cfg.link) o.box.appendChild(U.link(cfg.link[0], cfg.link[1], 'kit-consent-l'));
       return o;
@@ -943,12 +993,14 @@
       if (!cfg.allowDup && dup(ctx, cls)) return null;
       var got = p.list(param, ids, max); if (got.length < (cfg.min || 2)) return null;
       var o = U.card(langOf(cfg, ctx), 'kit-compare ' + cls), grid = el('div', 'kit-cmp is-' + got.length); grid.setAttribute('role', 'table');
-      var names = got.map(function (id) { return cfg.items[id].name; });
-      U.head(o.box, cfg.kicker || '', String(val(cfg.title, got, ctx) || '').split('{names}').join(names.join(' · ')));
+      var names = got.map(function (id) { return cfg.items[id].name; }), ttl = String(val(cfg.title, got, ctx) || '').split('{names}').join(names.join(' · '));
+      U.head(o.box, cfg.kicker || '', ttl); if (ttl) grid.setAttribute('aria-label', ttl); grid.setAttribute('aria-colcount', String(got.length + 1));
+      // v0.9.5 · the item names are column headers, and every cell says its column (aria-colindex: the row's label is column 1),
+      // so "16 kg" is read with "Urbana"
       function line(label, cells, c) {
-        var r = el('div', 'kit-cmp-row' + (c ? ' ' + c : '')); r.setAttribute('role', 'row');
-        if (label) { var h = el('div', 'kit-cmp-label', label); h.setAttribute('role', 'rowheader'); r.appendChild(h); }
-        var cs = el('div', 'kit-cmp-cells'); cells.forEach(function (t) { var d = el('div', 'kit-cmp-cell', t); d.setAttribute('role', 'cell'); cs.appendChild(d); });
+        var r = el('div', 'kit-cmp-row' + (c ? ' ' + c : '')), head = !label; r.setAttribute('role', 'row');
+        if (label) { var h = el('div', 'kit-cmp-label', label); h.setAttribute('role', 'rowheader'); h.setAttribute('aria-colindex', '1'); r.appendChild(h); }
+        var cs = el('div', 'kit-cmp-cells'); cells.forEach(function (t, i) { var d = el('div', 'kit-cmp-cell', t); d.setAttribute('role', head ? 'columnheader' : 'cell'); d.setAttribute('aria-colindex', String(i + 2)); cs.appendChild(d); });
         r.appendChild(cs); grid.appendChild(r);
       }
       line('', got.map(function (id) { return cfg.items[id].name; }), 'is-head');
@@ -1014,7 +1066,7 @@
       }
       g.addEventListener('lbw-unsent', function () {   // v0.9.5: the value wasn't sent, so nothing reads as rated
         btns.forEach(function (x) { x.classList.remove('is-on'); x.removeAttribute('aria-pressed'); x.removeAttribute('aria-current'); }); g.classList.remove('is-rated'); g.removeAttribute('tabindex'); });
-      if (kind === 'scale') { g.style.setProperty('--kit-n', String(btns.length)); g.style.setProperty('--kit-cols', String(btns.length > 6 ? Math.ceil(btns.length / 2) : btns.length)); }
+      if (kind === 'scale') { if (btns.length > 6) g.classList.add('is-long'); g.style.setProperty('--kit-n', String(btns.length)); g.style.setProperty('--kit-cols', String(btns.length > 6 ? Math.ceil(btns.length / 2) : btns.length)); }
       o.box.appendChild(g);
       if (kind === 'scale' && (labels[0] || labels[1])) { var ends = el('div', 'kit-rate-ends'); ends.setAttribute('aria-hidden', 'true'); ends.appendChild(el('span', null, labels[0] ? lo + ' · ' + labels[0] : '')); ends.appendChild(el('span', null, labels[1] ? hi + ' · ' + labels[1] : '')); /* with their numbers: on two rows the ends don't sit under 0 and 10 */ o.box.appendChild(ends); }
       note(o.box, val(cfg.note, p, ctx), 'is-muted');
@@ -1023,6 +1075,6 @@
   }
 
   LBW.kit = { version: '0.9.4.2', dev: DEV, describe: describe, L: L, last: last, cards: cards, table: table, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent, compare: compare, season: season, rating: rating,
-    h: { usedByVisitor: usedByVisitor, wasQuieted: wasQuieted, quietAgain: quietAgain, note: note, list: list, label: label, dup: dup, choice: choice, multiChoice: multiChoice, copyBox: copyBox, status: status, wa: wa, fill: fill, money: money, total: total, lightbox: lightbox, chart: chart, statusHead: statusHead,
+    h: { usedByVisitor: usedByVisitor, wasQuieted: wasQuieted, quietAgain: quietAgain, keepPlace: keepPlace, upgraded: upgraded, radioGroup: radioGroup, note: note, list: list, label: label, dup: dup, choice: choice, multiChoice: multiChoice, copyBox: copyBox, status: status, wa: wa, fill: fill, money: money, total: total, lightbox: lightbox, chart: chart, statusHead: statusHead,
       icon: icon, withIcon: withIcon, icons: Object.keys(ICONS), badge: badge, tones: TONES.slice() } };
 })(typeof window !== 'undefined' ? window : this);
