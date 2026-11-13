@@ -96,8 +96,17 @@
     var links = isArr(cfg.links) ? cfg.links.filter(isStr) : [];
     if (cfg.links != null && !isArr(cfg.links)) top('"links" must be a list');
     if (cfg.reveal != null && cfg.reveal !== true && cfg.reveal !== false) top('"reveal" is true or false');
-    links.forEach(function (l) { if (/^https?:/.test(l) && !/\/$/.test(l)) top('link "' + l + '" must end in "/"'); });
-    var linkOK = function (url) { return isStr(url) && !/[\s"'<>]/.test(url) && links.some(function (o) { return /^https?:/.test(o) && url.indexOf(/\/$/.test(o) ? o : o + '/') === 0; }); };
+    // v0.9.5 (security review) · an entry is an origin with a host, then an optional path, ending in "/". "https://" alone
+    // let every site through. A host with an open redirector is listed by a path, never by its origin alone
+    var REDIR = /^https?:\/\/((www\.)?google\.[a-z.]+|(www\.|l\.|lm\.|m\.)?facebook\.com|(www\.)?youtube\.com|t\.co|bit\.ly|(www\.)?linkedin\.com|l\.instagram\.com)\/$/i;
+    links.forEach(function (l) {
+      if (/^https?:/.test(l) && !/\/$/.test(l)) top('link "' + l + '" must end in "/"');
+      else if (/^https?:/.test(l) && !/^https?:\/\/[a-z0-9-]+(?:\.[a-z0-9-]+)*(?::\d{1,5})?\/[^\s"'<>\\?#]*$/i.test(l)) top('link "' + l + '" is not an origin: write the site\'s address with its host, e.g. "https://shop.example/"');
+      else if (/^https?:/.test(l) && /(^|\/)(\.|%2e){1,2}(\/|$)|\/\/|%2f|%5c/i.test(l.replace(/^https?:\/\//, ''))) top('link "' + l + '" has a dot segment, a "//" or an encoded / in its path');
+      else if (REDIR.test(l)) top('link "' + l + '" is a host with an open redirector: list it by a path (e.g. "https://www.google.com/maps/"), never by its origin alone');
+      else if (!/^https?:/.test(l) && l !== 'tel:' && l !== 'mailto:') top('link "' + l + '" is not an entry: an https origin ending in "/", "tel:" or "mailto:"');
+    });
+    var linkOK = function (url) { return isStr(url) && (LBW.ui && LBW.ui.allowed ? LBW.ui.allowed(url, links) : false); };
     ['actions', 'replies'].forEach(function (k) { if (cfg[k] != null && !isObj(cfg[k])) top('"' + k + '" must be an object'); });
     if (cfg.timeZone != null) { try { new Intl.DateTimeFormat('en', { timeZone: cfg.timeZone }); } catch (e) { top('timeZone "' + cfg.timeZone + '" is not a time zone (write it like Europe/Madrid)'); } }
     ['langs', 'defaultLang'].forEach(function (k) { var v = cfg[k]; if (v != null && !(k === 'langs' ? isArr(v) && v.length && v.every(isStr) : isStr(v))) top('"' + k + '" must be ' + (k === 'langs' ? 'a list of language codes' : 'a language code')); });
@@ -132,7 +141,7 @@
       if (r.link && !linkOK(templated ? String(r.link).split('{')[0] : r.link)) say(where + ': "' + r.link + '" is not under any entry of "links"');
       if (r.link && !templated && /[{}]/.test(String(r.link))) say(where + ': a link can only hold a {placeholder} in a calc\'s "links"');
       if (r.mail && links.indexOf('mailto:') < 0) say(where + ': a mail action needs "mailto:" in "links"');
-      if (r.mail && !(typeof r.mail === 'string' && /^[^@\s?\/,;]+@[a-z0-9.-]+\.[a-z]{2,}$/i.test(r.mail))) say(where + ': "mail" is one plain address (a@b.co), with no subject or text');
+      if (r.mail && !(typeof r.mail === 'string' && /^[a-z0-9._+-]+@[a-z0-9-]+(?:\.[a-z0-9-]+)*\.[a-z]{2,}$/i.test(r.mail))) say(where + ': "mail" is one plain address (a@b.co), with no subject or text');
     }
     Object.keys(acts).forEach(function (k) { act(acts[k], top, 'actions.' + k); });
     Object.keys(reps).forEach(function (k) { if (!isPair(reps[k])) top('replies.' + k + ' is [label, sentence]'); else fieldsCheck(reps[k][2], 'replies.' + k, top, ['id', 'title', 'name', 'role']); });
@@ -325,7 +334,8 @@
       try {
         if (!/^[a-z][a-z0-9_]*$/.test(name)) err('a widget name is lower-case letters, digits and _');
         if (!isObj(w) || !isStr(w.type) || !own(KEYS, w.type)) { err('unknown type "' + (isObj(w) ? w.type : w) + '". Known: ' + Object.keys(KEYS).join(', ')); return; }
-        var known = KEYS[w.type].split(' ');
+        var known = KEYS[w.type].split(' ').concat('flow');
+        if (w.flow != null && w.flow !== true && !(isArr(w.flow) && w.flow.length && w.flow.every(function (k) { return isStr(k) && /^[a-z_][a-z0-9_]*$/.test(k); }))) err('"flow" is true, or the list of keys its flow tag writes, e.g. ["texto", "lang"]');
         Object.keys(w).forEach(function (k) { if (known.indexOf(k) < 0) err('unknown option "' + k + '" for ' + w.type + '. Known: ' + known.join(', ')); });
         NEED[w.type].forEach(function (k) { if (w[k] == null && !(k === 'items' && w.source != null)) err('missing "' + k + '"'); });
         var pdefs = isObj(w.params) ? w.params : {};

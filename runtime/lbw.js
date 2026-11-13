@@ -12,7 +12,7 @@
 (function (root) {
   if (root.LBW) return;
   var cfg = { prefix: 'w', langs: ['en'], defaultLang: 'en', maxPerMessage: 3, links: [], quietMs: 1500, maxWaitMs: 20000, labels: {} };
-  var W = {}, last = {}, lock = 0, quietSince = Date.now(), started = false;
+  var W = Object.create(null), last = {}, lock = 0, quietSince = Date.now(), started = false;
   var log = function (k, v) { (root[k] = root[k] || []).push(v); };
   // LBW.on('render' | 'say' | 'drop', fn): what was drawn, what the visitor sent through a widget, what was thrown away.
   // For counting views and clicks; a listener that throws is ignored.
@@ -22,11 +22,23 @@
 
   // ── DOM helpers: text only ───────────────────────────────────────────────────────────────────
   function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
-  function allowed(url) {   // http(s) entries are origins ending in '/': 'https://shop.example' alone would also match 'https://shop.example.evil.com'
-    if (typeof url !== 'string' || /[\s"'<>]/.test(url)) return false;
-    if (/^tel:/i.test(url)) return cfg.links.indexOf('tel:') >= 0 && /^tel:\+?\d{6,15}$/.test(url);
-    if (/^mailto:/i.test(url)) return cfg.links.indexOf('mailto:') >= 0 && /^mailto:[^@?\/]+@[a-z0-9.-]+\.[a-z]{2,}$/i.test(url);
-    return cfg.links.some(function (o) { if (!/^https?:/.test(o)) return false; o = /\/$/.test(o) ? o : o + '/'; return url.indexOf(o) === 0; });
+  // http(s) entries are origins ending in '/': 'https://shop.example' alone would also match 'https://shop.example.evil.com'.
+  // v0.9.5 (security review) · an entry needs a host ('https://' alone let every site through), then an optional path. A
+  // path entry ('https://www.google.com/maps/') can't be left by a dot segment (.., %2e%2e), a '//' or an encoded / or \
+  // (the browser resolves them after this check). Never a backslash, quote, space, control character or <>, nor over 2,048
+  // characters. mailto: one plain address (no %40, ',', ';' or ?cc=). It guards origins: a host with an open redirector
+  // (google.com/url, l.facebook.com) lets any site through, so list such a host by a path, never by its origin alone.
+  var ORIGIN = /^https?:\/\/[a-z0-9-]+(?:\.[a-z0-9-]+)*(?::\d{1,5})?\//i;
+  function allowed(url, links) {   // links: the config's by default (the checker passes its own)
+    links = links || cfg.links;
+    if (typeof url !== 'string' || url.length > 2048 || /[\s"'<>\\\u0000-\u001f\u007f]/.test(url)) return false;
+    if (/^tel:/i.test(url)) return links.indexOf('tel:') >= 0 && /^tel:\+?\d{6,15}$/.test(url);
+    if (/^mailto:/i.test(url)) return links.indexOf('mailto:') >= 0 && /^mailto:[a-z0-9._+-]+@[a-z0-9-]+(?:\.[a-z0-9-]+)*\.[a-z]{2,}$/i.test(url);
+    return links.some(function (o) {
+      if (typeof o !== 'string' || !/^https?:/.test(o)) return false; o = /\/$/.test(o) ? o : o + '/';
+      var at = ORIGIN.exec(o); if (!at || url.indexOf(o) !== 0) return false;
+      return o.length === at[0].length || !/(^|\/)(\.|%2e){1,2}(\/|$)|\/\/|%2f|%5c/i.test(url.slice(at[0].length - 1).split(/[?#]/)[0]);
+    });
   }
   function link(text, href, cls) {
     if (!allowed(href)) { drop('link not allowed: ' + href); return null; }
@@ -118,10 +130,12 @@
       try { if (fields) L.exec('landbot-custom-data', fields); L.exec('landbot-msg-send', { type: 'text', message: text }); return; } catch (e) {}
     } else if (fields) setData(fields);
     // last resort: type it. v0.9.4.1 · the v4 chat's box is an <input> ("Type here…", measured live 13 Nov 2026), not a
-    // textarea; never one of our own widgets' fields
-    var box = null, TYPED = 'textarea, input[type="text"], input:not([type])';
-    [document.querySelectorAll('[data-lb-part="input-field"] textarea, [data-lb-part="input-field"] input'), document.querySelectorAll(TYPED)].some(function (l) {
-      return [].some.call(l, function (x) { if (x.closest('.lbw') || x.type === 'hidden' || x.disabled) return false; box = x; return true; });
+    // textarea; never one of our own widgets' fields. v0.9.5 (security review) · only Landbot's own text box, the one in (or
+    // marked) [data-lb-part="input-field"]: where lbw.js runs outside the chat, any other input (a newsletter form) would get
+    // the text and an Enter. No such box: nothing is typed, and the send is dropped and logged
+    var box = null, F = '[data-lb-part="input-field"]';
+    [].some.call(document.querySelectorAll(F + ' textarea, ' + F + ' input, textarea' + F + ', input' + F), function (x) {
+      if (x.closest('.lbw') || x.disabled || (x.tagName === 'INPUT' && !/^(text|search)?$/i.test(x.getAttribute('type') || ''))) return false; box = x; return true;
     });
     if (!box) { drop('no way to send: ' + text); return; }
     Object.getOwnPropertyDescriptor((box.tagName === 'INPUT' ? HTMLInputElement : HTMLTextAreaElement).prototype, 'value').set.call(box, text);
@@ -220,16 +234,19 @@
   // A field that a flow interpolated but was never set arrives as '@{name}' / '@name' / '', and Landbot's default name
   // is 'Visitor #537058751': all of these read as missing.
   function missing(v) { v = String(v == null ? '' : v).trim(); return !v || /^@\{?[a-z0-9_]+\}?$/i.test(v) || /^Visitor[ ,]#\d+$/i.test(v); }
+  var PROTO = /^(__proto__|constructor|prototype)$/;
   function Params(raw) { this.raw = raw; }
   Params.prototype = {
     has: function (k) { return !missing(this.raw[k]); },
     // known values only, each once; splits on , + ; | & and spaces (the agent once wrote 'scaling+business')
     list: function (k, allowedList, max) {
       if (!this.has(k)) return [];
-      var seen = {}, norm = function (x) { return String(x).trim().toLowerCase().replace(/-/g, '_'); }, ok = {};
+      // v0.9.5 · maps with no prototype, and the names an object inherits refused on purpose: 'constructor' or '__proto__'
+      // used to fail only because {} already "had" them, and a widget may look the id up in a plain object of its own
+      var seen = Object.create(null), norm = function (x) { return String(x).trim().toLowerCase().replace(/-/g, '_'); }, ok = Object.create(null);
       allowedList.forEach(function (a) { ok[norm(a)] = a; });   // 'sea-fast' and 'Sea_Fast' both read as the listed id
       return String(this.raw[k]).split(/[,\s+;|&]+/).map(norm)
-        .filter(function (x) { if (!x || seen[x]) return false; if (!ok[x]) { drop('unknown value ' + k + '=' + x); return false; } return (seen[x] = true); })
+        .filter(function (x) { if (!x || seen[x]) return false; if (!ok[x] || PROTO.test(x)) { drop('unknown value ' + k + '=' + x); return false; } return (seen[x] = true); })
         .map(function (x) { return ok[x]; }).slice(0, max || 99);
     },
     one: function (k, allowedList) { return this.list(k, allowedList, 1)[0] || null; },
@@ -360,25 +377,86 @@
     });
     return b;
   }
-  function parse(attrs) {
+  function parse(attrs) { return parseTag(attrs).p; }
+  function parseTag(attrs) {   // → { p: { key: value }, dup: the first key written twice, or null }
     // values are separated by '|' when the tag has one (a value may then hold spaces: names from fields),
     // otherwise by spaces; a loose token with no '=' is glued to the previous value with a comma
-    var p = {}, s = String(attrs || '').trim(), parts = s.indexOf('|') >= 0 ? s.split('|') : s.split(/\s+/), lastKey = null;
+    var p = {}, dup = null, s = String(attrs || '').trim(), parts = s.indexOf('|') >= 0 ? s.split('|') : s.split(/\s+/), lastKey = null;
     parts.forEach(function (kv) {
       kv = kv.trim(); var i = kv.indexOf('='), k = i > 0 ? kv.slice(0, i).trim().toLowerCase() : '';
-      if (/^[a-z_][a-z0-9_]*$/.test(k)) { lastKey = k; p[k] = kv.slice(i + 1).trim().replace(/^["']|["']$/g, ''); }
+      if (/^[a-z_][a-z0-9_]*$/.test(k)) { if (!dup && Object.prototype.hasOwnProperty.call(p, k)) dup = k; lastKey = k; p[k] = kv.slice(i + 1).trim().replace(/^["']|["']$/g, ''); }
       else if (lastKey && kv) p[lastKey] += ',' + kv.replace(/^,|,$/g, '');
     });
-    return p;
+    return { p: p, dup: dup };
   }
 
   // ── scanning bot messages ────────────────────────────────────────────────────────────────────
-  function tagRe() { return new RegExp('`?\\[\\[\\s*' + cfg.prefix + ':([a-z][a-z0-9_]*)\\s*([^\\]]*?)\\s*\\]\\]`?', 'gi'); }
+  // v0.9.5 (security review) · the tags are found by hand, in time linear in the text. The regexes they replace, with the
+  // same reading (`?\[\[\s*PREFIX:(name)\s*([^\]]*?)\s*\]\]`? for a tag; \[\[[^\]]*\]\] and an unclosed `?\[\[\s*PREFIX:…
+  // at the end for what is removed; the tail a `]]` in a value leaves), backtracked: a 150-character message froze the tab.
+  // ']' after `from`, remembered: the scans only move forward, so each character is looked at a bounded number of times
+  function brackets(s) { var at = -1, was = -1; return function (from) { if (at === -2) return -1; if (at < from || from < was) { at = s.indexOf(']', from); if (at < 0) { at = -2; return -1; } } was = from; return at; }; }
+  var NAME = /[a-z][a-z0-9_]*/iy, WS = /\s/;
+  function rtrim(s) { var e = s.length; while (e > 0 && WS.test(s.charAt(e - 1))) e--; return s.slice(0, e); }   // /\s+$/ is quadratic on a long run of spaces
+  function headAt(s, j, bare) {   // `[[ PREFIX:name` at j → the index after the name (bare: after the ':'), or -1
+    var k = j + 2, pre = String(cfg.prefix); while (k < s.length && WS.test(s.charAt(k))) k++;
+    if (s.substr(k, pre.length).toLowerCase() !== pre.toLowerCase() || s.charAt(k + pre.length) !== ':') return -1;
+    if (bare) return k + pre.length + 1;
+    NAME.lastIndex = k + pre.length + 1; return NAME.exec(s) ? NAME.lastIndex : -1;
+  }
+  // each(whole tag, name, attrs) → its replacement; → the text with every tag replaced
+  function eachTag(s, each) {
+    var out = '', from = 0, j = -1, br = brackets(s);
+    while ((j = s.indexOf('[[', j + 1)) >= 0) {
+      if (j < from) continue;
+      var e = headAt(s, j); if (e < 0) continue;
+      var c = br(e); if (c < 0) break; if (s.charAt(c + 1) !== ']') continue;
+      var a = j > from && s.charAt(j - 1) === '`' ? j - 1 : j, z = s.charAt(c + 2) === '`' ? c + 3 : c + 2, at = headAt(s, j, true);
+      out += s.slice(from, a) + each(s.slice(a, z), s.slice(at, e), s.slice(e, c).trim()); from = z; j = z - 1;
+    }
+    return out + s.slice(from);
+  }
+  // what is left that looks like a tag: any [[…]] (no ']' inside), and an unclosed `[[PREFIX:… that runs to the end
+  function eachRest(s, each) {
+    var out = '', from = 0, j = -1, br = brackets(s);
+    while ((j = s.indexOf('[[', j + 1)) >= 0) {
+      if (j < from) continue;
+      var c = br(j + 2), open = c < 0 && headAt(s, j, true) >= 0;
+      if (open && j > from && s.charAt(j - 1) === '`') return out + s.slice(from, j - 1) + each(s.slice(j - 1));
+      if (c >= 0 && s.charAt(c + 1) === ']') { out += s.slice(from, j) + each(s.slice(j, c + 2)); from = c + 2; j = from - 1; continue; }
+      if (open) return out + s.slice(from, j) + each(s.slice(j));
+    }
+    return out + s.slice(from);
+  }
+  // the tail of a tag a `]]` in a value closed early: ' |people=2|lang=en]]' (a word that starts key=, up to an orphan ]]).
+  // Read as /(^|\s)\|?[a-z_][a-z0-9_]*=[^\s\]]*(\|[a-z_][a-z0-9_]*=[^\]]*)*\]\]/gi was, one word at a time
+  var KEYAT = /^\|?[a-z_][a-z0-9_]*=/i, KEYIN = /\|[a-z_][a-z0-9_]*=/i;
+  function eachTail(s, each) {
+    var out = '', from = 0, b = -1, seg = 0;
+    while ((b = s.indexOf(']', b + 1)) >= 0) {
+      var a = seg; seg = b + 1; if (s.charAt(b + 1) !== ']' || b < from) continue;
+      // the words of s[a, b): the first that starts after a space (or at 0) and reads as the tail of a tag
+      for (var st = a, hit = -1; st < b; ) {
+        var w = st; while (w < b && !WS.test(s.charAt(w))) w++;   // the word is s[st, w)
+        if ((st === 0 || WS.test(s.charAt(st - 1))) && st < w) { var word = s.slice(st, w), m = KEYAT.exec(word); if (m && (w === b || KEYIN.test(word.slice(m[0].length)))) { hit = st; break; } }
+        st = w + 1;
+      }
+      if (hit < 0) continue;
+      var pre = hit > 0 ? s.charAt(hit - 1) : '', at = hit - pre.length;
+      out += s.slice(from, at) + each(s.slice(at, b + 2), pre); from = b + 2; seg = from; b = from - 1;
+    }
+    return out + s.slice(from);
+  }
   function render(name, attrs, tag, hostMsg, tags, others) {
-    var raw = parse(attrs), p = new Params(raw), rl = String(raw.lang || '').toLowerCase(), base = rl.split(/[-_]/)[0],
+    var pt = parseTag(attrs), raw = pt.p, p = new Params(raw), rl = String(raw.lang || '').toLowerCase(), base = rl.split(/[-_]/)[0],
         lang = cfg.langs.indexOf(rl) >= 0 ? rl : cfg.langs.indexOf(base) >= 0 ? base : cfg.defaultLang;   // 'es-ES' and 'es_ES' read as 'es'
     name = String(name).toLowerCase();
     var def = W[name]; if (!def) return { why: 'unknown widget' };
+    // v0.9.5 · a value holding '[[' is a tag that swallowed another (unclosed, or text a field brought in): nothing drawn.
+    // A widget fed by a flow ({ flow: true | [keys] }) also refuses a key written twice, and a key outside its list
+    if (attrs.indexOf('[[') >= 0) return { why: 'a value holds [[' };
+    if (def.flow && pt.dup) return { why: 'flow tag: key "' + pt.dup + '" written twice' };
+    if (def.flow && def.flow.length) for (var fk in raw) if (Object.prototype.hasOwnProperty.call(raw, fk) && def.flow.indexOf(fk) < 0) return { why: 'flow tag: key "' + fk + '" is not one it takes' };
     var L = (cfg.labels && cfg.labels[lang]) || {};
     var ctx = { lang: lang, L: L, tag: tag, message: hostMsg, prev: prevUser(hostMsg), tags: tags || [], others: (others || []).slice() };
     // tags: the widget names of every tag in this message; others: the widgets already drawn from it (a chips tag written
@@ -645,22 +723,33 @@
     try { scanTags(); } finally { try { keepTel(); } catch (e) {} }   // phones after the tags: never inside one
   }
   function scanTags() {
-    var re = tagRe(), sel = '[data-lb-part="message"][data-lb-author="bot"] [data-lb-part="message-text"]:not([data-lbw])', passWas;
+    var sel = '[data-lb-part="message"][data-lb-author="bot"] [data-lb-part="message-text"]:not([data-lbw])', passWas;
     [].forEach.call(document.querySelectorAll(sel), function (box) {
       if (box.textContent.indexOf('[[') < 0) return;
       box.setAttribute('data-lbw', '1');
       var host = box.closest('[data-lb-part="message"]') || box, made = [], late = [], held = [];
-      var names = []; box.textContent.replace(re, function (m, name) { names.push(String(name).toLowerCase()); return m; });
+      var whole = box.textContent, names = [], left = eachTag(whole, function (m, name) { names.push(String(name).toLowerCase()); return ''; });
+      // v0.9.5 (security review) · a widget fed by a flow (LBW.widget(name, fn, { flow: true })) is written by a flow message
+      // that holds that one tag, with field values in it. A value someone else wrote (a review, a sheet cell) can close the tag
+      // with ']]' and open another, or break it with a lone ']'. So a message that holds a flow widget's tag, read or not
+      // (its '[[PREFIX:name' still there), must be exactly that one tag: anything else ([[, ]] left over, a second tag) draws
+      // nothing, and the text from its first '[[' on is cut (it may hold the injected words)
+      var flowNames = names.slice();
+      for (var j0 = left.indexOf('[['); j0 >= 0; j0 = left.indexOf('[[', j0 + 1)) { var e0 = headAt(left, j0); if (e0 > 0) flowNames.push(left.slice(headAt(left, j0, true), e0).toLowerCase()); }
+      if (flowNames.some(function (x) { return W[x] && W[x].flow; }) && (names.length !== 1 || left.indexOf('[[') >= 0 || left.indexOf(']]') >= 0)) {
+        drop('flow message tampered: ' + whole.slice(whole.indexOf('[[')).slice(0, 300));
+        box.textContent = rtrim(whole.slice(0, whole.indexOf('[[')).replace(/`$/, '')); return;
+      }
       function swap(s) {
-        return s.replace(re, function (m, name, attrs) {
+        var t = eachTag(s, function (m, name, attrs) {
                   if (made.length + late.length >= cfg.maxPerMessage) { drop(m + ' (over the limit)'); return ''; }
                   // a widget registered as `last` (chips) is drawn after every other one, wherever its tag was written: it
                   // must see the cards of the whole message (to leave out what they already offer)
                   var d = W[String(name).toLowerCase()]; if (d && d.last) { late.push([name, attrs, m]); return ''; }
                   var r = render(name, attrs, m, host, names, made); if (r.w) made.push(r.w); else drop(m + ' (' + r.why + ')'); return '';
-                })
-                .replace(new RegExp('\\[\\[[^\\]]*\\]\\]|`?\\[\\[\\s*' + cfg.prefix + ':[^\\]]*$', 'gi'), function (m) { drop(m); return ''; })
-                .replace(/(^|\s)\|?[a-z_][a-z0-9_]*=[^\s\]]*(\|[a-z_][a-z0-9_]*=[^\]]*)*\]\]/gi, function (m, pre) { drop('tail of a broken tag: ' + m); return pre; });
+                });
+        t = eachRest(t, function (m) { drop(m); return ''; });
+        return eachTail(t, function (m, pre) { drop('tail of a broken tag: ' + m); return pre; });
       }
       var walker = document.createTreeWalker(box, NodeFilter.SHOW_TEXT), texts = [], n;
       while ((n = walker.nextNode())) texts.push(n);
@@ -668,7 +757,7 @@
       // text is re-read and the box keeps plain text
       var split = texts.some(function (t) { return t.nodeValue.lastIndexOf('[[') > t.nodeValue.lastIndexOf(']]'); });
       if (split) box.textContent = swap(box.textContent).trim();
-      else texts.forEach(function (t) { if (t.nodeValue.indexOf('[[') >= 0) { t.nodeValue = swap(t.nodeValue).replace(/\s+$/, ''); held.push(t); } });
+      else texts.forEach(function (t) { if (t.nodeValue.indexOf('[[') >= 0) { t.nodeValue = rtrim(swap(t.nodeValue)); held.push(t); } });
       late.forEach(function (x) { var r = render(x[0], x[1], x[2], host, names, made); if (r.w) made.push(r.w); else drop(x[2] + ' (' + r.why + ')'); });
       // v0.8.1 · what the tags leave behind: the chat's Markdown puts a tag written on its own line in its own <p>, which
       // stays as a blank last line; a message that was only tags stays as an empty bubble. Only what HELD a tag is
@@ -682,7 +771,7 @@
       });
       if (held.length || split) {   // line breaks and spaces left at the very end, where the tags were
         for (var tail = box.lastChild; tail && ((tail.nodeType === 3 && !tail.nodeValue.trim()) || tail.nodeName === 'BR'); tail = box.lastChild) tail.remove();
-        if (box.lastChild && box.lastChild.nodeType === 3) box.lastChild.nodeValue = box.lastChild.nodeValue.replace(/\s+$/, '');
+        if (box.lastChild && box.lastChild.nodeType === 3) box.lastChild.nodeValue = rtrim(box.lastChild.nodeValue);
       }
       if (made.length && !box.textContent.trim() && !box.querySelector(MEDIA)) { var top = box; while (top.parentNode && top.parentNode !== host && top.parentNode.children.length === 1) top = top.parentNode; top.setAttribute('data-lbw-empty', '1'); host.classList.add('lbw-only'); }
       made.sort(function (a, b) { return (a.getAttribute('data-last') ? 1 : 0) - (b.getAttribute('data-last') ? 1 : 0); });
@@ -719,8 +808,14 @@
     // LBW.on('render', function (e) { e.widget, e.tag, e.lang, e.el, e.message }) · 'say' → { text, fields } · 'drop' → the reason
     on: function (name, fn) { if (typeof fn === 'function') (subs[name] = subs[name] || []).push(fn); return root.LBW; },
     // LBW.widget('card', function (p, ctx) { …return an element or null… }, { last: true })
-    widget: function (name, fn, opts) { W[String(name).toLowerCase()] = { render: fn, last: !!(opts && opts.last) }; return root.LBW; },
-    ui: { el: el, link: link, tel: tel, btn: btn, img: img, loading: loading, card: card, head: head, row: row, rows: rows, reply: reply, once: once, multi: multi, done: done, form: form, stepper: stepper, ics: ics },
+    // v0.9.5 · { flow: true } for a widget a flow message writes with field values in it ([[p:review texto=@{review}|lang=@{lang}]]):
+    // that message must hold its one tag and nothing else that looks like a tag, and a key written twice drops the tag.
+    // { flow: ['texto', 'lang'] } also drops a tag with any other key. A name a tag can't write (or __proto__) is refused
+    widget: function (name, fn, opts) {
+      name = String(name).toLowerCase(); if (!/^[a-z][a-z0-9_]*$/.test(name) || typeof fn !== 'function') { drop('LBW.widget: refused "' + name + '"'); return root.LBW; }
+      var fl = opts && opts.flow; W[name] = { render: fn, last: !!(opts && opts.last), flow: Array.isArray(fl) ? fl.map(function (k) { return String(k).toLowerCase(); }) : fl ? true : false }; return root.LBW;
+    },
+    ui: { el: el, allowed: allowed, link: link, tel: tel, btn: btn, img: img, loading: loading, card: card, head: head, row: row, rows: rows, reply: reply, once: once, multi: multi, done: done, form: form, stepper: stepper, ics: ics },
     day: { num: dayNum, parts: dayParts, read: dayRead, today: dayToday, format: dayFormat, str: dayStr, easter: dayEaster, nth: dayNth, next: dayNext, on: dayOn },
     time: { now: timeNow, read: timeRead, format: timeFmt, state: timeState, nextOpen: timeNextOpen },
     cal: { google: gcal, ics: icsText },

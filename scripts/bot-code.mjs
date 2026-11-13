@@ -76,10 +76,12 @@ const min = async (text, loader) => (text ? (await transform(text, { loader, min
 // write it as the \xA0 escape, which Landbot keeps (docs/13: \xXX escapes are kept), in values, keys, regexes and your own widgets
 // v0.9.0 · `this` at the top level of the Custom JS is the v4 widget: hand it to the runtime so messages go through
 // Widget.sendMessage (custom_data in the same message) instead of the legacy bridge. Guarded: a pinned older library has no LBW.landbot
-const setup = `LBW.landbot&&LBW.landbot(this);LBW.kit.setup(${JSON.stringify(config).replace(/\u00a0/g, '\\xA0')});`, own = (await min(file(opt.widgets), 'js')).replace(/\u00a0/g, '\\xA0');
+// v0.9.5 · every "<" of the config is written \x3C (a string escape Landbot keeps): "</script" or "<!--<script" in a text can't
+// end the block early or put the HTML parser in its double-escaped state
+const setup = `LBW.landbot&&LBW.landbot(this);LBW.kit.setup(${JSON.stringify(config).replace(/\u00a0/g, '\\xA0').replace(/</g, '\\x3C')});`, own = (await min(file(opt.widgets), 'js')).replace(/\u00a0/g, '\\xA0');
 const scripts = [setup, own].filter(Boolean);
 // inside <script>…</script> a literal "</script" would end the block early
-for (const s of scripts) if (/<\/script/i.test(s)) { console.error('the config or the widgets contain "</script": write it as "<\\/script"'); process.exit(1); }
+for (const s of scripts) if (/<\/script|<!--|<script/i.test(s)) { console.error('the widgets contain "</script", "<script" or "<!--": write the "<" as "\\x3C"'); process.exit(1); }
 
 const tag = (s) => `<script>${s}</script>`;
 const load = opt.inline ? read('dist/inline/custom_js.html').trim()

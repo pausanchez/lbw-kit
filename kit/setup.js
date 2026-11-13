@@ -616,7 +616,8 @@
       if (isArr(x)) return x.map(function (y, i) { return walk(y, sent, i === 2 && isObj(y)); });
       if (!isObj(x)) return x;
       var o = {}; Object.keys(x).forEach(function (k) {
-        if (k === '__proto__') return; if (own(PSKIP, k)) { o[k] = x[k]; return; }
+        // v0.9.5 · a class name is never a text: a param can't write one ("cls": "kit-{zona}" would let a tag add kit-ovl…)
+        if (k === '__proto__') return; if (own(PSKIP, k) || k === 'cls' || /Cls$/.test(k)) { o[k] = x[k]; return; }
         // v0.9.4.2 · a row [label, value, key] or [label, value, key, text] whose key is a number param: while that number is 0
         // the row is left out, or its value becomes the text ("Completa"); a missing value keeps the row as written
         if (k === 'rows' && isArr(x[k]) && ['cards', 'contact', 'season'].indexOf(w.type) >= 0) {
@@ -728,6 +729,8 @@
         LBW.widget = function (n, fn, o) { fns[cur] = fn; opts = o || opts; return LBW; };
         try { langs.forEach(function (l) { cur = l; var c = loc(cfg, { lang: l, langs: langs, dflt: dflt }, '', false, null); if (isDyn) cs[l] = c; MAKE[c.widgets[name].type](c, name, c.widgets[name], l); }); }
         finally { LBW.widget = real; }
+        // v0.9.5 · "flow": true | [keys]: the widget's tag comes from a flow message with field values (lbw.js LBW.widget)
+        if (w0.flow === true || isArr(w0.flow)) opts = merge(opts, { flow: w0.flow });
         var fixed = w0.lang, pickL = function (ctx) { return isStr(fixed) && own(fns, fixed) ? fixed : own(fns, ctx.lang) ? ctx.lang : dflt; };   // a widget with its own `lang` always speaks it
         LBW.widget(name, isDyn ? function (p, ctx) { var l = pickL(ctx); return dyn(cs[l], name, l, p, ctx); } : function (p, ctx) { return (fns[isStr(fixed) && own(fns, fixed) ? fixed : ctx.lang] || fns[dflt])(p, ctx); }, opts);
         made.push(name);

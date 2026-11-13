@@ -8,7 +8,7 @@
    → arrives with e.source === the Livechat iframe's contentWindow. A script of this page may also post to itself
    (e.source === window). Anything else is ignored. Every photo URL must start with one of `photos` below, and text is set with textContent.
 
-   LBWHostModal({ photos: ['https://cdn.client.example/'], chat: [location.origin] (optional: the origins a chat frame may have),
+   LBWHostModal({ photos: ['https://cdn.client.example/'], chat: [location.origin] (the origins a chat frame may have; default this page's),
                   lang: { close: 'Fermer', prev: 'Précédente', next: 'Suivante' }, onOpen, onClose })
    The modal is a native <dialog> opened with showModal(): it sits in the top layer, above the Livechat's
    z-index 2147483000, traps focus, closes on Esc, and gives focus back to what had it (the chat iframe).
@@ -17,7 +17,15 @@
   'use strict';
   function LBWHostModal(o) {
     o = o || {}; var T = o.lang || {}, d = document, log = root.__lbwHostModal = root.__lbwHostModal || [];
-    var ok = function (u) { return typeof u === 'string' && (o.photos || []).some(function (p) { return u.indexOf(p) === 0; }) && !/["'<>\s]/.test(u); };
+    // v0.9.5 (security review) · each base ends in '/' like lbw.js's links ('https://cdn.client.example' alone also let
+    // 'https://cdn.client.example.evil.com/' through) and needs a host; a path after it can't climb out with .., %2e%2e or //
+    var bases = (o.photos || []).filter(function (p) { return typeof p === 'string'; }).map(function (p) { return /\/$/.test(p) ? p : p + '/'; })
+      .filter(function (p) { return /^https:\/\/[a-z0-9-]+(?:\.[a-z0-9-]+)*(?::\d{1,5})?\//i.test(p); });
+    var ok = function (u) { return typeof u === 'string' && u.length <= 2048 && !/["'<>\s\\\u0000-\u001f\u007f]/.test(u) && bases.some(function (p) {
+      return u.indexOf(p) === 0 && !/(^|\/)(\.|%2e){1,2}(\/|$)|\/\/|%2f|%5c/i.test(('/' + u.slice(p.length)).split(/[?#]/)[0]); }); };
+    // the chat frame's origin: the Livechat's about:blank frame has this page's (measured, 10 Nov 2026). Required now: an
+    // iframe that merely had "landbot" in its src (an ad, ?ref=landbot) could open the dialog
+    var chatOrigins = o.chat || [root.location.origin];
     var dlg = d.createElement('dialog'); dlg.className = 'lbw-hm'; dlg.setAttribute('aria-label', '');
     dlg.innerHTML = '<div class="lbw-hm-top"><span class="lbw-hm-cap"></span><button type="button" class="lbw-hm-x">×</button></div>' +
       '<div class="lbw-hm-stage"><img alt=""></div><button type="button" class="lbw-hm-nav is-prev">‹</button><button type="button" class="lbw-hm-nav is-next">›</button>';
@@ -49,8 +57,10 @@
     });
     root.addEventListener('message', function (e) {
       var m = e.data; if (!m || typeof m !== 'object' || m.type !== 'lbw:modal' || m.kind !== 'gallery') return;
-      var frames = [].slice.call(d.querySelectorAll('.LandbotLivechat iframe, .LandbotPopup iframe, iframe[src*="landbot"]'));
-      var fromChat = frames.some(function (f) { return f.contentWindow === e.source; }) && (!o.chat || o.chat.indexOf(e.origin) >= 0);
+      // the sender must BE a Landbot chat frame (in the embed's containers, or served by Landbot) and have a chat origin
+      var frames = [].slice.call(d.querySelectorAll('.LandbotLivechat iframe, .LandbotPopup iframe, iframe[src]')).filter(function (f) {
+        return f.closest('.LandbotLivechat, .LandbotPopup') || /^https:\/\/([a-z0-9-]+\.)*landbot\.(io|online)\//i.test(f.getAttribute('src') || ''); });
+      var fromChat = !!e.source && frames.some(function (f) { return f.contentWindow === e.source; }) && chatOrigins.indexOf(e.origin) >= 0;
       var fromCode = e.source === root && e.origin === root.location.origin;
       if (!fromChat && !fromCode) { log.push({ ev: 'ignored', origin: e.origin, t: Date.now() }); return; }
       open(m, fromChat ? 'chat' : 'code');
