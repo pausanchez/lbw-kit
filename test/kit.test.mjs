@@ -45,12 +45,12 @@ test('fallback: with no library, tags are removed from the bot\'s messages', asy
   c.close();
 });
 
-test('fallback: does nothing once the library is there', async () => {
+test('fallback: does nothing once the library is READY (v0.9.5: LBW.ready, not only window.LBW)', async () => {
   const c = boot();
+  c.LBW.init({ prefix: 'qq' }); await wait(10);
   c.w.LBW_FALLBACK_MS = 10;
   c.w.eval((await import('./helpers.mjs')).read('runtime/fallback.js'));
-  const m = c.bot('Kept [[zz:thing]]');   // LBW.init() was never called, so nothing scans: the text must stay as it is
-  await wait(40);
-  assert.equal(m.text(), 'Kept [[zz:thing]]');
+  await wait(200);
+  assert.ok(!c.d.documentElement.classList.contains('lbw-off'), 'the fallback never started');
   c.close();
 });

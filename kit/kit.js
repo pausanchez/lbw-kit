@@ -122,6 +122,8 @@
     t.setAttribute('aria-expanded', 'false'); line.appendChild(t);
     t.addEventListener('click', function () { var c = o.classList.toggle('is-collapsed'); t.setAttribute('aria-expanded', c ? 'false' : 'true'); t.textContent = c ? w.show : w.hide; });
     o.box.insertBefore(line, o.box.firstChild); o.classList.add('is-collapsed');
+    // v0.9.5 · the send failed (lbw.js shows "Not sent · Retry"): open again, with no "Sent" line; a retry folds it anew
+    o.addEventListener('lbw-unsent', function un() { o.removeEventListener('lbw-unsent', un); line.remove(); o.classList.remove('is-collapsed'); });
   }
 
   // ── helpers (also for the client's own widgets) ─────────────────────────────────────────────────
@@ -317,7 +319,9 @@
               x.textContent = ''; x.setAttribute('aria-label', w.tPicked + ': ' + x.getAttribute('data-row'));   /* v0.8.1.14: only the ✓ (CSS) — a wider "✓ Elegido" overflowed the table and the held first column covered the next one (Callan live) */ x.setAttribute('aria-pressed', 'true');
               tb.classList.add('is-open'); if (more) more.hidden = true;   // the chosen row never folds away, and nothing is left to unfold
             } });
-            b.setAttribute('data-row', whole); b.setAttribute('aria-label', (cfg.pick.label || w.tPick) + ': ' + whole); td2.appendChild(b); }
+            b.setAttribute('data-row', whole); b.setAttribute('aria-label', (cfg.pick.label || w.tPick) + ': ' + whole); td2.appendChild(b);
+            b.addEventListener('lbw-unsent', function (e) { var x = e.target, t3 = x.closest('tr'); if (t3) t3.classList.remove('is-picked');   // v0.9.5: not sent, not picked
+              x.textContent = cfg.pick.label || w.tPick; x.setAttribute('aria-label', (cfg.pick.label || w.tPick) + ': ' + x.getAttribute('data-row')); x.removeAttribute('aria-pressed'); }); }
           tr.appendChild(td2);
         }
         body.appendChild(tr);
@@ -1008,6 +1012,8 @@
         g.addEventListener('mouseleave', function () { hot(null); }); g.addEventListener('focusout', function () { hot(null); });
         btns.forEach(function (b) { b.addEventListener('click', function () { setTimeout(function () { if (!g.classList.contains('is-done')) hot(null); }, 0); }); });   // a tap the send lock refused mustn't look rated
       }
+      g.addEventListener('lbw-unsent', function () {   // v0.9.5: the value wasn't sent, so nothing reads as rated
+        btns.forEach(function (x) { x.classList.remove('is-on'); x.removeAttribute('aria-pressed'); x.removeAttribute('aria-current'); }); g.classList.remove('is-rated'); g.removeAttribute('tabindex'); });
       if (kind === 'scale') { g.style.setProperty('--kit-n', String(btns.length)); g.style.setProperty('--kit-cols', String(btns.length > 6 ? Math.ceil(btns.length / 2) : btns.length)); }
       o.box.appendChild(g);
       if (kind === 'scale' && (labels[0] || labels[1])) { var ends = el('div', 'kit-rate-ends'); ends.setAttribute('aria-hidden', 'true'); ends.appendChild(el('span', null, labels[0] ? lo + ' · ' + labels[0] : '')); ends.appendChild(el('span', null, labels[1] ? hi + ' · ' + labels[1] : '')); /* with their numbers: on two rows the ends don't sit under 0 and 10 */ o.box.appendChild(ends); }
