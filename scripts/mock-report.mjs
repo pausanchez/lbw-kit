@@ -16,7 +16,8 @@ const dom = new JSDOM(fs.readFileSync(files[0], 'utf8'), { runScripts: 'dangerou
 await new Promise((r) => setTimeout(r, 1500));
 const w = dom.window, all = (s) => [...w.document.querySelectorAll(s)], count = {};
 all('.lbw').forEach((x) => { const n = x.getAttribute('data-widget') || '?'; count[n] = (count[n] || 0) + 1; });
-const raw = all('[data-lb-part="message-text"]').filter((m) => /\[\[/.test(m.textContent)).map((m) => m.textContent.trim().slice(0, 80));
+// a data message (v0.9.5, [[lbw:data key=k]] …) is hidden and read as data, never a raw tag
+const raw = all('[data-lb-part="message-text"]').filter((m) => !m.closest('[data-lbw-data]') && /\[\[/.test(m.textContent)).map((m) => m.textContent.trim().slice(0, 80));
 const report = { devMode: !!(w.LBW && w.LBW.kit && w.LBW.kit.dev), library: w.LBW ? w.LBW.version : null, messages: all('[data-lb-part="message"]').length, widgets: count,
   setupErrors: [...(w.__kitSetupErrors || [])], devWarnings: [...(w.__kitWarnings || [])], dropped: [...(w.__lbwDropped || [])].map(String), rawTagsLeft: raw, pageErrors: errors };
 console.log(JSON.stringify(report, null, 2));

@@ -150,3 +150,13 @@ test('datamsg: the chat\'s own box around a hidden data message is hidden once n
   typing.remove(); c.scan();
   assert.equal(box.style.display, 'none'); assert.notEqual(c.chat.style.display, 'none');   // the column, with "Hola", stays
 });
+
+test('data message (v0.9.5.1): a "[[prefix:" inside a data value is not a raw tag left behind (found live on the v0.9.5 release)', async () => {
+  const c = boot(); c.LBW.init({ prefix: 't', rawMs: 30 });
+  await wait(10);
+  const m = c.bot("[[lbw:data key=raro]] {'t': 'a [[t:aviso msg=x]] b'}");
+  await wait(150);
+  assert.deepEqual(JSON.parse(JSON.stringify(c.LBW.data.get('raro'))), { t: 'a [[t:aviso msg=x]] b' });
+  assert.ok(!c.dropped().some((d) => /raw tag left/.test(d)), c.dropped().join(' | '));
+  assert.ok(m.textContent.indexOf('[[t:aviso msg=x]]') >= 0, 'the hidden bubble keeps its text');
+});

@@ -1,4 +1,4 @@
-/* lbw.js · Landbot AI Widgets runtime · v0.9.5
+/* lbw.js · Landbot AI Widgets runtime · v0.9.5.1
    Turns tags that an AI agent (or a flow message) writes at the end of a bot message, e.g. [[shop:card id=boots lang=en]],
    into interactive widgets inside the Landbot v4 web chat. Distilled from four production experiments (retos 16-19).
    You write: your data, your labels and one function per widget. The runtime does the rest:
@@ -988,7 +988,7 @@
     var walker = document.createTreeWalker(b, NodeFilter.SHOW_TEXT), found = [], n;
     while ((n = walker.nextNode())) {
       if (n.nodeValue.indexOf('[[') < 0 || rawAt(n.nodeValue) == null) continue;
-      var pe = n.parentNode; if (!pe || !pe.closest || pe.closest('.lbw, [data-lb-author="user"], script, style, noscript, code, pre, textarea, template')) continue;
+      var pe = n.parentNode; if (!pe || !pe.closest || pe.closest('.lbw, [data-lb-author="user"], [data-lbw-data], script, style, noscript, code, pre, textarea, template')) continue;   // v0.9.5.1: a data message's value is data, not a tag left behind
       found.push(n);
     }
     found.forEach(function (t) {
@@ -1084,7 +1084,7 @@
   }
 
   root.LBW = {
-    version: '0.9.5',
+    version: '0.9.5.1',
     ready: false,   // v0.9.5: true once init() ran and the first scan is done
     // LBW.init({ prefix, langs, defaultLang, labels: {en:{…}}, links: ['https://shop.example/', 'tel:', 'mailto:', 'https://calendar.google.com/'], maxPerMessage, quietMs, timeZone: 'Europe/Madrid' })
     init: function (o) { for (var k in o) cfg[k] = o[k]; start(); return root.LBW; },
