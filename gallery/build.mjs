@@ -155,10 +155,10 @@ nav.index { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 72px); a
 }
 
 /* groups and types */
-.group { display: grid; gap: 28px; margin-bottom: 56px; }
+.group { display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; margin-bottom: 56px; }
 .group-head h2 { font: 700 28px/1.1 var(--f-display); margin: 0 0 6px; letter-spacing: -.01em; }
 .group-head p { margin: 0; color: var(--muted); max-width: 70ch; }
-.type { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 22px; scroll-margin-top: 80px; display: grid; gap: 16px; }
+.type { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 22px; scroll-margin-top: 80px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
 .type-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
 .type-head h3 { font: 700 22px/1.15 var(--f-display); margin: 0; }
 .tname { color: var(--accent); background: var(--accent-soft); }
@@ -211,7 +211,7 @@ code.ex-src { display: block; padding: 4px 8px; font-size: 12px; line-height: 1.
 .sim[aria-pressed="true"] { background: var(--accent-soft); }
 
 /* the chat column: always the chat's own light look, as a visitor sees it */
-.stage { flex: 0 1 var(--col); width: var(--col); max-width: 100%; min-width: 0; display: grid; gap: 10px; }
+.stage { flex: 0 1 var(--col); width: min(var(--col), 100%); max-width: 100%; min-width: 0; display: grid; gap: 10px; }
 .chat { background: var(--chat-bg); border: 1px solid var(--chat-line); border-radius: 12px; padding: 14px 12px; color: var(--chat-ink); color-scheme: light; font: 15px/1.5 system-ui, -apple-system, sans-serif; display: flex; flex-direction: column; gap: 12px; min-height: 80px; }
 .row { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; min-width: 0; }
 .row > .bubble { background: #FFFFFF; border: 1px solid var(--chat-line); border-radius: 18px; padding: 9px 14px; max-width: 86%; }
@@ -337,7 +337,7 @@ ${body}
   window._landbot = {
     setCustomData: function (d) { for (var k in d) pend[k] = d[k]; },
     sendMessage: function (m) {
-      var fields = pend; pend = {};
+      var fields = Object.assign({}, pend, m.custom_data || {}); pend = {};   // v0.9.5+: the fields travel as custom_data in the message itself
       var stage = lastChat; if (!stage) return;
       var chat = stage.querySelector('.chat'), id = chat.getAttribute('data-section');
       bubble(chat, 'user', m.message);

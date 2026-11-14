@@ -40,7 +40,7 @@ test('live: a card drawn from the data says "En directo" beside its title; the s
 test('live: the words in the kit\'s six languages; the pulse only with motion, two times (under 5 s)', () => {
   const c = chat(TOURS()), L = c.w.LBW.kit.L;
   for (const l of ['en', 'es', 'it', 'de', 'fr', 'ca']) { assert.ok(L[l].live, l); assert.ok(L[l].full, l); }
-  const css = read('kit/kit.css'), rule = css.slice(css.indexOf('.kit-live.is-pulse::after {'), css.indexOf('}', css.indexOf('.kit-live.is-pulse::after {')));
+  const css = read('kit/kit.css'), rule = css.slice(css.indexOf('.kit-live.is-pulse:not(.lbw-played)::after {'), css.indexOf('}', css.indexOf('.kit-live.is-pulse:not(.lbw-played)::after {')));
   assert.match(rule, /animation: kit-pulse 1\.6s [^;]* 2;/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\) \{ \.kit-live\.is-pulse::after \{ animation: none; \}/);
   const m = chat(TOURS(), { motion: 'ok' }); m.put('tours', [{ id: 'kayak', nombre: 'K', precio: '1', hora: '1' }]);

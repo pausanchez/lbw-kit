@@ -179,3 +179,20 @@ test('"motion": false (v0.10 merge) also stops the kit\'s own moves: LBW.kit.h.m
   assert.equal(c.w.LBW.kit.h.moving(), false);
   c.close();
 });
+
+test('v0.10.0.1: an animation that ended is marked lbw-played, and the replayable rules skip it (a tab coming back replays nothing)', () => {
+  const c = boot({ kit: true, scripts: ['kit/setup.js'] });
+  const w = c.d.createElement('div'); w.className = 'lbw'; const step = c.d.createElement('div'); step.className = 'kit-step is-open'; w.appendChild(step); c.d.body.appendChild(w);
+  const out = c.d.createElement('div'); out.className = 'kit-step'; c.d.body.appendChild(out);   // outside any widget: never marked
+  for (const t of [step, out]) t.dispatchEvent(new c.w.Event('animationend', { bubbles: true }));
+  assert.ok(step.classList.contains('lbw-played')); assert.ok(!out.classList.contains('lbw-played'));
+  const css = read('runtime/lbw.css') + read('kit/kit.css');
+  for (const sel of ['.kit-step.is-open:not(.lbw-played)', '.kit-live.is-pulse:not(.lbw-played)::after', '.kit-trk-dot:not(.lbw-played)::before', '.lbw-unsent:not(.lbw-played)']) assert.ok(css.includes(sel), sel);
+  c.close();
+});
+
+test('v0.10.0.1: an older tracker fades only its marks; its text keeps its contrast (axe found 3.27:1)', () => {
+  const css = read('kit/kit.css');
+  assert.doesNotMatch(css, /\.kit-tracker\.is-old \.kit-trk-steps \{ opacity/);
+  assert.match(css, /\.kit-tracker\.is-old \.kit-trk-dot, \.kit-tracker\.is-old \.kit-trk-line \{ opacity: \.7; \}/);
+});

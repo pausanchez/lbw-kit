@@ -48,7 +48,10 @@ function boot({ checker = false, fetchMap = {} } = {}) {
   };
   return { w, chat, bot, dropped: () => (w.__lbwDropped || []).map(String), close: () => { closed = true; w.close(); } };
 }
-const shot = (m) => ({ html: [...m.querySelectorAll('.lbw')].map((x) => x.outerHTML).join('\n'), left: m.querySelector('[data-lb-part="message-text"]').textContent });
+// v0.10.0.1 · classes that only live for a moment (the late-data flash, a played animation) are left out: when the 'late'
+// snapshot is taken depends on the machine's load, not on the library
+const TRANSIENT = / (kit-flash|is-still|lbw-played|lbw-enter|lbw-swap|lbw-new|lbw-pop|lbw-press)(?=[ "])/g;
+const shot = (m) => ({ html: [...m.querySelectorAll('.lbw')].map((x) => x.outerHTML.replace(TRANSIENT, '')).join('\n'), left: m.querySelector('[data-lb-part="message-text"]').textContent });
 
 // ── the tags (written once, into the fixture) ─────────────────────────────────────────────────────────────────────
 const ATTACK = ['<img src=x onerror=alert(1)>', '"><script>alert(1)</script>', 'javascript:alert(1)', '__proto__', 'constructor', '9'.repeat(40), '-1', '', 'ñandú 🦊'];

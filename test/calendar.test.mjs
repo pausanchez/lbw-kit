@@ -195,7 +195,7 @@ test('calendar: days from a data message: live at once when there, strict rows, 
   const m = draw(c, '[[t:cab]]');
   assert.equal(day(m, 20).getAttribute('aria-label'), 'viernes, 20 de noviembre, 199,50 €');
   assert.equal(day(m, 20).querySelector('.kit-cal-p').textContent, '199,50');
-  assert.equal(day(m, 21).getAttribute('aria-label'), 'sábado, 21 de noviembre, 229 €, quedan 1');
+  assert.equal(day(m, 21).getAttribute('aria-label'), 'sábado, 21 de noviembre, 229 €, queda 1');
   assert.ok(day(m, 22).classList.contains('is-full')); assert.ok(day(m, 28).classList.contains('is-full'), '"quedan": 0 is full');
   assert.ok(day(m, 19).classList.contains('is-free') && day(m, 19).querySelector('.kit-cal-p').textContent === '', 'not in the data, no saved rates under live data: free with no price');
   assert.ok(day(m, 27).classList.contains('is-free') && day(m, 25).querySelector('.kit-cal-p').textContent === '', 'bad rows are skipped');
@@ -270,5 +270,12 @@ test('calendar → confirm (v0.10 merge): a pass reads the stay: the check-in bi
   assert.equal(p.querySelector('.kit-pass-t'), null, 'a stay has no time');
   assert.match(p.textContent, /Cabaña · 3 noches/); assert.match(p.textContent, /23\/11\/2026/); assert.match(p.textContent, /657\s€/);
   assert.ok(p.querySelector('.kit-pass-cal'), 'add to calendar');
+  c.close();
+});
+
+test('calendar (v0.10.0.1): one place left says "queda 1", in the singular', () => {
+  const w = { ...W, noches: { ...W.noches, days: [{ date: '21/11/2026', state: 'few', left: 1 }, { date: '22/11/2026', state: 'few', left: 3 }] } };
+  const c = setup(w), m = draw(c, '[[t:noches]]');
+  assert.match(day(m, 21).getAttribute('aria-label'), /queda 1$/); assert.match(day(m, 22).getAttribute('aria-label'), /quedan 3$/);
   c.close();
 });

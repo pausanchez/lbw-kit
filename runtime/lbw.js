@@ -1,4 +1,4 @@
-/* lbw.js · Landbot AI Widgets runtime · v0.10.0
+/* lbw.js · Landbot AI Widgets runtime · v0.10.0.1
    Turns tags that an AI agent (or a flow message) writes at the end of a bot message, e.g. [[shop:card id=boots lang=en]],
    into interactive widgets inside the Landbot v4 web chat. Distilled from four production experiments (retos 16-19).
    You write: your data, your labels and one function per widget. The runtime does the rest:
@@ -244,6 +244,10 @@
     if (!on) ONCE.forEach(function (k) { [].slice.call(document.getElementsByClassName(k)).forEach(function (x) { x.classList.remove(k); }); });
     return on;
   }
+  // v0.10.0.1 · an animation that ran to its end is marked lbw-played: its rule is written :not(.lbw-played), so a tab that
+  // comes back (the gate toggles html.lbw-motion off and on) doesn't replay it (the open form step, the Live dot, the tracker's
+  // pulse, the "not sent" line). Infinite ones (a spinner) never end and are never marked
+  if (document.addEventListener) document.addEventListener('animationend', function (e) { var t = e.target; if (t && t.classList && t.closest && t.closest('.lbw, .lbw-unsent')) t.classList.add('lbw-played'); }, true);
   function brief(x, k, ms) { if (!x || !moving()) return false; x.classList.add(k); setTimeout(function () { x.classList.remove(k); }, ms || 900); return true; }
   // a send's state on its control and its widget: data-lbw-job = queued | sending | sent | failed (cancelled: none). The
   // CSS draws it: a small spinner in the pressed pill while it waits for the chat (queued, sending), "✓" when it is out
@@ -1192,7 +1196,7 @@
   }
 
   root.LBW = {
-    version: '0.10.0',
+    version: '0.10.0.1',
     ready: false,   // v0.9.5: true once init() ran and the first scan is done
     // LBW.init({ prefix, langs, defaultLang, labels: {en:{…}}, links: ['https://shop.example/', 'tel:', 'mailto:', 'https://calendar.google.com/'], maxPerMessage, quietMs, timeZone: 'Europe/Madrid' })
     init: function (o) { for (var k in o) cfg[k] = o[k]; start(); return root.LBW; },

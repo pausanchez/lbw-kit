@@ -1,4 +1,4 @@
-/* AI Widgets kit v0.10.0 · on lbw.js v0.10.0 · the widgets every url-to-demo build rewrote, written once with options. Load it after lbw.js and before the
+/* AI Widgets kit v0.10.0.1 · on lbw.js v0.10.0.1 · the widgets every url-to-demo build rewrote, written once with options. Load it after lbw.js and before the
    client's widgets.js: custom_js = <script>lbw.js</script><script>kit.js</script><script>widgets.js</script>.
 
    Each maker registers a widget under the name you give it, from data you pass. Nothing here holds client facts.
@@ -1381,14 +1381,14 @@
   // The tag may preset month=2026-12, from=21/11/2026, to=24/11/2026: a value that isn't something the visitor could pick is
   // ignored (and logged). The total is the sum of the nights' own prices, never a guess.
   var CALW = {
-    en: ['Previous month', 'Next month', 'Pick your check-in', 'Now pick your check-out', 'Pick a day', '{a} – {b}', '{n} night', '{n} nights', 'from {p}', 'few left', '{n} left', 'full', 'closed', 'At least {n} nights', 'At most {n} nights', 'Some nights in between are not available', 'check-in', 'check-out', 'Check-in {d}', 'Price per night'],
-    es: ['Mes anterior', 'Mes siguiente', 'Elige la llegada', 'Ahora elige la salida', 'Elige un día', 'Del {a} al {b}', '{n} noche', '{n} noches', 'desde {p}', 'quedan pocas', 'quedan {n}', 'completo', 'cerrado', 'Mínimo {n} noches', 'Máximo {n} noches', 'Hay noches sin disponibilidad entre medias', 'llegada', 'salida', 'Llegada el {d}', 'Precio por noche'],
-    it: ['Mese precedente', 'Mese successivo', 'Scegli l’arrivo', 'Ora scegli la partenza', 'Scegli un giorno', 'Dal {a} al {b}', '{n} notte', '{n} notti', 'da {p}', 'ultimi posti', 'ne restano {n}', 'completo', 'chiuso', 'Minimo {n} notti', 'Massimo {n} notti', 'Alcune notti in mezzo non sono disponibili', 'arrivo', 'partenza', 'Arrivo il {d}', 'Prezzo a notte'],
-    de: ['Vorheriger Monat', 'Nächster Monat', 'Anreise wählen', 'Jetzt Abreise wählen', 'Tag wählen', '{a} – {b}', '{n} Nacht', '{n} Nächte', 'ab {p}', 'nur noch wenige', 'noch {n}', 'ausgebucht', 'geschlossen', 'Mindestens {n} Nächte', 'Höchstens {n} Nächte', 'Dazwischen sind Nächte nicht verfügbar', 'Anreise', 'Abreise', 'Anreise am {d}', 'Preis pro Nacht'],
-    fr: ['Mois précédent', 'Mois suivant', 'Choisissez l’arrivée', 'Choisissez maintenant le départ', 'Choisissez un jour', 'Du {a} au {b}', '{n} nuit', '{n} nuits', 'à partir de {p}', 'dernières places', 'plus que {n}', 'complet', 'fermé', 'Minimum {n} nuits', 'Maximum {n} nuits', 'Des nuits entre ces dates ne sont pas disponibles', 'arrivée', 'départ', 'Arrivée le {d}', 'Prix par nuit'],
-    ca: ['Mes anterior', 'Mes següent', 'Tria l’arribada', 'Ara tria la sortida', 'Tria un dia', 'Del {a} al {b}', '{n} nit', '{n} nits', 'des de {p}', 'en queden poques', 'en queden {n}', 'complet', 'tancat', 'Mínim {n} nits', 'Màxim {n} nits', 'Hi ha nits sense disponibilitat entremig', 'arribada', 'sortida', 'Arribada el {d}', 'Preu per nit']
+    en: ['Previous month', 'Next month', 'Pick your check-in', 'Now pick your check-out', 'Pick a day', '{a} – {b}', '{n} night', '{n} nights', 'from {p}', 'few left', '{n} left', 'full', 'closed', 'At least {n} nights', 'At most {n} nights', 'Some nights in between are not available', 'check-in', 'check-out', 'Check-in {d}', 'Price per night', '{n} left'],
+    es: ['Mes anterior', 'Mes siguiente', 'Elige la llegada', 'Ahora elige la salida', 'Elige un día', 'Del {a} al {b}', '{n} noche', '{n} noches', 'desde {p}', 'quedan pocas', 'quedan {n}', 'completo', 'cerrado', 'Mínimo {n} noches', 'Máximo {n} noches', 'Hay noches sin disponibilidad entre medias', 'llegada', 'salida', 'Llegada el {d}', 'Precio por noche', 'queda {n}'],
+    it: ['Mese precedente', 'Mese successivo', 'Scegli l’arrivo', 'Ora scegli la partenza', 'Scegli un giorno', 'Dal {a} al {b}', '{n} notte', '{n} notti', 'da {p}', 'ultimi posti', 'ne restano {n}', 'completo', 'chiuso', 'Minimo {n} notti', 'Massimo {n} notti', 'Alcune notti in mezzo non sono disponibili', 'arrivo', 'partenza', 'Arrivo il {d}', 'Prezzo a notte', 'ne resta {n}'],
+    de: ['Vorheriger Monat', 'Nächster Monat', 'Anreise wählen', 'Jetzt Abreise wählen', 'Tag wählen', '{a} – {b}', '{n} Nacht', '{n} Nächte', 'ab {p}', 'nur noch wenige', 'noch {n}', 'ausgebucht', 'geschlossen', 'Mindestens {n} Nächte', 'Höchstens {n} Nächte', 'Dazwischen sind Nächte nicht verfügbar', 'Anreise', 'Abreise', 'Anreise am {d}', 'Preis pro Nacht', 'noch {n}'],
+    fr: ['Mois précédent', 'Mois suivant', 'Choisissez l’arrivée', 'Choisissez maintenant le départ', 'Choisissez un jour', 'Du {a} au {b}', '{n} nuit', '{n} nuits', 'à partir de {p}', 'dernières places', 'plus que {n}', 'complet', 'fermé', 'Minimum {n} nuits', 'Maximum {n} nuits', 'Des nuits entre ces dates ne sont pas disponibles', 'arrivée', 'départ', 'Arrivée le {d}', 'Prix par nuit', 'il en reste {n}'],
+    ca: ['Mes anterior', 'Mes següent', 'Tria l’arribada', 'Ara tria la sortida', 'Tria un dia', 'Del {a} al {b}', '{n} nit', '{n} nits', 'des de {p}', 'en queden poques', 'en queden {n}', 'complet', 'tancat', 'Mínim {n} nits', 'Màxim {n} nits', 'Hi ha nits sense disponibilitat entremig', 'arribada', 'sortida', 'Arribada el {d}', 'Preu per nit', 'en queda {n}']
   };
-  var CALK = 'prev next pickIn pickOut pickDay range night nights from few left full closed min max gap inDay outDay arrive per'.split(' '), CALID = 0;
+  var CALK = 'prev next pickIn pickOut pickDay range night nights from few left full closed min max gap inDay outDay arrive per left1'.split(' '), CALID = 0;
   function calWords(lang) { var a = CALW[lang] || CALW.en, o = {}; CALK.forEach(function (k, i) { o[k] = a[i]; }); return o; }
   function calendar(name, cfg) {
     var cls = cfg.cls || ('kit-' + name), range = cfg.mode !== 'single', has = Object.prototype.hasOwnProperty;
@@ -1446,7 +1446,7 @@
         function label(n, s) {   // "sábado, 21 de noviembre, 189 €, quedan 2"
           var d = info(n), t = [dm(n, { weekday: 'long', day: 'numeric', month: 'long' })];
           if (d.p != null && night(n)) t.push(cash(d.p));
-          if (d.s === 'few') t.push(d.left != null ? fill(w.left, { n: d.left }) : w.few); else if (d.s === 'full' || d.s === 'closed') t.push(w[d.s]);
+          if (d.s === 'few') t.push(d.left != null ? fill(d.left === 1 ? w.left1 : w.left, { n: d.left }) : w.few); else if (d.s === 'full' || d.s === 'closed') t.push(w[d.s]);
           if (range && n === s.from) t.push(w.inDay); if (range && n === s.to) t.push(w.outDay);
           return t.join(', ');
         }
@@ -1750,7 +1750,7 @@
     });
   }
 
-  LBW.kit = { version: '0.10.0', dev: DEV, describe: describe, L: L, last: last, cards: cards, table: table, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent, compare: compare, season: season, rating: rating,
+  LBW.kit = { version: '0.10.0.1', dev: DEV, describe: describe, L: L, last: last, cards: cards, table: table, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent, compare: compare, season: season, rating: rating,
     h: { usedByVisitor: usedByVisitor, wasQuieted: wasQuieted, quietAgain: quietAgain, keepPlace: keepPlace, upgraded: upgraded, radioGroup: radioGroup, note: note, list: list, label: label, dup: dup, choice: choice, multiChoice: multiChoice, copyBox: copyBox, status: status, wa: wa, fill: fill, money: money, total: total, lightbox: lightbox, chart: chart, statusHead: statusHead,
       icon: icon, withIcon: withIcon, icons: Object.keys(ICONS), badge: badge, tones: TONES.slice() } };
   // v0.10 · live & numbers (its own line: other makers' exports stay where they are)

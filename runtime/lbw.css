@@ -1,4 +1,4 @@
-/* lbw.css · base look for Landbot AI Widgets (v0.10.0)
+/* lbw.css · base look for Landbot AI Widgets (v0.10.0.1)
    The ChatKit-gallery language measured in retos 16-19: white cards, 18px radius, a hairline and a soft shadow; a small
    kicker above an 18px title; pill buttons (primary filled, secondary an inset ring) under the card. Re-skin it by
    overriding the variables below in your Custom CSS; keep the class names, the test harness reads some of them. */
@@ -212,7 +212,7 @@
 .lbw-pill.is-primary.is-unsent { box-shadow: 0 0 0 2px var(--lbw-card), 0 0 0 3.5px var(--lbw-alert, var(--kit-danger-c, #B42318)); }   /* a filled pill: the ring outside it */
 .lbw-unsent::before { content: "!"; flex: none; display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--lbw-alert, var(--kit-danger-c, #B42318)); color: var(--lbw-card); font: 700 12px/1 var(--lbw-font); }
 .lbw-unsent > span { color: var(--lbw-ink); }
-.lbw-motion .lbw-unsent { animation: lbw-rise var(--lbw-dur) var(--lbw-ease) both; }
+.lbw-motion .lbw-unsent:not(.lbw-played) { animation: lbw-rise var(--lbw-dur) var(--lbw-ease) both; }
 
 /* 4 · done: a receipt with a check that draws itself ("Sent · 21:04") on a card whose job is finished */
 .lbw-receipt:not(.kit-sentline) { display: flex; align-items: center; gap: 8px; margin-top: 12px; font: 600 13px/18px var(--lbw-font); color: var(--lbw-ink); }
