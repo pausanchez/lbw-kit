@@ -143,7 +143,8 @@
 // around its text box.
 (function (root) {
   var H = root.LBW_HOST; if (!H || !H.messages || H.column) return;
-  var MSG = H.sel.message, SLOT = 'data-lbw-slot', PAST = 'data-lbw-past', MODE = 'data-lbw-screen';
+  var MSG = H.sel.message, SLOT = 'data-lbw-slot', PAST = 'data-lbw-past', MODE = 'data-lbw-screen', CUR = 'data-lbw-cur', CHROME = 'data-lbw-chrome',
+      ASIDE = 'data-lbw-aside', HEAD = '[data-lb-part="message-header"]';
   // column(root?): the window's child that holds the messages (v4: the scrolling column between the header and the text
   // box), or null with no window or no message in it
   function column(r) {
@@ -178,6 +179,31 @@
     });
     return n;
   }
+  // scroller(node): the element that scrolls the chat around a node (the nearest ancestor with overflow-y auto or scroll), else
+  // the page's own scrolling element
+  function scroller(n) {
+    for (var e = n && n.parentElement; e && e !== document.body && e !== document.documentElement; e = e.parentElement) {
+      var cs = root.getComputedStyle ? root.getComputedStyle(e) : null; if (cs && /(auto|scroll)/.test(cs.overflowY)) return e;
+    }
+    return document.scrollingElement || document.documentElement;
+  }
+  // present(from, to, kindOf, root?): the "bleed" marks for the messages from `from` to `to` (the current screen's turn): each
+  // row data-lbw-cur; the elements between a message and its text box (the bubble's chrome) data-lbw-chrome, the text box
+  // itself data-lbw-chrome = kindOf(message) ('title' or 'intro'); the message's header (avatar, author) data-lbw-aside.
+  // Every other message loses those marks. null: no marks anywhere. lbw.css styles them; nothing moves
+  function present(from, to, kindOf, r) {
+    var ms = H.messages(r), a = from ? [].indexOf.call(ms, H.messageOf(from)) : -1, b = to ? [].indexOf.call(ms, H.messageOf(to)) : -1;
+    [].forEach.call(doc(r).querySelectorAll('[' + CUR + '], [' + CHROME + '], [' + ASIDE + ']'), function (x) { x.removeAttribute(CUR); x.removeAttribute(CHROME); x.removeAttribute(ASIDE); });
+    if (a < 0 || b < a) return 0;
+    for (var i = a; i <= b; i++) {
+      var m = ms[i], row = rowOf(m, r), t = H.textBox(m), hd = m.querySelector(HEAD);
+      if (row) row.setAttribute(CUR, '');
+      if (t) { t.setAttribute(CHROME, (kindOf && kindOf(m)) || 'intro'); for (var e = t.parentElement; e && e !== m; e = e.parentElement) e.setAttribute(CHROME, ''); }
+      if (hd) hd.setAttribute(ASIDE, '');
+    }
+    return b - a + 1;
+  }
+  function doc(r) { return r || document; }
   // layout(mode, root?): marks the window 'collapse' (earlier rows hidden), 'open' (shown again) or 'keep' (never hidden);
   // a falsy mode takes every mark and slot away: a normal chat again. false with no window
   function layout(mode, r) {
@@ -185,7 +211,7 @@
     if (mode) { if (w.getAttribute(MODE) !== mode) w.setAttribute(MODE, mode); return true; }
     w.removeAttribute(MODE);
     [].slice.call(w.querySelectorAll('[' + SLOT + ']')).forEach(function (x) { x.remove(); });
-    collapse(null, r); return true;
+    collapse(null, r); present(null, null, null, r); return true;
   }
-  H.column = column; H.rowOf = rowOf; H.slot = slot; H.collapse = collapse; H.layout = layout;
+  H.column = column; H.rowOf = rowOf; H.slot = slot; H.collapse = collapse; H.layout = layout; H.scroller = scroller; H.present = present;
 })(window);

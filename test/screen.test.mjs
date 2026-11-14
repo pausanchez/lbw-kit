@@ -57,7 +57,7 @@ test('screen: a widget in the newest message becomes the screen; earlier message
   assert.equal(c.win.getAttribute('data-lbw-screen'), 'collapse');
   assert.deepEqual(c.past(), ['past', 'past', 'on'], 'the welcome and the question fold; they stay in the DOM');
   assert.equal(c.chat.children.length, 3);
-  assert.deepEqual(json(c.LBW.screen.state()), { step: 'plan', index: 0, of: 3, widget: 'plan', open: false, past: 2 });
+  assert.deepEqual(json(c.LBW.screen.state()), { step: 'plan', index: 0, of: 3, done: [], widget: 'plan', widgets: ['plan'], open: false, past: 2 });
   const head = c.slot('head');
   assert.equal(head.nextElementSibling, c.chat, 'the header is our own element, right before the message column');
   assert.equal(head.getAttribute('lang'), 'es');
@@ -70,16 +70,17 @@ test('screen: a widget in the newest message becomes the screen; earlier message
   c.close();
 });
 
-test('screen: the next screen; the tag\'s step wins; the agent\'s text in the same turn stays; steps done say so', () => {
+test('screen: the next screen; the tag\'s step wins; the agent\'s text in the same turn stays; a jumped step is skipped, not done', () => {
   const c = setup();
   c.draw('Te ayudo: [[s:plan]]'); c.say('Mi plan: Suave');
   c.draw('¡Genial! Ahora los días.');
   c.draw('[[s:dias step=listo]]');
   assert.deepEqual(c.past(), ['past', 'past', 'on', 'on'], 'the agent\'s bubble before the widget is part of its turn');
   assert.equal(c.LBW.screen.state().step, 'listo');
-  assert.deepEqual(c.steps(), ['is-done', 'is-done', 'is-cur*']);
-  assert.deepEqual([...c.slot('head').querySelectorAll('.lbw-scr-sr')].map((x) => x.textContent), [', hecho', ', hecho']);
-  assert.deepEqual([...c.slot('head').querySelectorAll('.lbw-scr-ck')].map((x) => x.getAttribute('aria-hidden')), ['true', 'true'], 'the ✓ is a picture; the words say it');
+  assert.deepEqual(c.steps(), ['is-done', 'is-skip', 'is-cur*'], 'plan was left forward; dias never ran');
+  assert.deepEqual([...c.slot('head').querySelectorAll('.lbw-scr-sr')].map((x) => x.textContent), [', hecho', ', omitido']);
+  assert.deepEqual([...c.slot('head').querySelectorAll('.lbw-scr-ck')].map((x) => x.getAttribute('aria-hidden')), ['true'], 'the ✓ is a picture; the words say it');
+  assert.deepEqual(json(c.LBW.screen.state()).done, ['plan']);
   // a number is a step too, and a widget with no step keeps the last one
   c.say('Vale'); c.draw('[[s:dias step=2]]'); assert.equal(c.LBW.screen.state().step, 'dias');
   c.say('Y ahora'); c.draw('[[s:fin]]'); assert.deepEqual(json(c.LBW.screen.state()).step, 'dias');
@@ -240,6 +241,90 @@ test('screen: the progress header says "Paso n de m" and draws a bar', () => {
   c.close();
 });
 
+test('screen: ✓ only for steps visited and left forward; going back keeps the ✓ of the steps after', () => {
+  const S4 = { on: true, header: { steps: [['where', 'Where'], ['when', 'When'], ['who', 'Who'], ['pay', 'Pay']] } };
+  const c = setup({ screen: S4, widgets: { x: { type: 'cards', allowDup: true, item: { title: 'X' } } } });
+  const go = (st) => { c.say('next'); c.draw(`[[s:x step=${st}]]`); return c.steps(); };
+  c.draw('[[s:x step=where]]');
+  assert.deepEqual(go('pay'), ['is-done', 'is-skip', 'is-skip', 'is-cur*'], 'the agent jumped Where → Pay');
+  assert.deepEqual(go('when'), ['is-done', 'is-cur*', '-', '-'], 'back: Pay was never left forward, so it is open');
+  assert.deepEqual(go('who'), ['is-done', 'is-done', 'is-cur*', '-']);
+  assert.deepEqual(go('pay'), ['is-done', 'is-done', 'is-done', 'is-cur*']);
+  assert.deepEqual(go('when'), ['is-done', 'is-cur*', 'is-done', '-'], 'back to When: Who keeps its ✓, When is current');
+  assert.deepEqual(go('when'), ['is-done', 'is-cur*', 'is-done', '-'], 'the same step again changes nothing');
+  assert.deepEqual(json(c.LBW.screen.state()).done, ['where', 'when', 'who']);
+  c.close();
+});
+
+test('screen: two widgets in one message are one screen; the bar follows the last widget\'s ready primary', async () => {
+  const c = setup({ widgets: { ...W(), map: { type: 'cards', allowDup: true, item: { title: 'Mapa' }, reply: ['Ir', 'Quiero ir'] } } });
+  c.say('Hola');
+  const m = c.draw('Mira: [[s:map]] [[s:plan]]');
+  const [map, plan] = m.widgets();
+  assert.ok(map.classList.contains('is-screen') && plan.classList.contains('is-screen'), 'every widget of the message is the screen');
+  const st = json(c.LBW.screen.state());
+  assert.deepEqual([st.widget, st.widgets, st.step], ['plan', ['map', 'plan'], 'plan']);
+  const bar = c.slot('bar'), go = bar.querySelector('button');
+  await wait(0);
+  assert.equal(bar.hidden, true, 'the plan\'s CTA is not ready: the map\'s primary reply is never borrowed');
+  plan.querySelector('[role="radio"]').click(); await wait(0);
+  assert.equal(bar.hidden, false); assert.equal(go.textContent, plan.querySelector('.lbw-cta').textContent.trim());
+  let n = 0; plan.querySelector('.lbw-cta').addEventListener('click', () => n++); go.click(); assert.equal(n, 1);
+  // the visitor types a question: both widgets stay live
+  c.say('¿Y el precio?');
+  assert.equal(map.querySelector('.lbw-once.is-stale'), null); assert.equal(plan.querySelector('.lbw-once.is-stale'), null);
+  // a chips row drawn last (data-last) is not "the last widget"
+  const k = setup({ widgets: { ...W(), card: { type: 'cards', allowDup: true, item: { title: 'C' }, reply: ['Reservar', 'Quiero reservar'] } } });
+  const m2 = k.draw('[[s:card]] [[s:chips q=si,no]]');
+  assert.equal(m2.widgets().length, 2); assert.equal(k.LBW.screen.state().widget, 'card');
+  await wait(0);
+  assert.equal(k.slot('bar').querySelector('button').textContent, 'Reservar');
+  c.close(); k.close();
+});
+
+test('screen: "View conversation" keeps the screen where it was: the scroller moves by what opened above', () => {
+  const c = setup();
+  c.draw('Hola'); c.say('Quiero reservar'); c.draw('[[s:plan]]');
+  // jsdom has no layout: rows report their place from a fake scroll position, as a browser would
+  const sc = c.chat; sc.style.overflowY = 'auto'; let top = 0;
+  Object.defineProperty(sc, 'scrollTop', { get: () => top, set: (v) => { top = v; }, configurable: true });
+  const rowTop = (r) => () => { const before = [...c.chat.children].slice(0, [...c.chat.children].indexOf(r)).filter((x) => !(x.hasAttribute('data-lbw-past') && c.win.getAttribute('data-lbw-screen') === 'collapse')).length; return { top: 100 + before * 80 - top }; };
+  [...c.chat.children].forEach((r) => { r.getBoundingClientRect = rowTop(r); });
+  const screen = c.chat.children[2], y0 = screen.getBoundingClientRect().top;
+  assert.equal(c.w.LBW_HOST.scroller(screen), sc);
+  c.LBW.screen.history(true);
+  assert.equal(screen.getBoundingClientRect().top, y0, 'two rows opened above, the scroller moved 160 px');
+  assert.equal(top, 160);
+  c.LBW.screen.history(false);
+  assert.equal(screen.getBoundingClientRect().top, y0); assert.equal(top, 0);
+  c.close();
+});
+
+test('screen: "bleed" marks the screen\'s turn (chrome, title or intro, aside) and nothing else; a new screen moves the marks', () => {
+  const c = setup({ screen: { ...SCREEN(), bleed: true } });
+  const hd = (m) => { const h = c.d.createElement('div'); h.setAttribute('data-lb-part', 'message-header'); h.textContent = 'Bot'; m.prepend(h); return h; };
+  c.draw('Hola'); c.say('Quiero reservar');
+  const intro = c.bot('Claro. Te hago tres preguntas, una por pantalla, y al final ves el precio de tu escapada.'); hd(intro);
+  const m = c.bot('Tu plan [[s:plan]]'); hd(m); c.LBW.scan();
+  const marks = (x) => [x.hasAttribute('data-lbw-cur'), x.querySelector('[data-lb-part="message-text"]').getAttribute('data-lbw-chrome'), !!x.querySelector('[data-lbw-aside]')];
+  assert.deepEqual(marks(c.chat.children[0]), [false, null, false]);
+  assert.deepEqual(marks(intro), [true, 'intro', true], 'a long text is the intro');
+  assert.deepEqual(marks(m), [true, 'title', true], 'the screen\'s own short text is its heading');
+  assert.ok(m.widgets()[0].closest('[data-lbw-cur]'));
+  c.say('Mi plan'); const n2 = c.draw('[[s:dias]]');
+  assert.equal(c.d.querySelectorAll('[data-lbw-cur]').length, 1); assert.ok(n2.hasAttribute('data-lbw-cur'));
+  assert.equal(m.querySelector('[data-lbw-chrome], [data-lbw-aside]'), null, 'the old screen gets its bubble back');
+  // without bleed: no marks
+  const k = setup(); k.draw('[[s:plan]]'); assert.equal(k.d.querySelectorAll('[data-lbw-cur], [data-lbw-chrome]').length, 0);
+  // the CSS: under the screen marks only, the widgets lose their card, actions become rows; container queries, no @media
+  const css = read('runtime/lbw.css'), sec = css.slice(css.indexOf('/* ── screen mode'));
+  assert.match(sec, /\[data-lbw-screen\] \[data-lbw-cur\] \.lbw > \.lbw-box \{[^}]*border: 0/);
+  assert.match(sec, /\[data-lbw-cur\] :is\(\.lbw-actions, \.kit-trk-acts\) \{[^}]*flex-direction: column/);
+  assert.doesNotMatch(sec, /@media/);
+  for (const t of ['--lbw-screen-head-bg', '--lbw-screen-head-ink', '--lbw-screen-head-line', '--lbw-screen-bar-bg', '--lbw-screen-bar-ink', '--lbw-screen-surface', '--lbw-screen-gutter']) assert.ok(sec.includes(`var(${t}`), t);
+  c.close(); k.close();
+});
+
 // ── the fallbacks: a normal chat ───────────────────────────────────────────────────────────────
 test('screen: a missing hook (no chat window) leaves a normal chat and says why', () => {
   const c = setup({ before: (x) => x.d.querySelector('[data-lb-part="window"]').removeAttribute('data-lb-part') });
@@ -311,7 +396,7 @@ test('check: a screen config, sentence by sentence; a screen error is marked so 
   const bad = check({ ...BASE, screen: { on: 'yes', bar: 1, history: 'fold', extra: 1, header: { title: 'x', steps: [['Plan', 'P'], ['b', 'B'], ['b', 'C']], progres: true } },
     widgets: { dias: { ...W().dias, step: 'nope', screen: 'no' } } });
   assert.deepEqual(bad.map((e) => e.message), [
-    'screen: unknown key "extra". Known: on, header, bar, history',
+    'screen: unknown key "extra". Known: on, header, bar, history, bleed',
     'screen.on is true (screen mode) or false',
     'screen.bar is true or false: false, no bottom bar',
     'screen.history is "collapse" (earlier messages fold behind "View conversation") or "keep" (they stay)',
@@ -332,7 +417,7 @@ test('check: a screen config, sentence by sentence; a screen error is marked so 
 
 test('schema: "screen" and each widget\'s "screen" and "step" are described, and checked as far as the schema can', () => {
   const S = generate().schema;
-  assert.deepEqual(Object.keys(S.properties.screen.properties), ['on', 'header', 'bar', 'history']);
+  assert.deepEqual(Object.keys(S.properties.screen.properties), ['on', 'header', 'bar', 'history', 'bleed']);
   for (const t of ['form', 'cards', 'calendar', 'confirm']) assert.ok(S.$defs[t].properties.screen && S.$defs[t].properties.step, t);
   assert.deepEqual(validate(S, { ...BASE, screen: SCREEN(), widgets: W() }), []);
   const errs = validate(S, { prefix: 's', screen: { on: true, history: 'fold', zoom: 1 }, widgets: { a: { type: 'cards', step: 'Nope', screen: 'x', items: {} } } }).map((e) => e.path);

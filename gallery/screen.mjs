@@ -9,7 +9,7 @@ export const screenConfig = (config) => ({
     header: { title: 'Reserva la cabaña', steps: [['plan', 'Tu plan'], ['noches', 'Noches'], ['listo', 'Listo']] },
     bar: true,
     history: 'collapse',
-  },
+  },   // the page adds "bleed": true with ?bleed=1 (the gallery's frame)
   widgets: {
     plan: { ...config.widgets.plan, step: 'plan', kicker: 'Paso 1 · Tu plan', title: '¿Qué escapada buscas?', note: 'Tres toques, sin datos personales.' },
     noches: { ...config.widgets.noches, step: 'noches' },
@@ -57,6 +57,8 @@ body { background: var(--chat-bg); color: var(--chat-ink); font: 15px/1.5 system
 .box button { flex: none; min-width: 44px; min-height: 44px; border: 0; border-radius: 22px; padding: 0 16px; background: #1E1EFF; color: #FFFFFF; font: 600 14px/1 system-ui, sans-serif; cursor: pointer; }
 .box input:focus-visible, .box button:focus-visible { outline: 2px solid #0D0D0D; outline-offset: 2px; }
 .brand { margin: 6px 0 0; text-align: center; font-size: 11px; color: #5D5D5D; }
+/* ?bleed=1: the screen without its chrome, filling the column (the list's 12 px padding is the gutter) */
+html.is-bleed { --lbw-screen-gutter: 12px; --lbw-screen-bar-bg: #FFFFFF; }
 /* the library's CSS (dist/lbw-kit.min.css, v${version}) */
 ${libCss}
 </style>
@@ -101,6 +103,7 @@ ${libCss}
     if (/perr/i.test(text)) return bot(['Sí, admitimos perros pequeños sin coste. Sigue con la reserva cuando quieras.']);
     bot(['Te leo. Puedes seguir con la reserva en la pantalla de arriba.']);
   }
+  window.__bot = function (t) { bot([t]); };   // tests: a message as the agent would write it
   window._landbot = {
     setCustomData: function (d) { for (var k in d) pend[k] = d[k]; },
     sendMessage: function (m) {
@@ -117,7 +120,7 @@ ${libCss}
 })();
 </script>
 <script>${script(lib)}</script>
-<script>window.__screenSetup = LBW.kit.setup(${JSON.stringify(cfg).replace(/</g, '\\u003c')});</script>
+<script>(function (c) { if (/[?&]bleed=1/.test(location.search)) { c.screen.bleed = true; document.documentElement.classList.add('is-bleed'); } window.__screenSetup = LBW.kit.setup(c); })(${JSON.stringify(cfg).replace(/</g, '\\u003c')});</script>
 </body>
 </html>
 `;
@@ -144,7 +147,7 @@ export function screenSection(config) {
       <details><summary>El JSON de este ejemplo</summary><pre><code>${esc(json)}</code></pre></details>
       <p class="watch"><strong>Prueba.</strong> Rellena el plan, elige dos noches y escribe algo en la caja («¿Admitís perros?») para ver cómo responde el agente sin romper la pantalla.</p>
     </div>
-    <div class="stage is-frame"><iframe class="phone" src="screen.html" title="Demo del modo pantalla: un chat de reserva en tres pasos"></iframe><p class="frame-note"><a href="screen.html">Abrir la demo a pantalla completa</a></p></div>
+    <div class="stage is-frame"><iframe class="phone" src="screen.html?bleed=1" title="Demo del modo pantalla: un chat de reserva en tres pasos"></iframe><p class="frame-note"><a href="screen.html?bleed=1">Abrir la demo a pantalla completa</a> · <a href="screen.html">sin «bleed» (tarjetas y burbujas)</a></p></div>
   </div>
 </section></div>`;
 }

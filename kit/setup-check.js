@@ -106,13 +106,14 @@
   }
   // screen mode ("screen", runtime/screen.js): → the step ids, or null. A problem here never stops the widgets (setup() makes the
   // bot a normal chat), so each is reported with `screen: true`
-  var SCRK = ['on', 'header', 'bar', 'history'], SCRH = ['title', 'steps', 'progress'];
+  var SCRK = ['on', 'header', 'bar', 'history', 'bleed'], SCRH = ['title', 'steps', 'progress'];
   function screenCheck(sc, say) {
     if (sc == null) return null;
     if (!isObj(sc)) { say('"screen" is { "on": true, "header": { "title": "…", "steps": [["id", "Label"], …] }, "bar": true, "history": "collapse" }'); return null; }
     Object.keys(sc).forEach(function (k) { if (SCRK.indexOf(k) < 0) say('screen: unknown key "' + k + '". Known: ' + SCRK.join(', ') + near(k, SCRK)); });
     if (sc.on !== true && sc.on !== false) say('screen.on is true (screen mode) or false');
     if (sc.bar != null && typeof sc.bar !== 'boolean') say('screen.bar is true or false: false, no bottom bar');
+    if (sc.bleed != null && typeof sc.bleed !== 'boolean') say('screen.bleed is true (the screen without its card and bubble, filling the column) or false');
     if (sc.history != null && sc.history !== 'collapse' && sc.history !== 'keep') say('screen.history is "collapse" (earlier messages fold behind "View conversation") or "keep" (they stay)');
     var h = sc.header, ids = []; if (h == null) return ids;
     if (!isObj(h)) { say('screen.header is { "title": "…", "steps": [["id", "Label"], …], "progress": true }'); return ids; }

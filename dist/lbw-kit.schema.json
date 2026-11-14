@@ -185,6 +185,13 @@
               "$ref": "#/$defs/byLang"
             }
           ]
+        },
+        "bleed": {
+          "description": "true: the current screen drops its card and bubble, fills the column, its short text reads as a heading and its buttons as full-width rows.",
+          "type": [
+            "boolean",
+            "null"
+          ]
         }
       },
       "required": [

@@ -228,34 +228,56 @@
 /* ── screen mode (runtime/screen.js, "screen": { "on": true }): the chat as one screen at a time ─────────────────────────
    Inert unless screen mode marks the chat's window (data-lbw-screen). Earlier rows are hidden while the window is in
    'collapse' mode and stay in the DOM ("View conversation" shows them). The header and the bar are our own slots beside the
-   message column; the bar is a pointer shortcut (aria-hidden) for the screen's primary action. Container queries only. */
+   message column; the bar is a pointer shortcut (aria-hidden) for the screen's primary action. Container queries only.
+   Tokens (each defaults to the card's): --lbw-screen-head-bg, -head-ink, -head-muted, -head-line, -head-accent (the steps'
+   fill and the toggle), -head-track (an open step's bar); --lbw-screen-bar-bg, -bar-ink, -bar-line. "bleed": true adds
+   --lbw-screen-surface (behind the screen's widgets; transparent: the chat's own background), --lbw-screen-gutter (the
+   column's side padding, to reach its edges; 0), --lbw-screen-pad (padding inside a set surface; 0), --lbw-screen-radius (the surface's corners; 0), --lbw-screen-title-ink and
+   --lbw-screen-intro-ink (the screen's text without its bubble; the bubble's own colour). */
 [data-lbw-screen="collapse"] [data-lbw-past] { display: none !important; }
-[data-lbw-slot] { flex: none; box-sizing: border-box; font: 400 14px/20px var(--lbw-font); color: var(--lbw-ink); background: var(--lbw-card); container: lbwscr / inline-size; }
+[data-lbw-slot] { flex: none; box-sizing: border-box; font: 400 14px/20px var(--lbw-font); container: lbwscr / inline-size; }
 [data-lbw-slot][hidden] { display: none !important; }
-.lbw-scr-head { padding: 6px 16px 10px; border-bottom: 1px solid var(--lbw-line); }
+.lbw-scr-head { --h-ink: var(--lbw-screen-head-ink, var(--lbw-ink)); --h-acc: var(--lbw-screen-head-accent, var(--lbw-accent)); padding: 6px 16px 10px; color: var(--h-ink); background: var(--lbw-screen-head-bg, var(--lbw-card)); border-bottom: 1px solid var(--lbw-screen-head-line, var(--lbw-line)); }
 .lbw-scr-top { display: flex; align-items: center; gap: 8px; min-height: 32px; }
 .lbw-scr-title { flex: 1 1 auto; min-width: 0; margin: 0; font: 600 15px/20px var(--lbw-display, var(--lbw-font)); overflow-wrap: anywhere; }
-.lbw-scr-hist { flex: none; min-height: 44px; margin: -6px -10px -6px auto; padding: 0 10px; border: 0; background: none; color: var(--lbw-accent-text, var(--lbw-accent)); font: 600 13px/18px var(--lbw-font); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
-.lbw-scr-hist[aria-expanded="true"] { color: var(--lbw-ink); }
+.lbw-scr-hist { flex: none; min-height: 44px; margin: -6px -10px -6px auto; padding: 0 10px; border: 0; background: none; color: var(--lbw-screen-head-accent, var(--lbw-accent-text, var(--lbw-accent))); font: 600 13px/18px var(--lbw-font); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.lbw-scr-hist[aria-expanded="true"] { color: var(--h-ink); }
 .lbw-scr-chev { display: inline-block; text-decoration: none; }
-.lbw-scr-hist:focus-visible { outline: 2px solid var(--lbw-focus, var(--lbw-ink)); outline-offset: -2px; }
+.lbw-scr-hist:focus-visible { outline: 2px solid var(--lbw-focus, var(--h-ink)); outline-offset: -2px; }
 .lbw-scr-steps { display: flex; gap: 6px; margin: 4px 0 0; padding: 0; list-style: none; }
-.lbw-scr-steps li { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 5px; font: 400 12px/16px var(--lbw-font); color: var(--lbw-muted); }
-.lbw-scr-steps li::before, .lbw-scr-track { content: ""; height: 4px; border-radius: 2px; background: rgba(13,13,13,.14); }
-.lbw-scr-steps .is-cur { color: var(--lbw-ink); font-weight: 600; }
+.lbw-scr-steps li { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 5px; font: 400 12px/16px var(--lbw-font); color: var(--lbw-screen-head-muted, var(--lbw-muted)); }
+.lbw-scr-steps li::before, .lbw-scr-track { content: ""; height: 4px; border-radius: 2px; background: var(--lbw-screen-head-track, rgba(13,13,13,.14)); }
+@supports (color: color-mix(in srgb, red, blue)) { .lbw-scr-steps li::before, .lbw-scr-track { background: var(--lbw-screen-head-track, color-mix(in srgb, var(--h-ink) 16%, transparent)); } }
+.lbw-scr-steps .is-cur { color: var(--h-ink); font-weight: 600; }
+.lbw-scr-steps .is-done::before, .lbw-scr-steps .is-cur::before, .lbw-scr-track > i { display: block; height: 4px; background: var(--h-acc); }
+.lbw-scr-track > i { height: 100%; }
 .lbw-scr-l { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.lbw-scr-ck { color: var(--lbw-accent-text, var(--lbw-accent)); }
+.lbw-scr-ck { color: var(--lbw-screen-head-accent, var(--lbw-accent-text, var(--lbw-accent))); }
 .lbw-scr-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.lbw-scr-prog p { margin: 2px 0 6px; font: 600 12px/16px var(--lbw-font); color: var(--lbw-muted); }
+.lbw-scr-prog p { margin: 2px 0 6px; font: 600 12px/16px var(--lbw-font); color: var(--lbw-screen-head-muted, var(--lbw-muted)); }
 .lbw-scr-track { overflow: hidden; }
-@supports (color: color-mix(in srgb, red, blue)) { .lbw-scr-steps li::before, .lbw-scr-track { background: color-mix(in srgb, var(--lbw-ink) 14%, transparent); } }
-.lbw-scr-steps .is-done::before, .lbw-scr-steps .is-cur::before, .lbw-scr-track > i { display: block; height: 100%; background: var(--lbw-accent); }
-.lbw-scr-steps .is-done::before, .lbw-scr-steps .is-cur::before { height: 4px; }
 @container lbwscr (max-width: 420px) { .lbw-scr-steps.is-many li:not(.is-cur) .lbw-scr-l { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); } }
-.lbw-scr-bar { display: flex; align-items: center; gap: 12px; padding: 8px 16px; border-top: 1px solid var(--lbw-line); box-shadow: 0 -4px 8px -4px rgba(0,0,0,.1); }
+.lbw-scr-bar { display: flex; align-items: center; gap: 12px; padding: 8px 16px; color: var(--lbw-screen-bar-ink, var(--lbw-ink)); background: var(--lbw-screen-bar-bg, var(--lbw-card)); border-top: 1px solid var(--lbw-screen-bar-line, var(--lbw-line)); box-shadow: 0 -4px 8px -4px rgba(0,0,0,.1); }
 .lbw-scr-sum { flex: 1 1 auto; min-width: 0; font-weight: 700; overflow-wrap: anywhere; }
 .lbw-scr-sum:empty { display: none; }
 .lbw-scr-go { flex: 1 1 auto; }
 .lbw-scr-sum:not(:empty) + .lbw-scr-go { flex: 0 1 auto; }
 @keyframes lbw-scr-in { from { opacity: 0; transform: translateY(14px); } }
 .lbw-motion [data-lbw-screen] [data-lbw-in] { animation: lbw-scr-in var(--lbw-dur-slow, 360ms) var(--lbw-ease, ease) both; }
+
+/* "bleed": true · the current screen (rows marked data-lbw-cur by the adapter) loses its chrome: no bubble around its text
+   (a short text reads as the screen's heading, a long one as its intro), no avatar line, no card around its widgets, which
+   fill the column, and its replies, chips and actions become full-width rows */
+[data-lbw-screen] [data-lbw-aside] { display: none !important; }
+[data-lbw-screen] [data-lbw-chrome] { background: none !important; border: 0 !important; box-shadow: none !important; padding: 0 !important; border-radius: 0 !important; max-width: none !important; width: auto !important; }
+[data-lbw-screen] [data-lbw-chrome="title"] { margin: 4px 0 2px; font: 700 24px/1.2 var(--lbw-display, var(--lbw-font)) !important; letter-spacing: -.01em; color: var(--lbw-screen-title-ink, inherit) !important; text-wrap: balance; }
+[data-lbw-screen] [data-lbw-chrome="intro"] { font: 400 16px/1.45 var(--lbw-font) !important; color: var(--lbw-screen-intro-ink, inherit) !important; }
+[data-lbw-screen] [data-lbw-cur] .lbw { box-sizing: border-box; width: calc(100% + 2 * var(--lbw-screen-gutter, 0px)); max-width: none; margin-inline: calc(-1 * var(--lbw-screen-gutter, 0px)); padding-inline: var(--lbw-screen-gutter, 0px); }
+[data-lbw-screen] [data-lbw-cur] .lbw > .lbw-box { margin-inline: calc(-1 * var(--lbw-screen-gutter, 0px)); padding: var(--lbw-screen-pad, 4px) calc(var(--lbw-screen-gutter, 0px) + var(--lbw-screen-pad, 0px)) calc(var(--lbw-screen-pad, 0px) + 12px); background: var(--lbw-screen-surface, transparent); border: 0; border-radius: var(--lbw-screen-radius, 0); box-shadow: none; overflow: visible; }
+[data-lbw-screen] [data-lbw-cur] .lbw > .lbw-box::before { display: none; }
+[data-lbw-screen] [data-lbw-cur] :is(.lbw-actions, .kit-trk-acts) { display: flex; flex-direction: column; align-items: stretch; gap: 10px; }
+[data-lbw-screen] [data-lbw-cur] .lbw-chips:has(> .lbw-pill) { display: flex; flex-direction: column; align-items: stretch; gap: 10px; }
+[data-lbw-screen] [data-lbw-cur] :is(.lbw-actions, .kit-trk-acts, .lbw-chips) .lbw-pill:not(.is-folded) { width: 100%; min-height: 52px; justify-content: center; text-align: center; }
+@container lbw (min-width: 560px) {
+  [data-lbw-screen] [data-lbw-cur] :is(.lbw-actions, .kit-trk-acts) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

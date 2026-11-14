@@ -1560,6 +1560,8 @@ export interface LbwConfig {
     bar?: boolean | null;
     /** "collapse" (earlier messages fold behind "View conversation", the default) or "keep" (they stay). */
     history?: "collapse" | "keep" | null | LbwByLang;
+    /** true: the current screen drops its card and bubble, fills the column, its short text reads as a heading and its buttons as full-width rows. */
+    bleed?: boolean | null;
   } | null;
   /** Named actions: { name: action }. */
   actions?: {

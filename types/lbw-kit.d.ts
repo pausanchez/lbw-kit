@@ -402,10 +402,14 @@ export interface ScreenState {
   step: string | null;
   /** Its place in `screen.header.steps` (0-based), or -1. */
   index: number;
+  /** The steps the visitor completed (was on, then moved forward from), in the steps' order. */
+  done: string[];
   /** How many steps there are. */
   of: number;
-  /** The tag name of the widget that is the screen. */
+  /** The tag name of the screen's last widget (the one the bar follows). */
   widget: string | null;
+  /** Every widget of the screen's message, in order. */
+  widgets: string[];
   /** `true` while the earlier messages are shown ("View conversation"). */
   open: boolean;
   /** How many earlier messages are folded. */

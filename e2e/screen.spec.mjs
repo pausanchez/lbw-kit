@@ -196,3 +196,97 @@ for (const colorScheme of ['light', 'dark']) {
     });
   });
 }
+
+// ── v2 polish: steps done only when left forward, history that keeps the screen in view, "bleed" ────────────────────
+test.describe('screen mode polish at 390 px', () => {
+  test.use(phone);
+
+  test('a step jumped over is skipped, not done; the ✓ comes only from moving forward', { tag: '@smoke' }, async ({ demo: page }) => {
+    // the agent goes straight from the plan to the last step: Noches never ran
+    await page.evaluate(() => window.__bot('Vamos directo al final: [[gx:noches step=listo]]'));
+    await expect.poll(() => state(page).then((s) => s.step)).toBe('listo');
+    const lis = head(page).locator('li');
+    await expect(lis.nth(0)).toHaveClass('is-done'); await expect(lis.nth(0)).toContainText('✓');
+    await expect(lis.nth(1)).toHaveClass('is-skip'); await expect(lis.nth(1)).not.toContainText('✓');
+    await expect(lis.nth(1)).toHaveText('Noches, omitido');
+    await expect(lis.nth(2)).toHaveAttribute('aria-current', 'step');
+    expect((await state(page)).done).toEqual(['plan']);
+  });
+
+  test('«Ver conversación» opens the history above and the screen stays where it was in view', { tag: '@smoke' }, async ({ demo: page }) => {
+    const cal = await toNights(page), title = cal.locator('.lbw-title');
+    await page.waitForTimeout(2700);   // lbw.js places a new reply for 2.5 s (reveal); measure once it rests
+    const y0 = (await title.boundingBox()).y;
+    await press(head(page).getByRole('button', { name: 'Ver conversación' }));
+    await expect(page.locator('.lbw[data-widget="plan"]')).toBeAttached();
+    await expect.poll(async () => Math.abs((await title.boundingBox()).y - y0)).toBeLessThan(2);
+    await expect(title).toBeInViewport();
+    // the history is above: scrolling up reaches it
+    await page.locator('.col').evaluate((c) => { c.scrollTop = 0; });
+    await expect(page.getByText('Hola, soy el asistente de Roda Norte')).toBeInViewport();
+    await page.locator('.col').evaluate((c) => { c.scrollTop = c.scrollHeight; });
+    const y1 = (await title.boundingBox()).y;
+    await press(head(page).getByRole('button', { name: 'Ver conversación' }));
+    await expect.poll(async () => Math.abs((await title.boundingBox()).y - y1)).toBeLessThan(2);
+  });
+});
+
+test.describe('bleed at 390 px', () => {
+  test.use(phone);
+  const bleed = async (page) => {
+    await page.goto('/screen.html?bleed=1');
+    await expect.poll(() => page.evaluate(() => window.LBW && LBW.screen.state() && LBW.screen.state().step)).toBe('plan');
+  };
+
+  test('the screen drops its card and bubble: its short text is the heading, its widget fills the column', { tag: '@smoke' }, async ({ demo: page }) => {
+    await bleed(page);
+    const cal = await toNights(page), row = page.locator('[data-lbw-cur]').last();
+    await expect(row).toContainText('Elige tus noches');
+    const look = await page.evaluate(() => {
+      const box = document.querySelector('.lbw[data-widget="noches"] > .lbw-box'), cs = getComputedStyle(box);
+      const t = [...document.querySelectorAll('[data-lbw-chrome="title"]')].pop(), bub = t.parentElement, list = document.querySelector('.list');
+      const lr = list.getBoundingClientRect(), wr = document.querySelector('.lbw[data-widget="noches"]').getBoundingClientRect();
+      return { border: cs.borderTopWidth, shadow: cs.boxShadow, title: getComputedStyle(t).fontSize, bubbleBg: getComputedStyle(bub).backgroundColor, bubblePad: getComputedStyle(bub).paddingLeft,
+        intro: !!document.querySelector('[data-lbw-cur] [data-lbw-chrome="intro"]'), left: Math.round(wr.left - lr.left), right: Math.round(lr.right - wr.right) };
+    });
+    expect(look).toEqual({ border: '0px', shadow: 'none', title: '24px', bubbleBg: 'rgba(0, 0, 0, 0)', bubblePad: '0px', intro: true, left: 0, right: 0 });
+    // the earlier screen got its card back when it folded; history shows it as before
+    await press(head(page).getByRole('button', { name: 'Ver conversación' }));
+    expect(await page.locator('.lbw[data-widget="plan"] > .lbw-box').evaluate((b) => getComputedStyle(b).borderTopWidth)).not.toBe('0px');
+    await expect(cal).toBeVisible();
+  });
+
+  test('the screen\'s replies and actions are full-width rows', async ({ demo: page }) => {
+    await bleed(page);
+    const cal = await toNights(page);
+    await pickNights(cal);
+    await press(cal.locator('.lbw-cta'));
+    await expect.poll(() => state(page).then((s) => s.step)).toBe('listo');
+    const pass = page.locator('.lbw[data-widget="reserva"]');
+    const w = await pass.boundingBox(), pills = pass.locator('.lbw-actions .lbw-pill');
+    expect(await pills.count()).toBeGreaterThanOrEqual(2);
+    for (const p of await pills.all()) { const b = await p.boundingBox(); expect(Math.abs(b.width - (w.width - 24))).toBeLessThan(2); }
+  });
+
+  for (const colorScheme of ['light', 'dark']) {
+    test.describe(`axe, bleed, ${colorScheme}`, () => {
+      test.use({ colorScheme, reducedMotion: 'reduce' });
+      test('0 serious or critical violations on the bleed screens', async ({ demo: page }) => {
+        await bleed(page);
+        const run = async (where) => {
+          const res = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
+          const known = (v, n) => v.id === 'label-content-name-mismatch' && /class="kit-cal-d\b/.test(n.html);
+          const bad = res.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical')
+            .map((v) => ({ ...v, nodes: v.nodes.filter((n) => !known(v, n)) })).filter((v) => v.nodes.length)
+            .map((v) => `${v.id}: ${v.nodes.slice(0, 3).map((n) => n.target.join(' ')).join(' | ')}`);
+          expect(bad, where).toEqual([]);
+        };
+        await run('first screen');
+        const cal = await toNights(page); await run('second screen');
+        await pickNights(cal); await press(cal.locator('.lbw-cta'));
+        await expect.poll(() => state(page).then((s) => s.step)).toBe('listo');
+        await run('the pass');
+      });
+    });
+  }
+});
