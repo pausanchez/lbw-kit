@@ -60,3 +60,8 @@ if (!errors.length) {
   if (!res.ok) console.log(window.__kitSetupErrors, res.widgets);
 }
 console.log(window.__lbwDropped, LBW.version, LBW.kit.h.money(24700, { cur: '€' }));
+
+// screen mode
+const started: boolean = LBW.screen.start({ on: true, header: { title: 'Booking', steps: [['where', 'Where'], ['when', 'When']] }, history: 'collapse' }, { lang: 'en', widgets: { chips: { screen: false } } });
+const st = LBW.screen.state();
+if (started && st && st.step === 'when' && st.index >= 0) LBW.screen.history(!st.open);

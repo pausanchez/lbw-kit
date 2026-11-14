@@ -78,6 +78,8 @@ The tag that draws it: `[[gx:vs ids=urbana,ebike]]`
 | `live` |  | boolean | The "Live" chip beside the title (true by default for rows from a source). |
 | `best` |  | text or object | The column you recommend: an id, or { "id", "label" }. |
 | `flow` |  | true or list of keys | true, or the list of keys its flow tag writes, e.g. ["texto", "lang"]. |
+| `screen` |  | boolean | Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one). |
+| `step` |  | string | Screen mode: the step this widget is, an id of "screen.header.steps" (a tag's step= wins). |
 
 Also needed: one of `items`, or `source`.
 

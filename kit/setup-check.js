@@ -14,7 +14,7 @@
   var ICONS = 'check x info alert phone mail chat calendar clock pin external star user shield bell doc thumb'.split(' '), TONES = 'neutral ok info warn danger'.split(' ');
   K.setup._.icons = ICONS; K.setup._.tones = TONES;
   // ── checking a config: every problem as a sentence, nothing drawn, never a throw ─────────────────
-  var TOP = '$schema version prefix langs defaultLang timeZone maxPerMessage links labels quietMs maxWaitMs reveal motion photos actions replies widgets'.split(' ');
+  var TOP = '$schema version prefix langs defaultLang timeZone maxPerMessage links labels quietMs maxWaitMs reveal motion photos screen actions replies widgets'.split(' ');
   var KEYS = {
     cards: 'type cls param items item kicker disclaimer single fallback pointsCls allowDup lang reply links status params money source live',
     table: 'type cls param items item kicker fold pick same allowDup lang reply links fallback params money source live',
@@ -99,9 +99,37 @@
     per.forEach(function (errs, i) { errs.forEach(function (e) {
       var all = per.every(function (o) { return o.some(function (x) { return x.message === e.message; }); }), key = (all ? '' : langs[i] + ' ') + e.message;
       if (seen[key]) return; seen[key] = 1;
-      out.push({ widget: e.widget, message: all || langs.length < 2 ? e.message : '[' + langs[i] + '] ' + e.message });
+      var o = { widget: e.widget, message: all || langs.length < 2 ? e.message : '[' + langs[i] + '] ' + e.message }; if (e.screen) o.screen = true;
+      out.push(o);
     }); });
     return out;
+  }
+  // screen mode ("screen", runtime/screen.js): → the step ids, or null. A problem here never stops the widgets (setup() makes the
+  // bot a normal chat), so each is reported with `screen: true`
+  var SCRK = ['on', 'header', 'bar', 'history', 'bleed'], SCRH = ['title', 'steps', 'progress'];
+  function screenCheck(sc, say) {
+    if (sc == null) return null;
+    if (!isObj(sc)) { say('"screen" is { "on": true, "header": { "title": "…", "steps": [["id", "Label"], …] }, "bar": true, "history": "collapse" }'); return null; }
+    Object.keys(sc).forEach(function (k) { if (SCRK.indexOf(k) < 0) say('screen: unknown key "' + k + '". Known: ' + SCRK.join(', ') + near(k, SCRK)); });
+    if (sc.on !== true && sc.on !== false) say('screen.on is true (screen mode) or false');
+    if (sc.bar != null && typeof sc.bar !== 'boolean') say('screen.bar is true or false: false, no bottom bar');
+    if (sc.bleed != null && typeof sc.bleed !== 'boolean') say('screen.bleed is true (the screen without its card and bubble, filling the column) or false');
+    if (sc.history != null && sc.history !== 'collapse' && sc.history !== 'keep') say('screen.history is "collapse" (earlier messages fold behind "View conversation") or "keep" (they stay)');
+    var h = sc.header, ids = []; if (h == null) return ids;
+    if (!isObj(h)) { say('screen.header is { "title": "…", "steps": [["id", "Label"], …], "progress": true }'); return ids; }
+    Object.keys(h).forEach(function (k) { if (SCRH.indexOf(k) < 0) say('screen.header: unknown key "' + k + '". Known: ' + SCRH.join(', ') + near(k, SCRH)); });
+    if (h.title != null && (typeof h.title !== 'string' || Array.from(h.title).length > 60)) say('screen.header.title is one line of text, 60 characters at most');
+    if (h.progress != null && typeof h.progress !== 'boolean') say('screen.header.progress is true (a bar and "Step 2 of 4") or false (the steps by name)');
+    if (h.steps == null) { if (h.progress) say('screen.header.progress needs "steps"'); return ids; }
+    if (!isArr(h.steps) || h.steps.length < 2 || h.steps.length > 8) { say('screen.header.steps is a list of 2 to 8 [id, label]'); return ids; }
+    h.steps.forEach(function (x, i) {
+      var at = 'screen.header.steps[' + i + ']';
+      if (!isPair(x) || x.length !== 2) say(at + ' is [id, label]');
+      else if (!/^[a-z][a-z0-9_]{0,29}$/.test(x[0])) say(at + ': the id "' + x[0] + '" is a lower-case word (a tag writes it: step=' + String(x[0]).toLowerCase().replace(/[^a-z0-9_]/g, '') + ')');
+      else if (ids.indexOf(x[0]) >= 0) say(at + ': the id "' + x[0] + '" is there twice');
+      else { ids.push(x[0]); if (Array.from(x[1]).length > 30) say(at + ': the label is one or two words, 30 characters at most'); }
+    });
+    return ids;
   }
   function check1(cfg) {
     var errs = [], top = function (m) { errs.push({ widget: null, message: m }); };
@@ -112,6 +140,7 @@
     if (cfg.links != null && !isArr(cfg.links)) top('"links" must be a list');
     if (cfg.reveal != null && cfg.reveal !== true && cfg.reveal !== false) top('"reveal" is true or false');
     if (cfg.motion != null && cfg.motion !== true && cfg.motion !== false) top('"motion" is true or false');   // v0.10: false, no animations in this bot
+    var SCR = screenCheck(cfg.screen, function (m) { errs.push({ widget: null, screen: true, message: m }); });
     // v0.9.5 (security review) · an entry is an origin with a host, then an optional path, ending in "/". "https://" alone
     // let every site through. A host with an open redirector is listed by a path, never by its origin alone
     var REDIR = /^https?:\/\/((www\.)?google\.[a-z.]+|(www\.|l\.|lm\.|m\.)?facebook\.com|(www\.)?youtube\.com|t\.co|bit\.ly|(www\.)?linkedin\.com|l\.instagram\.com)\/$/i;
@@ -371,9 +400,12 @@
       try {
         if (!/^[a-z][a-z0-9_]*$/.test(name)) err('a widget name is lower-case letters, digits and _');
         if (!isObj(w) || !isStr(w.type) || !own(KEYS, w.type)) { err('unknown type "' + (isObj(w) ? w.type : w) + '". Known: ' + Object.keys(KEYS).join(', ') + (isObj(w) && isStr(w.type) ? near(w.type, Object.keys(KEYS)) : '')); return; }
-        var known = KEYS[w.type].split(' ').concat('flow');
+        var known = KEYS[w.type].split(' ').concat('flow', 'screen', 'step');
         if (w.flow != null && w.flow !== true && !(isArr(w.flow) && w.flow.length && w.flow.every(function (k) { return isStr(k) && /^[a-z_][a-z0-9_]*$/.test(k); }))) err('"flow" is true, or the list of keys its flow tag writes, e.g. ["texto", "lang"]');
         Object.keys(w).forEach(function (k) { if (known.indexOf(k) < 0) err('unknown option "' + k + '" for ' + w.type + '. Known: ' + known.join(', ') + near(k, known)); });
+        // screen mode: "screen": false keeps a widget from becoming the screen; "step" is an id of "screen.header.steps"
+        if (w.screen != null && typeof w.screen !== 'boolean') err('"screen" is true or false: false keeps this widget out of screen mode');
+        if (w.step != null) { if (!SCR) err('"step" names a step of "screen.header.steps", and the config has none'); else if (SCR.indexOf(w.step) < 0) err('"step" "' + w.step + '" is not a step of "screen.header.steps". Known: ' + SCR.join(', ') + near(w.step, SCR)); }
         if (w.density != null && w.density !== 'compact' && w.density !== 'comfy') err('"density" is "compact" (one question at a time, a footer with the total) or "comfy" (the v0.9.5 layout)');   // v0.10
         NEED[w.type].forEach(function (k) { if (w[k] == null && !(k === 'items' && w.source != null)) err('missing "' + k + '"'); });
         var pdefs = isObj(w.params) ? w.params : {};

@@ -13,3 +13,5 @@ LBW.day.str('21/11/2026');
 LBW.ui.reply('A', 'a', { fields: { n: 3 } });
 // @ts-expect-error a loading shape is one of three
 LBW.ui.loading('en', '', 'circle');
+// @ts-expect-error screen.history takes a boolean
+LBW.screen.history('open');

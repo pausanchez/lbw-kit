@@ -217,7 +217,13 @@ export function pages() {
     out[file] = md;
   }
   const idx = ['# Widget types', '', 'One page per type: when to use it, the smallest working example, every key, and what the checker rejects. Generated from the schema and the checker by `scripts/type-docs.mjs`; the prose between `<!-- prose -->` markers is written by hand and kept.', '',
-    '| Type | What it draws | Page |', '|---|---|---|', ...types.map((t) => `| \`${t}\` | ${cell(S.$defs[t].description)} | [${t}.md](${t}.md) |`), ''].join('\n');
+    '| Type | What it draws | Page |', '|---|---|---|', ...types.map((t) => `| \`${t}\` | ${cell(S.$defs[t].description)} | [${t}.md](${t}.md) |`), '',
+    // the top-level "screen" key: screen mode works with every type
+    '## Screen mode: the `screen` key', '', S.properties.screen.description, '',
+    table(S.properties.screen.properties, S.properties.screen.required || [], S), '',
+    '`screen.header`:', '', table(S.properties.screen.properties.header.properties, [], S), '',
+    'Every type also takes `"screen": false` (never the screen) and `"step"` (its step\'s id). A tag may name the step itself, `step=when` or `step=2`; any other value is logged and ignored. A step gets its ✓ once the visitor was on it and moved forward; a step jumped over reads as skipped. An agent\'s text between screens shows as a normal bubble under the current screen. If the chat\'s DOM is not what the library expects, or the `screen` key is wrong, the bot is a normal chat.', '',
+    'Theme tokens (each defaults to the card\'s): `--lbw-screen-head-bg`, `--lbw-screen-head-ink`, `--lbw-screen-head-muted`, `--lbw-screen-head-line`, `--lbw-screen-head-accent`, `--lbw-screen-head-track`, `--lbw-screen-bar-bg`, `--lbw-screen-bar-ink`, `--lbw-screen-bar-line`; with `bleed`: `--lbw-screen-surface`, `--lbw-screen-gutter`, `--lbw-screen-pad`, `--lbw-screen-radius`, `--lbw-screen-title-ink`, `--lbw-screen-intro-ink`.', ''].join('\n');
   out[`${OUT}README.md`] = idx;
   return out;
 }

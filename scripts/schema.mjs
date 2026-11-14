@@ -22,7 +22,7 @@ export function tables() {
   vm.runInContext(read('kit/setup.js'), ctx);
   vm.runInContext(read('kit/setup-check.js'), ctx);
   const I = window.LBW.kit.setup._, k = I.keys, words = (s) => s.split(' ');
-  const KEYS = Object.fromEntries(Object.entries(k.KEYS).map(([t, s]) => [t, words(s).concat('flow')]));
+  const KEYS = Object.fromEntries(Object.entries(k.KEYS).map(([t, s]) => [t, words(s).concat('flow', 'screen', 'step')]));
   const types = [...window.LBW.kit.setup.types];
   const a = Object.keys(KEYS).sort().join(), b = [...types].sort().join();
   if (a !== b) throw new Error(`the checker's types (${a}) are not setup()'s (${b})`);
@@ -152,6 +152,8 @@ function common(t) {
     text: text('The body text.'), big: text('A big line (a phone number, an address).'), sub: text('A subtitle.'), disclaimer: text('A disclaimer under the card.'), lead: text('A line above the slides.'),
     allowDup: any('true: draw it even when the same widget is already in the message.', 'boolean'),
     params: ref('params'), money: ref('money'), flow: ref('flow'),
+    screen: bool('Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one).'),
+    step: { description: 'Screen mode: the step this widget is, an id of "screen.header.steps" (a tag\'s step= wins).', type: ['string', 'null'], pattern: '^[a-z][a-z0-9_]*$' },
     links: ref('links'), buttons: ref('links'), buttonsWithSummary: ref('links'), actions: ref('links'),
     reply: ref('reply'), param: param('The tag key that names the item ("id" by default): lower-case.'),
     item: any('A single item (no id in the tag).'), items: any('The items.'),
@@ -297,6 +299,16 @@ export function buildSchema(version, repo = 'pausanchez/lbw-kit') {
     maxPerMessage: any('Widgets drawn per message at most (3).', 'number'), links: list('The allow-list: https origins ending in "/", "tel:", "mailto:".'),
     labels: any('Your own widgets\' words, by language.', 'Record<string, Record<string, string>>'), quietMs: any('ms of quiet before a reply is drawn.', 'number'), maxWaitMs: any('ms to wait at most.', 'number'),
     reveal: bool('false: don\'t scroll the chat to the start of a tall reply.'), motion: bool('false: no animations in this bot.'),
+    screen: strict('Screen mode: the chat as an app, one screen at a time. The newest widget is the screen, the messages before its turn fold behind "View conversation", a header shows the steps and a bar mirrors the primary action.', {
+      on: bool('true: screen mode is on.'),
+      header: strict('The app header: a title and the steps.', {
+        title: text('The header\'s title, one line.'),
+        steps: { description: '2–8 steps, [id, label]: the id is a lower-case word (a tag\'s step=id or step=2, or a widget\'s "step").', anyOf: [{ type: 'array', minItems: 2, maxItems: 8,
+          items: { type: 'array', minItems: 2, maxItems: 2, ts: '[string, LbwText]' } }, ref('byLang'), { type: 'null' }] },
+        progress: bool('true: a bar and "Step 2 of 4" instead of the steps by name.') }),
+      bar: bool('false: no bottom bar (the primary action mirrored while it is out of view).'),
+      history: words(['collapse', 'keep'], '"collapse" (earlier messages fold behind "View conversation", the default) or "keep" (they stay).'),
+      bleed: bool('true: the current screen drops its card and bubble, fills the column, its short text reads as a heading and its buttons as full-width rows.') }, ['on']),
     photos: obj('Photo sets: { "name": { "base": "https://…/", "sizes": [["folder/", 495], …], "ratio": [4, 3] } }.', null, { names: '^[A-Za-z_][A-Za-z0-9_]*$',
       values: { type: 'object', properties: { base: { description: 'An https address ending in "/", under "links".', type: 'string' }, sizes: { description: '[[folder, width], …], smallest first.', type: 'array', minItems: 1 },
         ratio: any('[width, height], such as [4, 3].', '[number, number] | LbwByLang') }, required: ['base', 'sizes'], additionalProperties: false } }),

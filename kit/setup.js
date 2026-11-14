@@ -4,7 +4,9 @@
    config = { prefix, langs, defaultLang, timeZone, maxPerMessage, links: ['https://shop.example/', 'tel:'],
               actions: { name: action },        buttons named once, used by name in any widget
               replies: { name: [label, say] },  quick replies named once
-              widgets: { tagName: { type: one of the kit makers, … } } }   (LBW.kit.setup.types lists them)
+              widgets: { tagName: { type: one of the kit makers, … } },   (LBW.kit.setup.types lists them)
+              screen: { on: true, header: { title, steps: [[id, label], …], progress }, bar, history } }   screen mode
+                        (runtime/screen.js); a widget may add "screen": false (never a screen) and "step": an id of the steps
    action = 'name'  |  { use: 'name', primary: true }  |  { tel, cc, label }  |  { wa, text, label }  |  { link, label }  |  { mail, label }
             |  { reply: [label, say] }      (primary: true fills it)
             any action may add "icon": one of LBW.kit.h.icons, and "danger": true (a destructive or "no" action) (v0.8.1.4)
@@ -817,7 +819,8 @@
     cfg = photosIn(cfg);
     root.__kitSetupErrors = errs.map(function (e) { return e.message; });
     errs.forEach(function (e) { if (e.widget != null) bad.push(e.widget); LBW.drop('setup: ' + e.message); try { console.error('[kit] setup: ' + e.message); } catch (x) {} });
-    if (errs.some(function (e) { return e.widget == null; })) return { ok: false, errors: root.__kitSetupErrors, widgets: made };
+    // a "screen" error (e.screen) leaves the widgets alone: the bot is a normal chat, as it would be without the key
+    if (errs.some(function (e) { return e.widget == null && !e.screen; })) return { ok: false, errors: root.__kitSetupErrors, widgets: made };
     var langs = langsOf(cfg), dflt = dfltOf(cfg, langs);
     LBW.init(merge(pick(cfg, ['prefix', 'langs', 'timeZone', 'maxPerMessage', 'links', 'labels', 'quietMs', 'maxWaitMs', 'reveal', 'motion']), { langs: langs, defaultLang: dflt }));   // the runtime's default must be the config's
     // v0.9.5 · the config is localized once per language, not once per widget and language (38 deep walks of the showcase's
@@ -843,6 +846,12 @@
         made.push(name);
       } catch (e) { root.__kitSetupErrors.push(name + ': ' + e.message); LBW.drop('setup: ' + name + ': ' + e.message); }
     });
+    // screen mode (runtime/screen.js): on once the widgets are registered, before the first scan. Each widget's "screen":
+    // false and "step" go with it; a config the checker refused stays a normal chat
+    if (isObj(cfg.screen) && cfg.screen.on === true && LBW.screen && !errs.some(function (e) { return e.screen; })) {
+      var sw = {}; made.forEach(function (n) { var w = cfg.widgets[n]; if (w.screen === false || isStr(w.step)) sw[n] = { screen: w.screen, step: w.step }; });
+      LBW.screen.start(cfg.screen, { lang: dflt, widgets: sw });
+    }
     warmIntl(langs, cfg.timeZone);
     return { ok: !root.__kitSetupErrors.length, errors: root.__kitSetupErrors, widgets: made };
   }

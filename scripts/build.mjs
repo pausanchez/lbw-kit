@@ -28,7 +28,8 @@ async function css(path) { return (await transform(read(path), { loader: 'css', 
 const hostSrc = read('runtime/host-v4.js'), cut = hostSrc.indexOf('/* @@more');
 if (cut < 0) { console.error('runtime/host-v4.js: no "/* @@more" mark after its first part'); process.exit(1); }
 const host = await js('runtime/host-v4.js'), hostRead = await jsOf(hostSrc.slice(0, cut));
-const lbw = host + '\n' + await js('runtime/lbw.js'), kit = await js('kit/kit.js'), setup = await js('kit/setup.js'), check = await js('kit/setup-check.js');
+// runtime/screen.js (screen mode, LBW.screen) goes right after lbw.js: it only defines the API until a config turns it on
+const lbw = host + '\n' + await js('runtime/lbw.js') + '\n' + await js('runtime/screen.js'), kit = await js('kit/kit.js'), setup = await js('kit/setup.js'), check = await js('kit/setup-check.js');
 const lbwCss = await css('runtime/lbw.css'), kitCss = await css('kit/kit.css');
 
 const out = {

@@ -24,3 +24,4 @@ node_modules/
 /test-results/
 .DS_Store
 /gallery/index.html
+/gallery/screen.html
