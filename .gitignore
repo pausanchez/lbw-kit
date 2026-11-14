@@ -11,6 +11,8 @@
 !/dist/
 !/gallery/
 !/.github/
+!/types/
+!/reference/
 
 /kit/example-leadgen/
 /kit/tests/

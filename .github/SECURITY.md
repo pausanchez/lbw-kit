@@ -13,7 +13,7 @@ The runtime (`runtime/lbw.js`) and the kit (`kit/`), where a widget could be mad
 
 ## Reporting a vulnerability
 
-Use GitHub's private vulnerability reporting: open the **Security** tab of this repository and choose **Report a vulnerability**. Please do not open a public issue or pull request for a vulnerability.
+Contact the maintainer directly. Please do not open a public issue or pull request for a vulnerability.
 
 Include the version, a minimal tag or config that reproduces it, and what it lets an attacker do.
 
