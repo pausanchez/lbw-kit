@@ -113,7 +113,7 @@ const html = `<title>Galería de AI Widgets</title>
   --accent: #8C8CFF; --accent-soft: #23244A; --code-bg: #22243180; --warn-bg: #2E2614; --warn-ink: #F2CF8A; color-scheme: dark }
 body { background: var(--bg); color: var(--ink); font: 15px/1.55 var(--f-body); }
 .wrap { max-width: 1320px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 64px; }
-code { font-family: var(--f-mono); font-size: .86em; background: var(--code-bg); padding: .08em .35em; border-radius: 4px; overflow-wrap: anywhere; }
+main code, .hero code, .ref code { font-family: var(--f-mono); font-size: .86em; background: var(--code-bg); padding: .08em .35em; border-radius: 4px; overflow-wrap: anywhere; }
 a { color: var(--accent); }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
@@ -166,10 +166,11 @@ nav.index { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 72px); a
 .type-body { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
 .doc { flex: 1 1 320px; min-width: 0; display: grid; gap: 12px; }
 .what { font-size: 16px; margin: 0; max-width: 62ch; }
-dl { margin: 0; display: grid; gap: 8px; }
-dl div { display: grid; grid-template-columns: 74px minmax(0, 1fr); gap: 10px; }
-dt { font: 600 11px/1.9 var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
-dd { margin: 0; }
+/* the page's own definition lists (the doc column): scoped so they never restyle a widget's rows (the a11y review saw them leak) */
+.doc dl { margin: 0; display: grid; gap: 8px; }
+.doc dl div { display: grid; grid-template-columns: 74px minmax(0, 1fr); gap: 10px; }
+.doc dt { font: 600 11px/1.9 var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.doc dd { margin: 0; }
 code.tag { color: var(--accent); }
 .sub-h { font: 600 11px/1 var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 4px 0 0; }
 .doc ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
