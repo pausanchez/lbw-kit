@@ -32,12 +32,14 @@
     chart: 'type cls lang kicker title sub note links allowDup kind stack height state tables compute money x series y mark summary params',
     compare: 'type cls lang kicker title titles param items rows min max empty note same primary allowDup params money source',
     season: 'type cls lang kicker ranges words rows note reply links allowDup params money',
+    map: 'type cls lang kicker title note places image lines from directions sort max links allowDup params money',
     rating: 'type cls lang kicker title text kind min max labels bands send note allowDup params money'
   };
   var ITEM = { table: 'kicker title cols rows note source link'.split(' '), cards: 'kicker title who line points pointsCls pointsTitle rows note noteCls link status badge'.split(' '), stats: 'kicker title stats source'.split(' '), people: 'name role img note'.split(' '),
     slide: 'id img badge kicker name sub price save status desc reply link gallery until'.split(' '), compare: 'name values reply link'.split(' ') };
   var NEED = { cards: [], table: [], form: ['steps', 'summary', 'cta'], contact: ['title'], chips: ['items'], carousel: [], calc: ['state', 'controls', 'result', 'send', 'cta'],
     stats: [], people: ['items'], consent: ['title', 'yes', 'no'], slots: ['cta', 'say'], confirm: ['form', 'title'], review: ['state', 'lines', 'send', 'cta'], chart: ['title', 'x', 'series'], compare: ['items', 'rows'], season: ['ranges'], rating: ['title', 'send'] };
+  NEED.map = ['places'];   // v0.10
   // check every language's copy; a problem that every language has is reported once, the others with their language
   // v0.8.1.10 · the photo sets: a base under "links", sizes as [folder, width] going up, an optional ratio [w, h]
   function photoSets(cfg, top) {
@@ -590,6 +592,77 @@
           if (w.words != null) { if (!isObj(w.words)) err('"words" must be an object'); else { only(w.words, ['open', 'closed', 'until', 'opens', 'in', 'closes', 'unknown', 'day', 'days'], 'words'); if (isStr(w.words.days) && w.words.days.indexOf('{n}') < 0) err('words.days needs "{n}", as "{n} days"'); strs(w.words, Object.keys(w.words), 'words'); } }
           list(w.rows, 'rows', function (r, at) { if (!isArr(r) || r.length < 2 || !isStr(r[0]) || !isStr(r[1])) err(at + ' is [label, value]'); });
           strs(w, ['kicker', 'note']);
+        }
+
+        // v0.10 · map: places with coordinates in range, a pin for each (an "at" on the image, lat/lng inside its bounds, or
+        // lat/lng for the schematic), hours shaped as contact's, an image and a directions link the allow-list lets through
+        if (w.type === 'map') {
+          var pt = function (q) { return isArr(q) && q.length === 2 && typeof q[0] === 'number' && q[0] >= -90 && q[0] <= 90 && typeof q[1] === 'number' && q[1] >= -180 && q[1] <= 180; };
+          var ll = function (o, at, need) {
+            if (o.lat == null && o.lng == null) { if (need) err(at + ' needs "lat" and "lng" (' + need + ')'); return false; }
+            if (typeof o.lat !== 'number' || !(o.lat >= -90 && o.lat <= 90)) err(at + '.lat is a number from -90 to 90 (north is +)');
+            else if (typeof o.lng !== 'number' || !(o.lng >= -180 && o.lng <= 180)) err(at + '.lng is a number from -180 to 180 (east is +)');
+            else return true; return false;
+          };
+          var mi = w.image, mref = I.photoRef(mi), mo = isObj(mi) ? mi : {}, mb = null;
+          if (mi != null) {
+            if (mref) { only(mo, ['photo', 'alt', 'bounds'], 'image'); var mset = I.photoSet(cfg.photos, mref.cdn); if (mset && !isArr(mset.ratio)) err('image: the photo set "' + mref.cdn + '" needs a "ratio": the pins are placed on the picture\'s shape'); }
+            else if (!isObj(mi) || !isStr(mi.src)) err('"image" is { "src", "width", "height", "alt", "bounds" }, or "set:map.png" with "photos"');
+            else {
+              only(mi, ['src', 'srcset', 'width', 'height', 'alt', 'bounds'], 'image');
+              if (!linkOK(mi.src)) err('image.src "' + mi.src + '" is not under any entry of "links"');
+              list(mi.srcset, 'image.srcset', function (z, at) { if (!isArr(z) || !linkOK(z[0]) || !(z[1] > 0)) err(at + ' is [url under "links", width]'); });
+              ['width', 'height'].forEach(function (k) { if (!(Number.isInteger(mi[k]) && mi[k] > 0)) err('image.' + k + ' is the picture\'s ' + k + ' in pixels: the pins are placed on its shape'); });
+            }
+            strs(mo, ['alt'], 'image');
+            if (mo.bounds != null) { if (!isArr(mo.bounds) || mo.bounds.length !== 2 || !mo.bounds.every(pt) || !(mo.bounds[0][0] > mo.bounds[1][0]) || !(mo.bounds[1][1] > mo.bounds[0][1])) err('image.bounds is [[north, west], [south, east]]: the lat and lng of the picture\'s top-left and bottom-right corners'); else mb = mo.bounds; }
+          }
+          var MD = I.mapDir || {}, dr = w.directions, tp = null;
+          if (dr != null) {
+            if (isStr(dr) && own(MD, dr)) tp = MD[dr];
+            else if (isObj(dr) && isStr(dr.url)) { only(dr, ['url', 'label'], 'directions'); strs(dr, ['label'], 'directions'); tp = dr.url;
+              (dr.url.match(/\{[^}]*\}/g) || []).forEach(function (m) { if (['{lat}', '{lng}', '{q}', '{address}'].indexOf(m) < 0) err('directions.url: ' + m + ' is not one of {q} {lat} {lng} {address}'); });
+              if (!/\{(q|lat|lng|address)\}/.test(dr.url)) err('directions.url names no place: put {q} (lat,lng, or the address) where the destination goes'); }
+            else err('"directions" is ' + Object.keys(MD).join(', ') + ', or { "url": "https://…{q}…", "label" }');
+            if (tp && !linkOK(tp.split('{')[0])) err('directions: "' + tp.split('{')[0] + '" is not under any entry of "links"' + (isStr(dr) ? ' (add "' + (/^https:\/\/[^/]+\/(maps\/)?/.exec(tp) || [''])[0] + '")' : ''));
+          }
+          var mseen = Object.create(null), hrsAt = false;
+          if (!isArr(w.places) || !w.places.length || w.places.length > 20) err('"places" is a list of 1 to 20 places: [{ "id", "name", "address", "lat", "lng", "hours" }, …] (a tag shows 5 at most; "ids=a,b" picks them)');
+          else w.places.forEach(function (x, i) {
+            var at = 'places[' + i + ']'; if (!isObj(x)) { err(at + ' must be an object'); return; }
+            only(x, ['id', 'name', 'kind', 'address', 'lat', 'lng', 'at', 'hours', 'status', 'distance', 'link'], at);
+            if (!isStr(x.id) || !/^[a-z0-9][a-z0-9_-]{0,39}$/.test(x.id) || /^(constructor|prototype)$/.test(x.id)) err(at + '.id is a lower-case word (a-z, 0-9, _ and -), 40 at most: the tag names it (id=…, ids=…)');
+            else if (mseen[x.id]) err(at + '.id "' + x.id + '" is there twice'); else mseen[x.id] = 1;
+            if (!isStr(x.name)) err(at + ' needs a "name"'); strs(x, ['name', 'kind', 'address', 'distance'], at);
+            var g = mi == null ? ll(x, at, 'the schematic map is drawn from them; or give an "image"') : x.at == null && mb ? ll(x, at, 'inside image.bounds, or an "at" on the image') : ll(x, at, null);
+            if (mi != null && x.at == null && !mb) err(at + ' needs "at": [x, y] in % of the image (or give image.bounds and its lat/lng)');
+            if (x.at != null) { if (mi == null) err(at + '.at places a pin on the "image": with no image, the schematic is drawn from lat and lng');
+              else if (!isArr(x.at) || x.at.length !== 2 || !x.at.every(function (v) { return typeof v === 'number' && v >= 0 && v <= 100; })) err(at + '.at is [x, y] in % of the image, each 0 to 100, from its left and top edges'); }
+            else if (g && mb && (x.lat > mb[0][0] || x.lat < mb[1][0] || x.lng < mb[0][1] || x.lng > mb[1][1])) err(at + ' is outside image.bounds: its pin would be off the picture');
+            if (x.hours != null) { hrsAt = true; var h = x.hours, ha = at + '.hours';
+              if (!isObj(h) || !isObj(h.week)) err(ha + ' needs "week": { "1": [[600, 840], [1020, 1200]], … } (0 = Sunday; minutes since midnight)');
+              else { only(h, ['week', 'holidays', 'sep', 'h12', 'open', 'closed'], ha);
+                Object.keys(h.week).forEach(function (k) { if (!/^[0-6]$/.test(k)) { err(ha + '.week.' + k + ': days are 0 (Sunday) to 6'); return; } var end = -1;
+                  list(h.week[k], ha + '.week.' + k, function (r, a) { if (!isArr(r) || r.length !== 2 || !Number.isInteger(r[0]) || !Number.isInteger(r[1]) || r[0] < 0 || r[1] > 1440 || r[0] >= r[1]) err(a + ' is [open, close] in minutes since midnight, open first (10:00–14:00 is [600, 840]; midnight is 1440)'); else { if (r[0] < end) err(a + ' starts before the range above it ends: list the ranges in order, with no overlap'); end = r[1]; } }); });
+                list(h.holidays, ha + '.holidays', function (v, a) { if (!/^\d{1,2}\/\d{1,2}(\/20\d\d)?$/.test(String(v))) err(a + ' is D/M or D/M/YYYY'); });
+                if (h.h12 != null && typeof h.h12 !== 'boolean') err(ha + '.h12 is true or false'); strs(h, ['sep'], ha);
+                text(h.open, ha + '.open', ['t']); text(h.closed, ha + '.closed', ['d', 't']); }
+              if (x.status != null) err(at + ': "hours" or "status", not both (hours say open or closed by themselves)'); }
+            toned(x.status, at + '.status', true); url(x.link, at + '.link');
+            if (tp && /\{(q|address)\}/.test(tp) && !g && !isStr(x.address) && !/\{(lat|lng)\}/.test(tp)) err(at + ' has no lat/lng and no address: "directions" can\'t build its link');
+            else if (tp && /\{(lat|lng)\}/.test(tp) && !g) err(at + ' has no lat/lng: directions.url needs them');
+          });
+          if (hrsAt && !isStr(cfg.timeZone)) err('"hours" need "timeZone" in the config: open now is the client\'s time');
+          if (w.lines != null) {
+            if (mi != null) err('"lines" draw the schematic map; with an "image" they are not drawn: leave them out');
+            if (isArr(w.lines) && w.lines.length > 12) err('"lines" holds 12 at most: the schematic is a sketch, not a street map');
+            list(w.lines, 'lines', function (l, at) { if (!isObj(l)) { err(at + ' is { "kind", "pts", "label" }'); return; } only(l, ['kind', 'pts', 'label'], at);
+              if (['water', 'road', 'rail', 'park'].indexOf(l.kind) < 0) err(at + '.kind is water, road, rail or park');
+              if (!isArr(l.pts) || l.pts.length < 2 || l.pts.length > 40 || !l.pts.every(pt)) err(at + '.pts is 2 to 40 points [lat, lng]'); strs(l, ['label'], at); });
+          }
+          if (w.from != null) { if (!isObj(w.from)) err('"from" is { "name", "lat", "lng" }: where distances are measured from'); else { only(w.from, ['name', 'lat', 'lng'], 'from'); ll(w.from, 'from', 'distances are measured from them'); strs(w.from, ['name'], 'from'); } }
+          if (w.sort != null && w.sort !== 'distance') err('"sort" is "distance" or left out'); else if (w.sort != null && !isObj(w.from)) err('"sort": "distance" needs "from"');
+          if (w.max != null && !(Number.isInteger(w.max) && w.max >= 1 && w.max <= 5)) err('"max" is a whole number from 1 to 5: the places one tag shows');
         }
 
         if (w.type === 'compare') {

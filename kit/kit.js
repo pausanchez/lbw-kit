@@ -90,6 +90,7 @@
     consent: 'cls lang icon title text yes no link allowDup',
     compare: 'cls lang kicker title param items rows min max empty note allowDup same primary',
     season: 'cls lang kicker ranges words rows note reply links allowDup',   // v0.8.1.4: missing since 0.8.1, so dev mode threw and the season card drew nothing
+    map: 'cls lang kicker title note places image lines from directions go links sort max allowDup',
     rating: 'cls lang kicker title text kind min max labels say note allowDup'
   };
   function checkCfg(maker, name, cfg, required) {
@@ -1093,7 +1094,108 @@
     });
   }
 
+  // ── v0.10 · map: 1–5 places on the client's own map image, or on a schematic the kit draws from lat/lng ──────────────
+  // No tiles, no key, no third-party script: the only thing fetched is cfg.image, which `links` must allow. The LIST is the
+  // content (name, kind, address, distance, open now, "Directions ↗"); the map is a group of pin buttons (one Tab stop, the
+  // arrows move) over a decorative drawing. A pin and its row select each other. Tag: ids=a,b (those, in that order), id=a.
+  // cfg = { cls, lang, kicker, title, note, max (5), sort: 'distance', go (the directions label), links(ctx) → [el…],
+  //         image: { src, srcset, width, height, alt, bounds: [[north, west], [south, east]] }: a pin goes at a place's `at`
+  //           ([x %, y %] from the left and top edges), else at its lat/lng inside bounds. No image (or one `links` refuses):
+  //           the schematic, from lat/lng, with lines: [{ kind: water | road | rail | park, pts: [[lat, lng]…], label }],
+  //         from: { name, lat, lng } (distances are measured from it, and it is drawn as a ring on the schematic),
+  //         places: [{ id, name, kind, address, lat, lng, at, hours: { week, holiday, sep, h12 } (open now, as contact),
+  //                    status: { text, tone }, distance: 'text' (in place of the computed one), link: [label, url] }],
+  //         directions(place) → a URL or null (setup builds it from lat/lng or the address; `links` must allow it) }
+  var MAPW = { en: { map: 'Map', walk: '{n} min walk', from: 'from {p}', go: 'Directions ↗' }, es: { map: 'Mapa', walk: '{n} min a pie', from: 'desde {p}', go: 'Cómo llegar ↗' },
+    it: { map: 'Mappa', walk: '{n} min a piedi', from: 'da {p}', go: 'Indicazioni ↗' }, de: { map: 'Karte', walk: '{n} Min. zu Fuß', from: 'ab {p}', go: 'Route ↗' },
+    fr: { map: 'Carte', walk: '{n} min à pied', from: 'depuis {p}', go: 'Itinéraire ↗' }, ca: { map: 'Mapa', walk: '{n} min a peu', from: 'des de {p}', go: 'Com arribar-hi ↗' } };
+  function geo(x) { return !!x && typeof x.lat === 'number' && typeof x.lng === 'number'; }
+  function metres(a, b) { var r = Math.PI / 180, s = function (x) { x = Math.sin(x / 2); return x * x; }, h = s((b.lat - a.lat) * r) + Math.cos(a.lat * r) * Math.cos(b.lat * r) * s((b.lng - a.lng) * r); return 12742000 * Math.asin(Math.min(1, Math.sqrt(h))); }
+  function mapCard(name, cfg) {
+    var cls = cfg.cls || ('kit-' + name), all = cfg.places || [], ids = all.map(function (x) { return x.id; }), max = Math.min(5, cfg.max || 5), W0 = 320, H0 = 200;
+    checkCfg('map', name, cfg, ['places']); budget("map('" + name + "')", 'title', cfg.title);
+    register('map', name, 'id', ids);
+    LBW.widget(name, function (p, ctx) {
+      if (!cfg.allowDup && dup(ctx, cls)) return null;
+      var lang = langOf(cfg, ctx), w = MAPW[lang] || MAPW.en, fr = geo(cfg.from) ? cfg.from : null, by = Object.create(null), im = cfg.image;
+      all.forEach(function (x) { by[x.id] = x; });
+      var want = p.has('ids') ? p.list('ids', ids, max) : null; if (want && !want.length) return null;   // ids naming no place: nothing, as a carousel
+      var hi = p.one('id', ids), list = want ? want.map(function (k) { return by[k]; }) : all.slice();
+      var dist = function (x) { return fr && geo(x) ? metres(fr, x) : null; };
+      if (cfg.sort === 'distance' && fr) list.sort(function (a, b) { var da = dist(a), db = dist(b); return (da == null) - (db == null) || (da || 0) - (db || 0); });
+      if (list.length > max) { var keep = hi && list.indexOf(by[hi]) >= max; list = list.slice(0, max); if (keep) list[max - 1] = by[hi]; }
+      if (list.indexOf(by[hi]) < 0) hi = null;
+      var o = U.card(lang, 'kit-map ' + cls), fig = el('div', 'kit-map-fig'), pos = null, proj = null;
+      U.head(o.box, cfg.kicker || '', cfg.title || '');
+      if (im && im.src) {   // the client's map: a refused URL (or the mock's noimg pin) falls back to the schematic
+        var f = U.img(im.src, 'kit-map-img', { srcset: im.srcset, sizes: '(max-width: 480px) 92vw, 520px', width: im.width, height: im.height, alt: '' });
+        if (f.classList.contains('is-empty')) im = null;
+        else { fig.appendChild(f); if (im.width && im.height) fig.style.setProperty('--kit-map-ar', String(im.width / im.height)); var b = im.bounds;
+          pos = list.map(function (x) { var q = x.at || (b && geo(x) ? [(x.lng - b[0][1]) / (b[1][1] - b[0][1]) * 100, (b[0][0] - x.lat) / (b[0][0] - b[1][0]) * 100] : null);
+            return q && q[0] >= 0 && q[0] <= 100 && q[1] >= 0 && q[1] <= 100 ? q : null; }); }
+      } else im = null;
+      if (!im) {   // the schematic: lat/lng fitted into 320×200 (room for a pin above each point), lines and the "from" ring under the pins
+        var pts = list.filter(geo).concat(fr ? [fr] : []);
+        if (pts.length) {
+          var k = Math.cos(pts.reduce(function (a, x) { return a + x.lat; }, 0) / pts.length * Math.PI / 180), X = function (x) { return x.lng * k; }, Y = function (x) { return -x.lat; };
+          var mm = function (f, g) { return Math[g].apply(null, pts.map(f)); }, x0 = mm(X, 'min'), x1 = mm(X, 'max'), y0 = mm(Y, 'min'), y1 = mm(Y, 'max');
+          var s = Math.min(240 / Math.max(x1 - x0, 1e-9), 136 / Math.max(y1 - y0, 1e-9), 240 / 0.006);   // never closer than ~500 m across
+          proj = function (x) { return [W0 / 2 + (X(x) - (x0 + x1) / 2) * s, 116 + (Y(x) - (y0 + y1) / 2) * s]; };
+          pos = list.map(function (x) { if (!geo(x)) return null; var q = proj(x); return [q[0] / W0 * 100, q[1] / H0 * 100]; });
+          var g = sv('svg', { viewBox: '0 0 ' + W0 + ' ' + H0, 'aria-hidden': 'true', focusable: 'false', 'class': 'kit-map-sch' });
+          sv('rect', { width: W0, height: H0, 'class': 'kit-map-bg' }, g);
+          for (var gx = 40; gx < W0; gx += 40) sv('path', { d: 'M' + gx + ' 0V' + H0, 'class': 'kit-map-grid' }, g);
+          for (var gy = 40; gy < H0; gy += 40) sv('path', { d: 'M0 ' + gy + 'H' + W0, 'class': 'kit-map-grid' }, g);
+          var at = function (q) { return proj({ lat: q[0], lng: q[1] }); };
+          (cfg.lines || []).forEach(function (l) {
+            var ps = (l.pts || []).map(at), park = l.kind === 'park'; if (ps.length < 2) return;
+            sv('path', { d: ps.map(function (q, i) { return (i ? 'L' : 'M') + q[0].toFixed(1) + ' ' + q[1].toFixed(1); }).join('') + (park ? 'Z' : ''), 'class': 'kit-map-ln is-' + l.kind }, g);
+            if (l.label) { var mq = ps[Math.floor((ps.length - 1) / 2)], nq = ps[Math.floor((ps.length - 1) / 2) + 1] || mq, tl = sv('text', { x: ((mq[0] + nq[0]) / 2).toFixed(1), y: ((mq[1] + nq[1]) / 2 + (park ? 4 : -9)).toFixed(1), 'text-anchor': 'middle', 'class': 'kit-map-lab' }, g); tl.textContent = l.label; }
+          });
+          if (fr) { var fq = proj(fr); sv('circle', { cx: fq[0].toFixed(1), cy: fq[1].toFixed(1), r: 5, 'class': 'kit-map-from' }, g);
+            if (fr.name) { var ft = sv('text', { x: fq[0].toFixed(1), y: (fq[1] + 18).toFixed(1), 'text-anchor': 'middle', 'class': 'kit-map-lab is-from' }, g); ft.textContent = fr.name; } }
+          fig.appendChild(g);
+        }
+      }
+      var pinL = el('div', 'kit-map-pins'), rove = radioGroup(pinL), ol = el('ol', 'kit-map-list'), pins = Object.create(null), rows = Object.create(null);
+      pinL.setAttribute('aria-label', (im && im.alt) || (w.map + (cfg.title ? ': ' + cfg.title : '')));
+      ol.setAttribute('aria-label', cfg.title || w.map);
+      function sel(id) {
+        list.forEach(function (x) { var on = x.id === id; if (pins[x.id]) pins[x.id].setAttribute('aria-checked', on ? 'true' : 'false'); rows[x.id].li.classList.toggle('is-on', on); rows[x.id].b.setAttribute('aria-pressed', on ? 'true' : 'false'); });
+        rove();
+      }
+      var km = function (m) { return m < 950 ? Math.max(10, Math.round(m / 10) * 10) + '\u00a0m' : (m / 1000).toLocaleString(lang, { maximumFractionDigits: m < 9950 ? 1 : 0 }) + '\u00a0km'; };
+      list.forEach(function (x, i) {
+        var n = String(i + 1), q = pos && pos[i];
+        if (q) { var pb = radio(U.btn('', 'kit-map-pin'), false), dr = el('span', 'kit-map-drop'); dr.appendChild(el('b', null, n)); pb.appendChild(dr);
+          pb.setAttribute('aria-label', n + '. ' + x.name); pb.style.left = q[0].toFixed(2) + '%'; pb.style.top = q[1].toFixed(2) + '%';
+          pb.addEventListener('click', function () { sel(x.id); }); pins[x.id] = pb; pinL.appendChild(pb); }
+        var li = el('li', 'kit-map-place'), b = U.btn('', 'kit-map-pick'), nm = el('span', 'kit-map-n', n); li.setAttribute('data-id', x.id);
+        nm.setAttribute('aria-hidden', 'true'); b.appendChild(nm); b.appendChild(el('span', 'kit-map-name', x.name)); if (x.kind) b.appendChild(el('span', 'kit-map-kind', x.kind));
+        b.addEventListener('click', function () { sel(x.id); }); li.appendChild(b);
+        li.addEventListener('click', function (e) { if (!e.target.closest('a, button')) sel(x.id); });   // the whole row, for a mouse; the keyboard has its button
+        if (x.address) li.appendChild(el('p', 'kit-map-addr', x.address));
+        var m = dist(x), d = x.distance || (m == null ? '' : km(m) + (fr.name ? ' ' + fill(w.from, { p: fr.name }) : '') + (m <= 3200 ? ' · ' + fill(w.walk, { n: Math.max(1, Math.round(m / 80)) }) : ''));   // walking: 80 m a minute
+        if (d) li.appendChild(el('p', 'kit-map-dist', d));
+        if (x.hours && x.hours.week) li.appendChild(status(x.hours, lang).node); else if (x.status && x.status.text) li.appendChild(statusLine(x.status));
+        var go = cfg.directions ? cfg.directions(x) : null, acts = buttons([go ? U.link(cfg.go || w.go, go) : null, x.link ? U.link(x.link[0], x.link[1]) : null]);
+        if (acts.length) U.row(li, acts);
+        rows[x.id] = { li: li, b: b }; ol.appendChild(li);
+      });
+      if (DEV) list.forEach(function (x) { budget("map('" + name + "') " + x.id, 'title', x.name); });
+      var wrap = el('div', 'kit-map-wrap');
+      if (pinL.children.length) fig.appendChild(pinL);
+      if (fig.children.length) { wrap.appendChild(fig); wrap.classList.add('has-fig'); }
+      wrap.appendChild(ol); o.box.appendChild(wrap);
+      sel(hi);
+      note(o.box, val(cfg.note, p, ctx), 'is-muted');
+      var ls = buttons(cfg.links && cfg.links(ctx)); if (ls.length) U.row(o, ls);
+      return o;
+    });
+  }
+
   LBW.kit = { version: '0.9.5.2', dev: DEV, describe: describe, L: L, last: last, cards: cards, table: table, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent, compare: compare, season: season, rating: rating,
     h: { usedByVisitor: usedByVisitor, wasQuieted: wasQuieted, quietAgain: quietAgain, keepPlace: keepPlace, upgraded: upgraded, radioGroup: radioGroup, note: note, list: list, label: label, dup: dup, choice: choice, multiChoice: multiChoice, copyBox: copyBox, status: status, wa: wa, fill: fill, money: money, total: total, lightbox: lightbox, chart: chart, statusHead: statusHead,
       icon: icon, withIcon: withIcon, icons: Object.keys(ICONS), badge: badge, tones: TONES.slice() } };
+  LBW.kit.map = mapCard;   // v0.10
 })(typeof window !== 'undefined' ? window : this);

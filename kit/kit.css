@@ -271,3 +271,36 @@
 .kit-tbl-once.is-done tbody tr:not(.is-picked) .kit-tbl-b, .kit-tbl-once.is-stale tbody tr .kit-tbl-b { opacity: 1; color: var(--lbw-muted) !important; box-shadow: inset 0 0 0 1px var(--lbw-line) !important; }   /* v0.9.5: muted, not .45 opacity (1.96:1) */   /* v0.8.1.14: still there, faded and disabled: an empty cell read as "no button" (Callan live) */
 .kit-tbl-once.is-done tbody tr:not(.is-picked) { color: var(--lbw-muted); }
 .kit-tbl-once.is-done tbody tr.is-picked, .kit-tbl-once.is-done tbody tr.is-picked th { background: var(--lbw-tint); }
+/* v0.10 · map */
+/* the client's map image or a schematic, pins as 44 px buttons over it, the list a screen reader reads; tokens only */
+.kit-map-wrap { display: grid; gap: 10px; margin-top: 4px; }
+.kit-map-fig { position: relative; aspect-ratio: var(--kit-map-ar, 1.6); border-radius: var(--lbw-radius-in, 10px); overflow: hidden; background: var(--lbw-soft); box-shadow: inset 0 0 0 1px var(--lbw-line); }
+.kit-map-fig > svg, .kit-map-fig > .lbw-img, .kit-map-pins { position: absolute; inset: 0; width: 100%; height: 100%; }
+.kit-map-fig > .lbw-img img { display: block; width: 100%; height: 100%; object-fit: fill; }
+.kit-map-bg { fill: var(--lbw-soft); } .kit-map-grid { stroke: var(--lbw-line); stroke-width: 1; fill: none; }
+.kit-map-ln { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.kit-map-ln.is-water { stroke: var(--kit-info-s); stroke: color-mix(in srgb, var(--kit-info-c) 24%, var(--lbw-soft)); stroke-width: 18; } .kit-map-ln.is-road { stroke: var(--lbw-card); stroke-width: 7; }
+.kit-map-ln.is-rail { stroke: var(--lbw-muted); stroke-width: 2; stroke-dasharray: 6 4; } .kit-map-ln.is-park { fill: var(--kit-ok-s); stroke: none; }
+.kit-map-lab { font: 600 10px var(--lbw-font); fill: var(--lbw-muted); letter-spacing: .02em; } .kit-map-lab.is-from { fill: var(--lbw-ink); }
+.kit-map-from { fill: var(--lbw-card); stroke: var(--lbw-ink); stroke-width: 2.5; }
+.kit-map-pin { position: absolute; width: 44px; height: 44px; margin: -44px 0 0 -22px; padding: 0; border: 0; background: none; cursor: pointer; display: grid; justify-items: center; align-items: start; }
+.kit-map-drop { margin-top: 10px; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); background: var(--lbw-accent); box-shadow: 0 0 0 2px var(--lbw-card), 0 2px 5px rgba(0,0,0,.28); }
+.kit-map-drop b { transform: rotate(45deg); font: 700 13px/1 var(--lbw-font); color: var(--lbw-accent-ink); }
+.kit-map-pin[aria-checked="true"] { z-index: 1; }
+.kit-map-pin[aria-checked="true"] .kit-map-drop { background: var(--lbw-ink); transform: rotate(-45deg) scale(1.18); box-shadow: 0 0 0 2px var(--lbw-card), 0 0 0 4px var(--lbw-accent), 0 3px 6px rgba(0,0,0,.3); }
+.kit-map-pin[aria-checked="true"] .kit-map-drop b { color: var(--lbw-card); }
+.kit-map-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.kit-map-place { padding: 2px 12px 10px; border-radius: var(--lbw-radius-in, 10px); box-shadow: inset 0 0 0 1px var(--lbw-line); cursor: pointer; }
+.kit-map-place.is-on { background: var(--lbw-tint); box-shadow: inset 0 0 0 2px var(--lbw-accent); }
+.kit-map-pick { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 44px; padding: 0; border: 0; background: none; color: var(--lbw-ink); font: 700 15px/1.3 var(--lbw-display); text-align: start; cursor: pointer; }
+.kit-map-n { flex: none; width: 22px; height: 22px; border-radius: 50%; background: var(--lbw-accent); color: var(--lbw-accent-ink); font: 700 12px/22px var(--lbw-font); text-align: center; }
+.kit-map-place.is-on .kit-map-n { background: var(--lbw-ink); color: var(--lbw-card); }
+.kit-map-name { min-width: 0; overflow-wrap: anywhere; }
+.kit-map-kind { margin-inline-start: auto; flex: none; font: 600 12px/16px var(--lbw-font); color: var(--lbw-muted); }
+.kit-map-addr, .kit-map-dist { margin: 0 0 4px; font-size: 13px; line-height: 18px; color: var(--lbw-muted); overflow-wrap: anywhere; }
+.kit-map-addr { color: var(--lbw-ink); }
+.kit-map-place .kit-statusbar { margin: 4px 0 2px; }
+.kit-map-place .lbw-actions { margin-top: 8px; }
+@container lbw (min-width: 520px) { .kit-map-list { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); } }   /* wide: the map stays whole above, the places two by two (beside the map, a 230 px list wrapped every line) */
+@media (prefers-reduced-motion: no-preference) { .kit-map-drop { transition: transform .15s ease, background-color .15s ease; } .kit-map-place { transition: background-color .15s ease, box-shadow .15s ease; } }
+/* end v0.10 · map */

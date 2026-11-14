@@ -446,6 +446,24 @@
       if (w.titles) o.title = function (ids) { return own(w.titles, String(ids.length)) ? w.titles[ids.length] : w.title || ''; };
       K.compare(name, o);
     },
+    // v0.10 · map: "places" is a list (the pins keep its numbers), each with lat/lng or an "at" on the "image"; "hours" as
+    // contact's (open now); "directions": "google" | "apple" | "osm" | { "url": "https://…{q}…", "label" } builds each
+    // place's link from its lat,lng (or its address, encoded); `links` must allow it, or the link isn't drawn
+    map: function (cfg, name, w, lang) {
+      var o = pick(w, ['cls', 'lang', 'kicker', 'title', 'note', 'from', 'lines', 'sort', 'max', 'allowDup']), d = w.directions;
+      if (w.image != null) o.image = photo(cfg.photos, w.image, 'img', '', function (m) { LBW.drop('setup: ' + name + ': image: ' + m); });   // "set:map.png" with "photos"
+      o.places = (w.places || []).map(function (x) { var p = merge(x, {}); if (isObj(x.hours)) { p.hours = pick(x.hours, ['week', 'sep', 'h12', 'open', 'closed']); if (x.hours.holidays) p.hours.holiday = LBW.day.on(x.hours.holidays); } return p; });
+      var t = isStr(d) && own(MAPDIR, d) ? MAPDIR[d] : isObj(d) && isStr(d.url) ? d.url : null, enc = function (s) { return encodeURIComponent(s).replace(/'/g, '%27'); };
+      if (t) o.directions = function (p) {
+        var ll = typeof p.lat === 'number' && typeof p.lng === 'number', v = { lat: ll ? String(+p.lat.toFixed(6)) : '', lng: ll ? String(+p.lng.toFixed(6)) : '', address: isStr(p.address) ? enc(p.address) : '' };
+        v.q = ll ? v.lat + ',' + v.lng : v.address;
+        var bad = false, u = t.replace(/\{(lat|lng|q|address)\}/g, function (m, k) { if (!v[k]) bad = true; return v[k]; });
+        return bad ? null : u;
+      };
+      if (isObj(d) && d.label) o.go = d.label;
+      o.links = function () { return actions(cfg, w.links); };
+      K.map(name, o);
+    },
     season: function (cfg, name, w, lang) {
       K.season(name, merge(pick(w, ['cls', 'lang', 'kicker', 'ranges', 'words', 'rows', 'note', 'allowDup']), { reply: reply(cfg, w.reply), links: function () { return actions(cfg, w.links); } }));
     },
@@ -771,5 +789,7 @@
   // for kit/setup-check.js
   setup._ = { own: own, pick: pick, isArr: isArr, isObj: isObj, isStr: isStr, isPair: isPair, WORD: WORD, CODE: CODE, HOLE: HOLE, SLOT: SLOT,
     compile: compile, loc: loc, PTYPES: PTYPES, PNUM: PNUM, PSKIP: PSKIP, NEEDS: NEEDS, photosIn: photosIn, srcsetOf: srcsetOf, photoRef: photoRef, photoSet: photoSet, langsOf: langsOf, dfltOf: dfltOf, resolve: resolve, reply: reply, timeOf: timeOf };
+  var MAPDIR = { google: 'https://www.google.com/maps/dir/?api=1&destination={q}', apple: 'https://maps.apple.com/?daddr={q}', osm: 'https://www.openstreetmap.org/directions?to={q}' };   // v0.10 · map's "directions"
+  setup._.mapDir = MAPDIR;
   K.setup = setup;
 })(typeof window !== 'undefined' ? window : this);

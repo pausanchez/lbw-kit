@@ -5,7 +5,7 @@
   "timeZone": "Europe/Madrid",
   "maxPerMessage": 3,
   "reveal": false,
-  "links": ["https://rodanorte.example/", "tel:", "https://wa.me/", "mailto:"],
+  "links": ["https://rodanorte.example/", "tel:", "https://wa.me/", "mailto:", "https://www.google.com/maps/"],
 
   "actions": {
     "call": { "tel": "600 000 000", "cc": "34", "label": "Llamar", "icon": "phone" },
@@ -154,6 +154,27 @@
 
     "temporada": {
       "type": "season", "kicker": "Rutas guiadas", "ranges": [["1/3/2026", "31/10/2026"], ["1/3/2027", "31/10/2027"]], "reply": "rent"
+    },
+
+    "donde": {
+      "type": "map", "kicker": "Dónde estamos", "title": "Tienda, taller y recogida", "directions": "google",
+      "from": { "name": "Plaza Mayor", "lat": 43.2566, "lng": -2.9275 },
+      "lines": [
+        { "kind": "water", "label": "Ría", "pts": [[43.2668, -2.9395], [43.2630, -2.9330], [43.2612, -2.9265], [43.2618, -2.9190], [43.2652, -2.9120]] },
+        { "kind": "road", "label": "Avenida del Puerto", "pts": [[43.2532, -2.9385], [43.2570, -2.9300], [43.2582, -2.9200], [43.2575, -2.9150], [43.2560, -2.9110]] },
+        { "kind": "park", "label": "Parque del Faro", "pts": [[43.2540, -2.9255], [43.2552, -2.9205], [43.2528, -2.9180], [43.2515, -2.9230]] },
+        { "kind": "rail", "pts": [[43.2650, -2.9400], [43.2600, -2.9150], [43.2585, -2.9100]] }
+      ],
+      "places": [
+        { "id": "tienda", "name": "Tienda Roda Norte", "kind": "Tienda", "address": "Muelle de las Bicis 4", "lat": 43.2598, "lng": -2.9318,
+          "hours": { "week": { "1": [[570, 840], [990, 1200]], "2": [[570, 840], [990, 1200]], "3": [[570, 840], [990, 1200]], "4": [[570, 840], [990, 1200]], "5": [[570, 840], [990, 1200]], "6": [[600, 840]] } } },
+        { "id": "taller", "name": "Taller", "kind": "Taller", "address": "Calle del Piñón 18", "lat": 43.2556, "lng": -2.9236,
+          "hours": { "week": { "1": [[540, 1080]], "2": [[540, 1080]], "3": [[540, 1080]], "4": [[540, 1080]], "5": [[540, 1080]] } },
+          "link": ["El taller ↗", "https://rodanorte.example/taller/"] },
+        { "id": "recogida", "name": "Punto de recogida Estación", "kind": "Recogida", "address": "Plaza del Radio 2, junto a la estación", "lat": 43.2598, "lng": -2.9158,
+          "status": { "text": "Taquillas abiertas 24 h", "tone": "ok" } }
+      ],
+      "note": "Lugares, calles y plano ficticios para la galería."
     },
 
     "salidas": {
