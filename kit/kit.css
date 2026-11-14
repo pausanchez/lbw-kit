@@ -271,3 +271,42 @@
 .kit-tbl-once.is-done tbody tr:not(.is-picked) .kit-tbl-b, .kit-tbl-once.is-stale tbody tr .kit-tbl-b { opacity: 1; color: var(--lbw-muted) !important; box-shadow: inset 0 0 0 1px var(--lbw-line) !important; }   /* v0.9.5: muted, not .45 opacity (1.96:1) */   /* v0.8.1.14: still there, faded and disabled: an empty cell read as "no button" (Callan live) */
 .kit-tbl-once.is-done tbody tr:not(.is-picked) { color: var(--lbw-muted); }
 .kit-tbl-once.is-done tbody tr.is-picked, .kit-tbl-once.is-done tbody tr.is-picked th { background: var(--lbw-tint); }
+/* v0.10 · calendar */
+/* A month grid (two side by side where the card is wide), tokens only. Days are 44 px tall and a seventh of the column
+   wide: 44 px at a 340 px phone, about 36 px at 288 (WCAG 2.5.8 asks 24). Picked days: the tint and a ring, never the
+   accent fill (kept for the CTA); the stay between them, the tint alone. No motion. */
+.lbw.kit-cal.is-two { max-width: none; }
+.kit-cal-months { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; }
+.kit-cal-m + .kit-cal-m { display: none; }
+.kit-cal-cap { margin: 0 0 4px; min-height: 44px; display: flex; align-items: center; justify-content: center; font: 600 15px/1.2 var(--lbw-display); color: var(--lbw-ink); }
+.kit-cal-nav { position: absolute; top: 0; width: 44px; height: 44px; border: 0; border-radius: var(--lbw-radius-pill); background: transparent; color: var(--lbw-accent-text, var(--lbw-accent)); font: 400 24px/1 var(--lbw-font); cursor: pointer; }
+.kit-cal-nav.is-prev { left: -6px; } .kit-cal-nav.is-next { right: -6px; }
+.kit-cal-nav:hover { background: var(--lbw-soft); }
+.kit-cal-nav:focus-visible { outline: 2px solid var(--lbw-focus, var(--lbw-ink)); outline-offset: -2px; }
+.kit-cal-nav[aria-disabled="true"] { color: var(--lbw-muted); opacity: .45; cursor: default; background: transparent; }
+.kit-cal-g { width: 100%; table-layout: fixed; border-collapse: collapse; }
+.kit-cal-g th { padding: 0 0 4px; font: 600 12px/16px var(--lbw-font); color: var(--lbw-muted); text-align: center; }
+.kit-cal-g td { padding: 1px 0; text-align: center; }
+.kit-cal-d { position: relative; width: 100%; min-height: 44px; padding: 2px 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border: 0; border-radius: var(--lbw-radius-in); background: transparent; color: var(--lbw-ink); font: 600 14px/18px var(--lbw-font); font-variant-numeric: tabular-nums; cursor: pointer; scroll-margin-block: 72px; }
+.kit-cal-p { font: 400 12px/14px var(--lbw-font); color: var(--lbw-muted); min-height: 14px; }
+.kit-cal-d:hover:not([aria-disabled="true"]) { background: var(--lbw-soft); }
+.kit-cal-d:focus-visible { outline: 2px solid var(--lbw-focus, var(--lbw-ink)); outline-offset: -2px; z-index: 1; }
+.kit-cal-d[aria-disabled="true"] { color: var(--lbw-muted); font-weight: 400; cursor: default; }
+.kit-cal-d.is-off { opacity: .55; }
+.kit-cal-d.is-full .kit-cal-n, .kit-cal-d.is-closed .kit-cal-n, .kit-cal-k.is-full { text-decoration: line-through; text-decoration-thickness: 1px; }
+.kit-cal-d.is-few::after, .kit-cal-k.is-few::before { content: ""; position: absolute; top: 5px; right: calc(50% - 15px); width: 6px; height: 6px; border-radius: 50%; background: var(--kit-warn-c); }
+.kit-cal-d.is-today .kit-cal-n { text-decoration: underline; text-underline-offset: 3px; }
+.kit-cal-d.is-in { background: var(--lbw-tint); border-radius: 0; }
+.kit-cal-d.is-end { background: var(--lbw-tint); box-shadow: inset 0 0 0 2px var(--lbw-accent-text, var(--lbw-accent)); border-radius: var(--lbw-radius-in); color: var(--lbw-ink); }
+.kit-cal-d.is-end .kit-cal-p { color: var(--lbw-ink); }
+.kit-cal-key { display: flex; flex-wrap: wrap; gap: 4px 14px; font: 400 12px/16px var(--lbw-font); color: var(--lbw-muted); }
+.kit-cal-k { position: relative; }
+.kit-cal-k.is-few { padding-left: 11px; } .kit-cal-k.is-few::before { top: 5px; left: 0; right: auto; }
+.kit-cal-sum { margin: 0; min-height: 20px; font: 600 14px/20px var(--lbw-font); color: var(--lbw-ink); }
+.kit-cal-sum:empty { display: none; }
+.lbw-form.is-done .kit-cal-d { cursor: default; }
+@container lbw (min-width: 600px) {
+  .kit-cal.is-two .kit-cal-months { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kit-cal.is-two .kit-cal-m + .kit-cal-m { display: block; }
+}
+@media (forced-colors: active) { .kit-cal-d.is-end { outline: 2px solid CanvasText; } .kit-cal-d.is-in { forced-color-adjust: none; background: Highlight; color: HighlightText; } }

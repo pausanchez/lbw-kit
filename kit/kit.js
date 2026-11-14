@@ -92,6 +92,7 @@
     season: 'cls lang kicker ranges words rows note reply links allowDup',   // v0.8.1.4: missing since 0.8.1, so dev mode threw and the season card drew nothing
     rating: 'cls lang kicker title text kind min max labels say note allowDup'
   };
+  OPTS.calendar = 'cls lang kicker title cta note mode min max notice horizon months money priceFrom days closed send collapse allowDup';   // v0.10
   function checkCfg(maker, name, cfg, required) {
     if (!DEV) return; var ok = OPTS[maker].split(' '), where = maker + "('" + name + "')";
     Object.keys(cfg).forEach(function (k) { if (ok.indexOf(k) < 0) warn(where, 'unknown option "' + k + '" (ignored). Known: ' + ok.join(', ')); });
@@ -1093,7 +1094,179 @@
     });
   }
 
+  /* v0.10 · calendar */
+  // ── calendar: a month of availability and prices; one day, or a stay from check-in to check-out ─────────────────────
+  // cfg = { cls, lang, kicker, title, cta, note, mode: 'range' | 'single', min, max (nights in a stay: 1 and 30 by default),
+  //         notice (days from today before the first that can be picked: 0), horizon (days ahead: 365), months: 1 | 2 (2: the
+  //         second shows where the card is wide), money: { cur, after, dec, th } (prices are integer cents), priceFrom,
+  //         days(p, ctx) → { days: { dayNumber: { s: 'free' | 'few' | 'full' | 'closed', p: cents, left: n } }, unlisted: 'free' | 'closed' }
+  //                      | { later: a promise of that, fallback() → that, upgrade(o) → a promise of that or null } | null,
+  //         closed(n) → true for a day a rule closes, send(sel, ctx) → [sentence, fields] }
+  // sel = { from, to, day, nights, total (cents; null when a night has no price), price (single), summary }, days as LBW.day numbers.
+  // The tag may preset month=2026-12, from=21/11/2026, to=24/11/2026: a value that isn't something the visitor could pick is
+  // ignored (and logged). The total is the sum of the nights' own prices, never a guess.
+  var CALW = {
+    en: ['Previous month', 'Next month', 'Pick your check-in', 'Now pick your check-out', 'Pick a day', '{a} – {b}', '{n} night', '{n} nights', 'from {p}', 'few left', '{n} left', 'full', 'closed', 'At least {n} nights', 'At most {n} nights', 'Some nights in between are not available', 'check-in', 'check-out', 'Check-in {d}', 'Price per night'],
+    es: ['Mes anterior', 'Mes siguiente', 'Elige la llegada', 'Ahora elige la salida', 'Elige un día', 'Del {a} al {b}', '{n} noche', '{n} noches', 'desde {p}', 'quedan pocas', 'quedan {n}', 'completo', 'cerrado', 'Mínimo {n} noches', 'Máximo {n} noches', 'Hay noches sin disponibilidad entre medias', 'llegada', 'salida', 'Llegada el {d}', 'Precio por noche'],
+    it: ['Mese precedente', 'Mese successivo', 'Scegli l’arrivo', 'Ora scegli la partenza', 'Scegli un giorno', 'Dal {a} al {b}', '{n} notte', '{n} notti', 'da {p}', 'ultimi posti', 'ne restano {n}', 'completo', 'chiuso', 'Minimo {n} notti', 'Massimo {n} notti', 'Alcune notti in mezzo non sono disponibili', 'arrivo', 'partenza', 'Arrivo il {d}', 'Prezzo a notte'],
+    de: ['Vorheriger Monat', 'Nächster Monat', 'Anreise wählen', 'Jetzt Abreise wählen', 'Tag wählen', '{a} – {b}', '{n} Nacht', '{n} Nächte', 'ab {p}', 'nur noch wenige', 'noch {n}', 'ausgebucht', 'geschlossen', 'Mindestens {n} Nächte', 'Höchstens {n} Nächte', 'Dazwischen sind Nächte nicht verfügbar', 'Anreise', 'Abreise', 'Anreise am {d}', 'Preis pro Nacht'],
+    fr: ['Mois précédent', 'Mois suivant', 'Choisissez l’arrivée', 'Choisissez maintenant le départ', 'Choisissez un jour', 'Du {a} au {b}', '{n} nuit', '{n} nuits', 'à partir de {p}', 'dernières places', 'plus que {n}', 'complet', 'fermé', 'Minimum {n} nuits', 'Maximum {n} nuits', 'Des nuits entre ces dates ne sont pas disponibles', 'arrivée', 'départ', 'Arrivée le {d}', 'Prix par nuit'],
+    ca: ['Mes anterior', 'Mes següent', 'Tria l’arribada', 'Ara tria la sortida', 'Tria un dia', 'Del {a} al {b}', '{n} nit', '{n} nits', 'des de {p}', 'en queden poques', 'en queden {n}', 'complet', 'tancat', 'Mínim {n} nits', 'Màxim {n} nits', 'Hi ha nits sense disponibilitat entremig', 'arribada', 'sortida', 'Arribada el {d}', 'Preu per nit']
+  };
+  var CALK = 'prev next pickIn pickOut pickDay range night nights from few left full closed min max gap inDay outDay arrive per'.split(' '), CALID = 0;
+  function calWords(lang) { var a = CALW[lang] || CALW.en, o = {}; CALK.forEach(function (k, i) { o[k] = a[i]; }); return o; }
+  function calendar(name, cfg) {
+    var cls = cfg.cls || ('kit-' + name), range = cfg.mode !== 'single', has = Object.prototype.hasOwnProperty;
+    checkCfg('calendar', name, cfg, ['days', 'send', 'cta']); budget("calendar('" + name + "')", 'title', cfg.title); register('calendar', name, null, null);
+    var minN = range ? Math.max(1, +cfg.min || 1) : 0, maxN = range ? Math.max(minN, +cfg.max || 30) : 0;
+    LBW.widget(name, function (p, ctx) {
+      if (!cfg.allowDup && dup(ctx, cls)) return null;
+      var src = cfg.days(p, ctx); if (!src) return null;
+      var lang = langOf(cfg, ctx), w = calWords(lang), two = cfg.months !== 1, mk = 'kit-cal ' + cls + (two ? ' is-two' : '');
+      if (src.later) {   // a skeleton until the data comes; the saved copy after "wait"; data that lands later still repaints it
+        var lo = U.loading(lang, mk);
+        return LBW.later(lo, src.later, function (d) { return draw(lo, d); },
+          src.fallback ? function () { if (!draw(lo, src.fallback())) throw new Error('nothing to show');
+            if (src.upgrade) src.upgrade(lo).then(function (d2) { if (d2 && lo.__cal && lo.__cal(d2)) { lo.setAttribute('data-lbw-upgraded', '1'); upgraded(lo, lang); } }, function () {}); } : null);
+      }
+      var c = U.card(lang, mk); return draw(c, src) ? c : null;
+      function draw(o, data) {
+        if (!data || !data.days) return false;
+        var today = D.today(), first = today + Math.max(0, +cfg.notice || 0), end = today + Math.max(1, +cfg.horizon || 365);
+        var ym = function (n) { var q = D.parts(n); return q.y * 12 + q.m - 1; }, mStart = function (mi) { return D.num(Math.floor(mi / 12), mi % 12 + 1, 1); };
+        var firstM = ym(today), lastM = ym(end), days = data.days, unl = data.unlisted === 'closed' ? 'closed' : 'free';
+        var cash = function (n, o2) { return money(n, Object.assign({}, cfg.money, n % 100 ? { cents: true } : null, o2)); };   // a price with cents is never rounded
+        var pend = null, view, foc, grid = el('div', 'kit-cal-months'), sum = el('p', 'kit-cal-sum'), nav = [];
+        var f = U.form('kit-calform', { state: { from: null, to: null }, cta: cfg.cta,
+          ready: function (s) { return s.from == null ? (range ? w.pickIn : w.pickDay) : range && s.to == null ? w.pickOut : true; },
+          send: function (s) { var sel = selOf(s, true), r = cfg.send(sel, ctx); pend = { sel: sel, text: r && r[0] }; return r; },
+          sent: function () { if (!pend) return; last[name] = { state: pend.sel, text: pend.text }; if (cfg.collapse !== false) fold(o, pend.text, lang); } });
+        // what a day is: off (past, inside the notice, after the horizon), closed (a rule or the data), full, few or free; p in cents
+        function info(n) {
+          if (n < first || n > end) return { s: 'off' };
+          if (cfg.closed && cfg.closed(n)) return { s: 'closed' };
+          var d = has.call(days, n) ? days[n] : null; return d ? { s: d.s || 'free', p: d.p, left: d.left } : { s: unl };
+        }
+        var night = function (n) { var s = info(n).s; return s === 'free' || s === 'few'; };
+        function why(a, b) {   // a stay from a to b (the day they leave): null when it can be booked, else the sentence that says why not
+          var k = b - a; if (k < minN) return fill(w.min, { n: minN }); if (k > maxN) return fill(w.max, { n: maxN });
+          for (var n = a; n < b; n++) if (!night(n)) return w.gap;
+          return null;
+        }
+        var can = function (s, n) { return night(n) || (range && s.from != null && s.to == null && n > s.from && why(s.from, n) == null); };
+        var dm = function (n, o2) { return D.format(n, lang, o2 || { day: 'numeric', month: 'short' }); };
+        function selOf(s, sent) {
+          var b = range ? s.to : s.from + 1, t = 0;
+          for (var n = s.from; n < b; n++) { var q = info(n).p; if (q == null) { t = null; break; } t += q; }
+          var sel = { from: s.from, to: range ? s.to : null, day: s.from, nights: range ? s.to - s.from : 0, total: range ? t : null, price: range ? null : t };
+          sel.summary = sumOf(sel, sent); return sel;
+        }
+        function sumOf(sel, sent) {   // "Del 21 al 24 nov · 3 noches · desde 654 €": the kit's words, the dates by LBW.day
+          var nb = sent ? { nb: false } : null;
+          if (!range) return [dm(sel.from, { weekday: 'long', day: 'numeric', month: 'long' }), sel.price == null ? '' : cash(sel.price, nb)].filter(Boolean).join(' · ');
+          var b = dm(sel.to), a = ym(sel.from) === ym(sel.to) && /^\d/.test(b) ? String(D.parts(sel.from).d) : dm(sel.from);
+          return [fill(w.range, { a: a, b: b }), fill(sel.nights === 1 ? w.night : w.nights, { n: sel.nights }),
+            sel.total == null ? '' : cfg.priceFrom ? fill(w.from, { p: cash(sel.total, nb) }) : cash(sel.total, nb)].filter(Boolean).join(' · ');
+        }
+        function label(n, s) {   // "sábado, 21 de noviembre, 189 €, quedan 2"
+          var d = info(n), t = [dm(n, { weekday: 'long', day: 'numeric', month: 'long' })];
+          if (d.p != null && night(n)) t.push(cash(d.p));
+          if (d.s === 'few') t.push(d.left != null ? fill(w.left, { n: d.left }) : w.few); else if (d.s === 'full' || d.s === 'closed') t.push(w[d.s]);
+          if (range && n === s.from) t.push(w.inDay); if (range && n === s.to) t.push(w.outDay);
+          return t.join(', ');
+        }
+        // one month: a real grid (a table with role=grid, named by its caption, the weekdays as column headers), Monday first
+        function month(mi) {
+          var start = mStart(mi), len = mStart(mi + 1) - start, lead = (D.parts(start).w + 6) % 7, m = el('div', 'kit-cal-m'), mn = D.format(start, lang, { month: 'long', year: 'numeric' }), cap = el('p', 'kit-cal-cap', mn.charAt(0).toUpperCase() + mn.slice(1));
+          cap.id = 'lbw-kcal' + (++CALID); m.appendChild(cap);
+          var t = el('table', 'kit-cal-g'), head = el('thead'), hr = el('tr'), body = el('tbody'), row = null, i; t.setAttribute('role', 'grid'); t.setAttribute('aria-labelledby', cap.id);
+          for (i = 0; i < 7; i++) { var wd = D.num(2024, 1, 1 + i), th = el('th', null, D.format(wd, lang, { weekday: 'narrow' })); th.setAttribute('scope', 'col'); th.setAttribute('aria-label', D.format(wd, lang, { weekday: 'long' })); hr.appendChild(th); }
+          head.appendChild(hr); t.appendChild(head);
+          for (i = 0; i < Math.ceil((lead + len) / 7) * 7; i++) {
+            if (i % 7 === 0) { row = el('tr'); body.appendChild(row); }
+            var td = el('td'), n = start + i - lead; row.appendChild(td);
+            if (i < lead || i >= lead + len) continue;
+            td.setAttribute('role', 'gridcell');
+            var b = U.btn('', 'kit-cal-d'); b.setAttribute('data-day', String(n)); b.tabIndex = -1;
+            b.appendChild(el('span', 'kit-cal-n', String(D.parts(n).d))); b.appendChild(el('span', 'kit-cal-p')); td.appendChild(b);
+          }
+          t.appendChild(body); m.appendChild(t); return m;
+        }
+        function render() {
+          grid.textContent = ''; nav = [U.btn('‹', 'kit-cal-nav is-prev'), U.btn('›', 'kit-cal-nav is-next')];
+          nav.forEach(function (b, i) { b.setAttribute('aria-label', i ? w.next : w.prev); grid.appendChild(b); });
+          grid.appendChild(month(view)); if (two && view < lastM) grid.appendChild(month(view + 1));
+          paint();
+        }
+        function paint() {
+          var s = f.state, lo2 = s.from, hi = range && s.to != null ? s.to : s.from, bs = [].slice.call(grid.querySelectorAll('.kit-cal-d')), seen = false;
+          nav[0].setAttribute('aria-disabled', view <= firstM ? 'true' : 'false'); nav[1].setAttribute('aria-disabled', view >= lastM ? 'true' : 'false');
+          bs.forEach(function (b) {
+            var n = +b.getAttribute('data-day'), d = info(n), on = n === s.from || (range && n === s.to), inR = lo2 != null && n >= lo2 && n <= hi;
+            b.className = 'kit-cal-d is-' + d.s + (n === today ? ' is-today' : '') + (inR ? ' is-in' : '') + (on ? ' is-end' : '');
+            b.lastChild.textContent = d.p != null && night(n) ? cash(d.p, { cur: '', cents: d.p % 100 !== 0 }) : '';
+            b.setAttribute('aria-label', label(n, s)); b.setAttribute('aria-disabled', can(s, n) ? 'false' : 'true');
+            if (on) b.setAttribute('aria-pressed', 'true'); else b.removeAttribute('aria-pressed');
+            b.parentNode.setAttribute('aria-selected', inR ? 'true' : 'false');
+            if (n === foc) seen = true;
+          });
+          if (!seen && bs.length) { var pk = bs.filter(function (b) { return can(s, +b.getAttribute('data-day')); })[0] || bs[0]; foc = +pk.getAttribute('data-day'); }
+          bs.forEach(function (b) { b.tabIndex = +b.getAttribute('data-day') === foc ? 0 : -1; });
+          sum.textContent = s.from == null ? '' : range && s.to == null ? fill(w.arrive, { d: dm(s.from, { weekday: 'short', day: 'numeric', month: 'short' }) }) + ' · ' + w.pickOut : sumOf(selOf(s), false);
+        }
+        var vis = function () { var ms = grid.querySelectorAll('.kit-cal-m'); try { return ms.length > 1 && getComputedStyle(ms[1]).display !== 'none' ? 2 : 1; } catch (e) { return 1; } };
+        var caps = function () { return [].map.call(grid.querySelectorAll('.kit-cal-cap'), function (x) { return x.textContent; }).slice(0, vis()).join(' · '); };
+        function go(n) {   // the keyboard's place moves to day n; the month turns when n isn't in view
+          n = Math.max(mStart(firstM), Math.min(mStart(lastM + 1) - 1, n)); var mi = ym(n), v = view;
+          if (mi < view) view = mi; else if (mi > view + vis() - 1) view = mi - vis() + 1;
+          foc = n; if (view !== v) { render(); LBW.announce(caps(), lang, 'cal:' + name); } else paint();
+          var b = grid.querySelector('[data-day="' + n + '"]'); if (b) b.focus();
+        }
+        function choose(n) {
+          var s = f.state, msg = null; if (f.el.classList.contains('is-done')) return;
+          if (!range || s.from == null || s.to != null || n <= s.from) { if (night(n)) { s.from = n; s.to = null; } else msg = label(n, s); }
+          else { msg = why(s.from, n); if (msg == null) s.to = n; else if (msg === w.gap && night(n)) { s.from = n; s.to = null; } }
+          foc = n; f.update(); paint();
+          LBW.announce(msg || sum.textContent, lang, 'cal:' + name);   // a closed or full day says why when pressed, and sends nothing
+        }
+        grid.addEventListener('click', function (e) {
+          var t = e.target.closest ? e.target.closest('button') : null; if (!t || !grid.contains(t)) return;
+          if (t.classList.contains('kit-cal-nav')) {
+            if (t.getAttribute('aria-disabled') === 'true') return; var nx = t.classList.contains('is-next');
+            view += nx ? 1 : -1; foc = null; render(); grid.querySelector(nx ? '.is-next' : '.is-prev').focus(); LBW.announce(caps(), lang, 'cal:' + name); return;
+          }
+          choose(+t.getAttribute('data-day'));
+        });
+        grid.addEventListener('keydown', function (e) {
+          var t = e.target; if (!t.classList || !t.classList.contains('kit-cal-d')) return;
+          var n = +t.getAttribute('data-day'), q = D.parts(n), k = e.key, to = null, wd = (q.w + 6) % 7;
+          if (k === 'ArrowRight') to = n + 1; else if (k === 'ArrowLeft') to = n - 1; else if (k === 'ArrowDown') to = n + 7; else if (k === 'ArrowUp') to = n - 7;
+          else if (k === 'Home') to = n - wd; else if (k === 'End') to = n + 6 - wd;
+          else if (k === 'PageDown' || k === 'PageUp') { var mi = ym(n) + (k === 'PageDown' ? 1 : -1), st = mStart(mi); to = st + Math.min(q.d, mStart(mi + 1) - st) - 1; }
+          if (to == null) return; e.preventDefault(); go(to);
+        });
+        // the tag's preset: a month to open on, a day or a stay the visitor could pick themselves; anything else is ignored
+        var bad = function (k) { LBW.drop(name + ': bad value ' + k + '=' + String(p.raw[k]).slice(0, 40)); };
+        var pm = p.has('month') ? /^(20\d\d)-(\d\d?)$/.exec(String(p.raw.month).trim()) : null, pf = p.day('from'), pt = p.day('to');
+        if (pm && !(+pm[2] >= 1 && +pm[2] <= 12)) pm = null; if (p.has('month') && !pm) bad('month');
+        if (pf != null && !night(pf)) pf = null; if (p.has('from') && pf == null) bad('from');
+        if (pf != null) { f.state.from = pf; if (range && pt != null && why(pf, pt) == null) f.state.to = pt; else if (p.has('to') && range) bad('to'); }
+        view = pf != null ? ym(pf) : pm ? Math.max(firstM, Math.min(lastM, +pm[1] * 12 + +pm[2] - 1)) : ym(first); foc = pf;
+        if (cfg.title) U.head(o.box, cfg.kicker || '', cfg.title);
+        o.box.appendChild(f.el); f.add(grid);
+        var key = el('div', 'kit-cal-key'); key.setAttribute('aria-hidden', 'true');
+        if (Object.keys(days).some(function (n) { return days[n] && days[n].p != null; })) key.appendChild(el('span', 'kit-cal-k', w.per + (cfg.money && cfg.money.cur ? ' (' + cfg.money.cur + ')' : '')));
+        ['few', 'full'].forEach(function (s) { key.appendChild(el('span', 'kit-cal-k is-' + s, w[s])); });
+        f.add(key); f.add(sum); render(); note(o.box, val(cfg.note, p, ctx), 'is-muted');
+        // late data: the same cells repainted (focus stays where it was), unless the visitor already picked a day
+        o.__cal = function (d2) { if (!d2 || !d2.days || f.state.from != null) return false; days = d2.days; unl = d2.unlisted === 'closed' ? 'closed' : 'free'; paint(); return true; };
+        return true;
+      }
+    });
+  }
+
   LBW.kit = { version: '0.9.5.2', dev: DEV, describe: describe, L: L, last: last, cards: cards, table: table, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent, compare: compare, season: season, rating: rating,
     h: { usedByVisitor: usedByVisitor, wasQuieted: wasQuieted, quietAgain: quietAgain, keepPlace: keepPlace, upgraded: upgraded, radioGroup: radioGroup, note: note, list: list, label: label, dup: dup, choice: choice, multiChoice: multiChoice, copyBox: copyBox, status: status, wa: wa, fill: fill, money: money, total: total, lightbox: lightbox, chart: chart, statusHead: statusHead,
       icon: icon, withIcon: withIcon, icons: Object.keys(ICONS), badge: badge, tones: TONES.slice() } };
+  LBW.kit.calendar = calendar;   // v0.10
 })(typeof window !== 'undefined' ? window : this);
