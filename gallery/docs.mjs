@@ -82,6 +82,15 @@ export const types = [
     watch: 'Sabe de fechas, no de horas. Para el horario de un día usa `contact`.',
     demo: [['Sobre las rutas guiadas:', '[[gx:temporada]]']] },
 
+  { type: 'map', group: 'mostrar', name: 'Mapa', widgets: ['donde'], since: 'v0.10',
+    what: 'De 1 a 5 sitios en un plano: chinchetas numeradas con el color de la marca y, al lado, la lista con la dirección, la distancia, «Abierto ahora» y «Cómo llegar ↗». Tocar una chincheta marca su fila, y al revés.',
+    when: '«¿Dónde estáis?», la tienda más cercana, el taller, un punto de recogida, el parking. Cualquier respuesta de «dónde» que hoy es una fila con la dirección.',
+    tag: '[[gx:donde]] · [[gx:donde id=taller]] · [[gx:donde ids=tienda,recogida]]',
+    saves: 'Nada: muestra y enlaza. «Cómo llegar ↗» abre el mapa que diga `directions` (Google, Apple u OSM), que tiene que estar en `links`.',
+    keys: ['`places`: una lista; cada sitio con `lat` y `lng`, y `hours` como `contact` (o un `status`)', 'Sin `image`, el kit dibuja un esquema con `lines` (ría, calles, vías, parques); con `image`, un plano tuyo y cada chincheta en `at` [x %, y %] o por `bounds`', '`from`: el punto desde el que se miden las distancias; `sort: "distance"` ordena por ellas', '`directions`: `google`, `apple`, `osm` o `{ url, label }` con `{q}`'],
+    watch: 'Nada de teselas ni claves: el único archivo que se carga es tu `image`, y tiene que estar en `links`. Un plano de Google o Mapbox solo con su licencia. La lista es lo que lee un lector de pantalla: el plano es un apoyo.',
+    demo: [['Estamos aquí:', '[[gx:donde]]'], ['Solo la tienda y la recogida:', '[[gx:donde ids=tienda,recogida]]']] },
+
   // ── Preguntar ──
   { type: 'form', group: 'preguntar', name: 'Formulario', widgets: ['plan'],
     what: 'Preguntas de elección con toques, una o varias por paso, que se envían una sola vez.',
@@ -212,6 +221,8 @@ export const tags = {
     prompt: '[[gx:equipo who=ID lang=XX]] the guides. who: ana (mountain guide), ben (mechanic and guide). Use it when they ask who will go with them. With no who write [[gx:equipo lang=XX]].' },
   chart: { by: 'El agente. Con `state` en la config, el tag también puede llevar números (como la calculadora).', p: [LANG],
     prompt: '[[gx:salidas lang=XX]] hires per month this season. Use it when they ask how busy the season is.' },
+  map: { by: 'El agente.', p: [['id', 'tienda, taller, recogida', 'ninguno marcado', 'ninguno marcado'], ['ids', 'tienda, taller, recogida (lista con comas, hasta 5, en ese orden)', 'todos', 'no dibuja nada'], LANG],
+    prompt: '[[gx:donde id=ID lang=XX]] where the shop, the workshop and the pickup point are, with open now and directions. id=tienda (shop), taller (workshop), recogida (pickup point) marks the one they asked about. ALWAYS end with it when they ask where we are or how to get there. Never write an address or opening hours yourself.' },
   season: { by: 'El agente.', p: [LANG],
     prompt: '[[gx:temporada lang=XX]] whether guided rides run today, and when they open or close. ALWAYS end with it when they ask about guided ride dates. Never say the dates yourself.' },
   form: { by: 'El agente. Con `preset` en la config, el tag puede elegir la primera respuesta (`kind=loft`).', p: [LANG],
@@ -266,6 +277,8 @@ export const examples = {
     code: '`who=ana` → solo `items.ana`. Sin `who` saldrían todos.' },
   chart: { user: '¿Hay mucha gente en verano?', agent: 'Así fueron los alquileres de esta temporada: [[gx:salidas lang=es]]',
     code: 'Sin claves: los meses de `x` y los valores de `series`.' },
+  map: { user: '¿Dónde está el taller?', agent: 'Aquí lo tienes, con cómo llegar: [[gx:donde id=taller lang=es]]',
+    code: '`id=taller` → marca el sitio `taller` de `places`, en el plano y en la lista. La distancia sale de `from`, «Abierto ahora» de sus `hours` en la hora de Madrid y el enlace de `directions`.' },
   season: { user: '¿Hay rutas guiadas ahora?', agent: 'Te lo enseño con las fechas: [[gx:temporada lang=es]]',
     code: 'Sin claves: compara el hoy de Madrid (`timeZone`) con `ranges` y cuenta los días.' },
   form: { user: '¿Qué ruta me recomiendas?', agent: 'Te ayudo a elegir con tres toques: [[gx:plan lang=es]]',
