@@ -21,4 +21,7 @@ jobs:
         env:
           LBW_DENYLIST: ${{ secrets.LBW_DENYLIST }}
       - name: dist/ is up to date
-        run: git diff --exit-code -- dist
+        # the built files and their hashes must match; manifest's "gzip" sizes depend on the runner's zlib, so they're ignored
+        run: |
+          git diff --exit-code -- dist ':!dist/manifest.json'
+          node -e 'const f=require("fs"),{execSync:x}=require("child_process");const strip=(j)=>JSON.stringify(JSON.parse(j),(k,v)=>k==="gzip"?undefined:v);if(strip(x("git show HEAD:dist/manifest.json"))!==strip(f.readFileSync("dist/manifest.json","utf8"))){console.error("dist/manifest.json is stale: run npm run build");process.exit(1)}'
