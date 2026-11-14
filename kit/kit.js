@@ -1723,8 +1723,8 @@
       if (!IO) on(); else { var io = new IO(function (es) { if (!es.some(function (e) { return e.isIntersecting; })) return; io.disconnect();
         if (document.visibilityState !== 'hidden') on(); else document.addEventListener('visibilitychange', function v() { document.removeEventListener('visibilitychange', v); on(); }); }); io.observe(o); }
     }
-    var ms = document.querySelectorAll('[data-lb-part="message"]'), prev = all[all.length - 2], t = U.titleOf(o), w = words(o.getAttribute('lang'));
-    if (force || (ms.length && ms[ms.length - 1] === o.closest('[data-lb-part="message"]')))
+    var ms = LBW.host.messages(), prev = all[all.length - 2], t = U.titleOf(o), w = words(o.getAttribute('lang'));
+    if (force || (ms.length && ms[ms.length - 1] === LBW.host.messageOf(o)))
       LBW.announce((force || (prev && prev.getAttribute('data-trk-state') !== o.getAttribute('data-trk-state')) ? w.updated + ': ' : '') + t + ' · ' + o.__trk.text, o.getAttribute('lang'), 'card:' + t);
   }
   // live: a data message under the tracker's "live" key ({ estado, orden, … } or a list of them) redraws the newest tracker

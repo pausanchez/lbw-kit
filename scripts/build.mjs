@@ -19,10 +19,16 @@ const banner = (what) => `/*! ${what} v${v} */`;
 
 // v0.8.1.9 · no raw U+00A0 in shipped JS: Landbot's upload turns one into a plain space (docs/13); \xA0 works in strings and regexes
 const nbsp = (code) => code.replace(/\u00a0/g, '\\xA0');
-async function js(path) { return nbsp((await transform(read(path), { loader: 'js', minify: true, target: 'es2017', legalComments: 'none' })).code.trim()); }
+async function jsOf(code) { return nbsp((await transform(code, { loader: 'js', minify: true, target: 'es2017', legalComments: 'none' })).code.trim()); }
+async function js(path) { return jsOf(read(path)); }
 async function css(path) { return (await transform(read(path), { loader: 'css', minify: true, legalComments: 'none' })).code.trim(); }
 
-const lbw = await js('runtime/lbw.js'), kit = await js('kit/kit.js'), setup = await js('kit/setup.js'), check = await js('kit/setup-check.js');
+// runtime/host-v4.js (every hook in Landbot's web chat) goes before lbw.js wherever lbw.js goes; the fallback carries only its
+// first part (the selectors a bot message is found by), cut at the "@@more" mark: the Custom JS upload stays small
+const hostSrc = read('runtime/host-v4.js'), cut = hostSrc.indexOf('/* @@more');
+if (cut < 0) { console.error('runtime/host-v4.js: no "/* @@more" mark after its first part'); process.exit(1); }
+const host = await js('runtime/host-v4.js'), hostRead = await jsOf(hostSrc.slice(0, cut));
+const lbw = host + '\n' + await js('runtime/lbw.js'), kit = await js('kit/kit.js'), setup = await js('kit/setup.js'), check = await js('kit/setup-check.js');
 const lbwCss = await css('runtime/lbw.css'), kitCss = await css('kit/kit.css');
 
 const out = {
@@ -38,7 +44,7 @@ const out = {
   'kit.min.css': `${banner('lbw kit.css (needs lbw.css)')}\n${kitCss}\n`,
   'lbw-kit.min.css': `${banner('lbw.css + kit.css')}\n${lbwCss}\n${kitCss}\n`,
   'host-modal.min.js': `${banner('lbw kit host-modal (for the host page)')}\n${await js('kit/host-modal.js')}\n`,
-  'fallback.min.js': `${await js('runtime/fallback.js')}\n`,
+  'fallback.min.js': `${hostRead}\n${await js('runtime/fallback.js')}\n`,
   // v0.9.5 · the guard: goes into the bot's own Custom CSS (never loaded from the CDN), hides bot text until the runtime is ready
   'guard.min.css': `${await css('runtime/guard.css')}\n`,
 };

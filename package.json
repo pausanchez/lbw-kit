@@ -19,9 +19,15 @@
     "schema:check": "node scripts/schema.mjs --check",
     "types:check": "tsc --noEmit -p test/fixtures/types/tsconfig.json",
     "reference": "node scripts/type-docs.mjs",
-    "reference:check": "node scripts/type-docs.mjs --check"
+    "reference:check": "node scripts/type-docs.mjs --check",
+    "e2e": "playwright test",
+    "e2e:smoke": "playwright test --project=chromium --grep @smoke",
+    "capture:host": "node scripts/capture-host.mjs",
+    "canary": "node scripts/canary.mjs"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
+    "@playwright/test": "^1.65.1",
     "esbuild": "^0.28.2",
     "jsdom": "^29.1.1",
     "typescript": "^7.0.2"

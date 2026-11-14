@@ -13,10 +13,14 @@
 !/.github/
 !/types/
 !/reference/
+!/e2e/
+!/playwright.config.mjs
 
 /kit/example-leadgen/
 /kit/tests/
 /kit/example/mock*
 node_modules/
+/playwright-report/
+/test-results/
 .DS_Store
 /gallery/index.html

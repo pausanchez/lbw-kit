@@ -11,6 +11,7 @@
    Text is always set with textContent; links only to origins you allow. */
 (function (root) {
   if (root.LBW) return;
+  var H = root.LBW_HOST;   // runtime/host-v4.js: every hook in Landbot's web chat, loaded before this file
   var cfg = { prefix: 'w', langs: ['en'], defaultLang: 'en', maxPerMessage: 3, links: [], quietMs: 1500, maxWaitMs: 20000, labels: {} };
   var W = Object.create(null), last = {}, lock = 0, quietSince = Date.now(), started = false;
   var log = function (k, v) { (root[k] = root[k] || []).push(v); };
@@ -90,69 +91,18 @@
   }
 
   // ── talking back: post as the visitor, optionally writing fields ───────────────────────────────
-  // v4 widget API first (dev.landbot.io/sdks/widgets/api/widget#sendmessage): the bot's Custom JS hands the runtime the
-  // widget instance, `LBW.landbot(this)` at its TOP level (inside a callback `this` is something else). Its sendMessage
-  // returns a Promise and takes the fields as custom_data in the same message. Then window._landbot (the share page), then
-  // the legacy bridge inside the chat iframe (Landbot.exec, logs a deprecation warning: fields queued with
-  // 'landbot-custom-data', then the message), then typing into the text box. Each message goes out once: a way is left
-  // for the next only when it throws or its Promise rejects. Measured live (13 Nov 2026, docs/07): `this` is the widget on the
-  // share page (=== window._landbot) and in a Livechat embed (the host's myLandbot); custom_data wrote the field; the
-  // Promise resolves to undefined; Landbot.exec still works but logs two console.error lines per click.
+  // How a message reaches Landbot (the v4 widget, the share page's, the legacy bridge, typing it) is host-v4.js's send().
+  // The bot's Custom JS hands the runtime the widget instance: `LBW.landbot(this)` at its TOP level.
   var bound = null;
   function bind(w) {
     if (!w || w === root) return false;   // a plain <script> (the mock): `this` is the window, nothing to bind
     if (typeof w.sendMessage !== 'function') { drop('LBW.landbot: not a widget (no sendMessage)'); return false; }
     bound = w; hookEvents(w); return true;   // v0.9.5: its new_message carries data messages raw (scanData)
   }
-  function setData(fields) {   // fields with no message: queued, saved with the next one
-    var lb = root._landbot;
-    try { if (bound && typeof bound.setCustomData === 'function') { bound.setCustomData(fields); return true; } } catch (e) {}
-    try { if (root.Landbot && typeof root.Landbot.exec === 'function') { root.Landbot.exec('landbot-custom-data', fields); return true; } } catch (e) {}
-    try { if (lb && typeof lb.setCustomData === 'function') { lb.setCustomData(fields); return true; } } catch (e) {}
-    drop('no way to store fields'); return false;
-  }
+  function setData(fields) { return H.store(fields, { widget: bound, drop: drop }); }   // fields with no message: queued, saved with the next one
   function store(fields) { log('__lbwStored', fields); return setData(fields); }
-  // v0.9.5 · a send can fail: offline, sendMessage rejected for the network (measured live: "Failed to fetch", then the
-  // legacy bridge failed the same way and the click was lost with its card locked). post() reports back through cb(ok):
-  // a network failure stops at once (no deprecated Landbot.exec after it), and so does "no way to send".
-  function offline() { return typeof navigator !== 'undefined' && navigator.onLine === false; }
-  function netErr(e) { return offline() || !!(e && (e.name === 'TypeError' || e instanceof TypeError) && /failed to fetch|networkerror|network error|load failed|network request failed/i.test(e.message || '')); }
-  function post(text, fields, cb) {
-    cb = cb || function () {};
-    if (offline()) { drop('not sent (offline): ' + text); return cb(false); }
-    var lb = root._landbot, ways = [], msg = { type: 'text', message: text };
-    if (fields) msg.custom_data = fields;
-    if (bound) ways.push(['widget', bound]);
-    if (lb && lb !== bound && typeof lb.sendMessage === 'function') ways.push(['_landbot', lb]);
-    function next(i) {
-      if (i >= ways.length) return legacy(text, fields, cb);
-      var r;
-      try { r = ways[i][1].sendMessage(msg); } catch (e) { drop('send failed (' + ways[i][0] + '): ' + text + ' (' + e.message + ')'); return netErr(e) ? cb(false) : next(i + 1); }
-      if (r && typeof r.then === 'function') r.then(function () { cb(true); }, function (e) { drop('send failed (' + ways[i][0] + '): ' + text + ' (' + (e && e.message || e) + ')'); if (netErr(e)) cb(false); else next(i + 1); });
-      else cb(true);
-    }
-    next(0);
-  }
-  function legacy(text, fields, cb) {
-    var L = root.Landbot;
-    if (L && typeof L.exec === 'function') {
-      try { if (fields) L.exec('landbot-custom-data', fields); L.exec('landbot-msg-send', { type: 'text', message: text }); return cb(true); } catch (e) {}
-    } else if (fields) setData(fields);
-    // last resort: type it. v0.9.4.1 · the v4 chat's box is an <input> ("Type here…", measured live 13 Nov 2026), not a
-    // textarea; never one of our own widgets' fields. v0.9.5 (security review) · only Landbot's own text box, the one in (or
-    // marked) [data-lb-part="input-field"]: where lbw.js runs outside the chat, any other input (a newsletter form) would get
-    // the text and an Enter. No such box: nothing is typed, and the send is dropped and logged
-    var box = null, F = '[data-lb-part="input-field"]';
-    [].some.call(document.querySelectorAll(F + ' textarea, ' + F + ' input, textarea' + F + ', input' + F), function (x) {
-      if (x.closest('.lbw') || x.disabled || (x.tagName === 'INPUT' && !/^(text|search)?$/i.test(x.getAttribute('type') || ''))) return false; box = x; return true;
-    });
-    if (!box) { drop('no way to send: ' + text); return cb(false); }
-    Object.getOwnPropertyDescriptor((box.tagName === 'INPUT' ? HTMLInputElement : HTMLTextAreaElement).prototype, 'value').set.call(box, text);
-    box.dispatchEvent(new Event('input', { bubbles: true }));
-    box.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true }));
-    cb(true);
-  }
-  function quiet() { return !document.querySelector('[data-lb-part="window"] [role="status"]') && Date.now() - quietSince > cfg.quietMs; }
+  function post(text, fields, cb) { H.send(text, fields, cb, { widget: bound, drop: drop }); }
+  function quiet() { return !H.busy() && Date.now() - quietSince > cfg.quietMs; }
   // say(): one send per 1.2 s (double clicks), queued until the chat is quiet: a click while the agent's reply is still
   // arriving otherwise lands ABOVE that reply. Returns true when accepted (mark the control as sent right away).
   // Sends that wait go out in the order they were clicked: one queue, one timer (two waits on their own timers could swap).
@@ -342,14 +292,14 @@
   // a new widget is announced by its title, only in the newest message (a chat loading its history says one line);
   // a skeleton says nothing until it has content (later() announces it then)
   (subs.render = subs.render || []).push(function (e) {
-    var all = document.querySelectorAll('[data-lb-part="message"]');
+    var all = H.messages();
     if (e.el.classList.contains('is-loading') || (all.length && all[all.length - 1] !== e.message)) return;
     announceCard(e.el);
   });
   // v0.10 · a widget rises in (the newest message only: a chat loading its history draws the rest at once). The class is
   // on the message, so the widget's own HTML doesn't change; the stagger (box, body, actions, slides) is in lbw.css
   (subs.render = subs.render || []).push(function (e) {
-    var all = document.querySelectorAll('[data-lb-part="message"]');
+    var all = H.messages();
     if (all.length && all[all.length - 1] !== e.message) return;
     if (!e.message.classList.contains('lbw-enter')) brief(e.message, 'lbw-enter', 900);
   });
@@ -745,7 +695,7 @@
     function settle() { o.classList.remove('is-loading'); o.removeAttribute('aria-busy'); var s = o.querySelector('.lbw-skel'); if (s) { var r = moving() && o.isConnected && rect(o); h0 = r ? r.height : 0; ghost = h0 > 0 ? s : null; s.remove(); } }
     function gone(why) { drop((o.getAttribute('data-tag') || 'widget') + ' (' + why + ')'); o.remove(); }
     Promise.resolve(promise).then(function (data) {
-      var hostMsg = o.closest && o.closest('[data-lb-part="message"]'), near = null; try { var sc1 = hostMsg && scroller(hostMsg); near = sc1 ? atEnd(sc1, 240, null) : null; } catch (e) {}
+      var hostMsg = H.messageOf(o), near = null; try { var sc1 = hostMsg && scroller(hostMsg); near = sc1 ? atEnd(sc1, 240, null) : null; } catch (e) {}
       settle(); var r; try { r = fill(data); } catch (e) { return gone('error: ' + e.message); }
       if (r !== false) swapIn(o, ghost, h0);
       if (r !== false && hostMsg) reveal(hostMsg, near);   // a card that grew from its skeleton
@@ -925,21 +875,21 @@
   // empty box, and the gap around it (64 px of blank for 4 data messages, measured live). A box whose children are all
   // hidden is hidden too, checked again on every pass (at first the box also holds the chat's "Thinking…")
   function hideUp(h) {
-    for (var e = h, p = e.parentElement; p && p !== document.body && !p.matches('[data-lb-part="window"]'); e = p, p = p.parentElement) {
+    for (var e = h, p = e.parentElement; p && p !== document.body && !H.isWindow(p); e = p, p = p.parentElement) {
       if (p.style.display === 'none') continue;
       if (![].every.call(p.children, function (c) { return c.style.display === 'none'; })) return;
       p.style.display = 'none'; p.setAttribute('data-lbw-data-box', '');
     }
   }
   function scanData() {
-    if (!evOn) hookEvents(root._landbot);   // the share page's widget, when the Custom JS didn't hand it over
+    if (!evOn) hookEvents(H.widget());   // the share page's widget, when the Custom JS didn't hand it over
     [].forEach.call(document.querySelectorAll('[data-lbw-data]'), hideUp);
-    [].forEach.call(document.querySelectorAll('[data-lb-part="message"] [data-lb-part="message-text"]:not([data-lbw])'), function (box) {
+    [].forEach.call(H.texts(null, null, ':not([data-lbw])'), function (box) {
       var t = box.textContent; if (t.indexOf('lbw:data') < 0) return;
       var x = DATA_MARK.exec(t); if (!x) return;
-      var host = box.closest('[data-lb-part="message"]') || box, key = x[1];
+      var host = H.messageOf(box) || box, key = x[1];
       box.setAttribute('data-lbw', 'data');   // never scanned for tags: a tag inside the data is data
-      if (host.getAttribute('data-lb-author') !== 'bot') return;   // a visitor who typed the marker: shown as written, never read
+      if (!H.isBot(host)) return;   // a visitor who typed the marker: shown as written, never read
       host.style.display = 'none'; host.setAttribute('aria-hidden', 'true'); host.setAttribute('data-lbw-data', key); hideUp(host);
       var n = dataDom[key] = (dataDom[key] || 0) + 1;
       function fromDom() {
@@ -952,7 +902,7 @@
   }
   function prevUser(hostMsg) {   // the visitor's last message before this bot message (to drop a chip that repeats it)
     var t = '';
-    [].forEach.call(document.querySelectorAll('[data-lb-part="message"][data-lb-author="user"]'), function (u) {
+    [].forEach.call(H.messages(null, 'user'), function (u) {
       if (hostMsg && (u.compareDocumentPosition(hostMsg) & Node.DOCUMENT_POSITION_FOLLOWING)) t = u.textContent.replace(/\s+/g, ' ').trim().toLowerCase();
     });
     return t;
@@ -1003,19 +953,19 @@
     function place() {
       if (me.done || upT) return;                                         // not while an upward move is being judged
       try {
-        var all = document.querySelectorAll('[data-lb-part="message"]'); if (!all.length || all[all.length - 1] !== host) return end();
+        var all = H.messages(); if (!all.length || all[all.length - 1] !== host) return end();
         if (!sc) { sc = scroller(host); if (!sc) return; EV.forEach(function (n) { sc.addEventListener(n, end, { passive: true }); }); sc.addEventListener('scroll', later, { passive: true }); document.addEventListener('keydown', end, true); }
         var a = host.getBoundingClientRect(), b = sc.getBoundingClientRect();
         var tall = a.height > b.height - 16, aim = a.top;
         // v0.8.1.14 · a reply that fits, but not together with the visitor's question: aligned to the bottom, the question went
         // under the header (Callan live critique: a compare and a contact card, question top at −36 and −21 px). Placed like a
         // tall reply, question first, when its start is close above (it was the turn's own question)
-        if (!tall) { for (var qj = all.length - 2; qj >= 0; qj--) { if (all[qj].getAttribute('data-lb-author') === 'user') { var qq = all[qj].getBoundingClientRect(); if (a.bottom - qq.top > b.height - 16 && a.top - qq.top < 220) tall = true; break; } } }
+        if (!tall) { for (var qj = all.length - 2; qj >= 0; qj--) { if (H.isUser(all[qj])) { var qq = all[qj].getBoundingClientRect(); if (a.bottom - qq.top > b.height - 16 && a.top - qq.top < 220) tall = true; break; } } }
         // v0.8.1.3 · keep the visitor's own question in view above a tall reply when 160 px of the reply still fit under it
         // v0.8.1.9 · the message before this one, from the document's list: live, Landbot's messages are not siblings (the
         // sibling walk found nothing, so the question stayed 64–114 px above the window on every tall reply, critique 0.8.1.3)
-        if (tall) { var q = null; for (var qi = all.length - 2; qi >= 0; qi--) { if (all[qi].getAttribute('data-lb-author') === 'user') { q = all[qi]; break; } }   // past a reply split into several bubbles
-          if (q && q.getAttribute('data-lb-author') === 'user') { var qr = q.getBoundingClientRect(); if (a.top - qr.top + 160 <= b.height - 8 && a.top - qr.top < 220) aim = qr.top; } }
+        if (tall) { var q = null; for (var qi = all.length - 2; qi >= 0; qi--) { if (H.isUser(all[qi])) { q = all[qi]; break; } }   // past a reply split into several bubbles
+          if (q && H.isUser(q)) { var qr = q.getBoundingClientRect(); if (a.top - qr.top + 160 <= b.height - 8 && a.top - qr.top < 220) aim = qr.top; } }
         var to = Math.max(0, Math.round(tall ? sc.scrollTop + (aim - b.top) - 8 : sc.scrollTop + (a.bottom - b.bottom) + 12));
         var off = tall ? Math.abs(aim - b.top - 8) : (a.bottom > b.bottom + 1 || a.top < b.top - 1 ? 1e3 : 0);
         if (off < 2 || Math.abs(to - sc.scrollTop) < 1) { if (lastTop == null) lastTop = sc.scrollTop; return; }   // where it should be (or as far as the scroller goes)
@@ -1037,7 +987,7 @@
   function keepTel() {
     if (!telSeen) return;
     var now = Date.now(), wait = false;
-    [].forEach.call(document.querySelectorAll('[data-lb-part="message"][data-lb-author="bot"] [data-lb-part="message-text"]'), function (box) {
+    [].forEach.call(H.texts(null, 'bot'), function (box) {
       var txt = box.textContent; if (box.getAttribute('data-lbw-tel') === String(txt.length) + ':' + txt.slice(-24)) return;   // done for this text
       if (txt.indexOf('[[') >= 0 || !/\d[\d \xa0.\-]{7,}\d/.test(txt)) return;
       var seen = telSeen.get(box);
@@ -1055,13 +1005,26 @@
     });
     if (wait && !telT) telT = setTimeout(function () { telT = 0; try { keepTel(); } catch (e) {} }, cfg.quietMs + 60);
   }
+  // once the library has started and the chat's window is there, the hooks this library reads (host-v4.js) are checked once;
+  // any that is missing goes to __lbwDropped as "host changed: …" (Landbot changed its web chat: the fix is host-v4.js).
+  // Judged when the first bot message is in, or else on the first scan 10 s after the window first showed text (its header)
+  // or a message (the welcome may be slow). No timer of its own: the chat's next change wakes the scan. Silent when all is fine
+  var hostAt = 0, hostDone = false;
+  function hostCheck() {
+    var w = started && !hostDone && H.window(); if (!w) return;
+    var now = Date.now(), bot = H.messages(null, 'bot').length;
+    if (!bot && !hostAt && (H.messages().length || w.textContent.trim())) hostAt = now;
+    if (!bot && (!hostAt || now - hostAt < 10000)) return;
+    hostDone = true; var r = H.check(); if (!r.ok) drop('host changed: ' + r.missing.join(', '));
+  }
   function scan() {
+    try { hostCheck(); } catch (e) {}
     try { scanData(); } catch (e) {}   // v0.9.5: data messages first, hidden and never read as tags
     try { scanTags(); } finally { try { keepTel(); } catch (e) {} try { watchRaw(); } catch (e) {} }   // phones after the tags: never inside one
   }
   // v0.9.5 · what the scan left: any [[prefix: still in a text node of the page once the chat has been still for rawMs
   // (1.5 s; 6 s at most while it keeps changing). It is the early warning that Landbot changed its DOM (a renamed
-  // data-lb-part or data-lb-author, an author set late, text re-rendered into a bubble already done): logged in
+  // message or author hook, an author set late, text re-rendered into a bubble already done): logged in
   // __lbwDropped as "raw tag left: …" (and LBW.on('drop')), then removed from the text (cfg.stripRaw: false keeps it).
   // Not looked at: the widgets, the visitor's own messages, code, inputs.
   var rawT = 0, rawFirst = 0, rawSeen = typeof WeakMap === 'function' ? new WeakMap() : null;
@@ -1098,7 +1061,7 @@
     var walker = document.createTreeWalker(b, NodeFilter.SHOW_TEXT), found = [], n;
     while ((n = walker.nextNode())) {
       if (n.nodeValue.indexOf('[[') < 0 || rawAt(n.nodeValue) == null) continue;
-      var pe = n.parentNode; if (!pe || !pe.closest || pe.closest('.lbw, [data-lb-author="user"], [data-lbw-data], script, style, noscript, code, pre, textarea, template')) continue;   // v0.9.5.1: a data message's value is data, not a tag left behind
+      var pe = n.parentNode; if (!pe || !pe.closest || pe.closest('.lbw, ' + H.sel.user + ', [data-lbw-data], script, style, noscript, code, pre, textarea, template')) continue;   // v0.9.5.1: a data message's value is data, not a tag left behind
       found.push(n);
     }
     found.forEach(function (t) {
@@ -1108,8 +1071,8 @@
     });
   }
   function scanTags() {
-    var sel = '[data-lb-part="message"][data-lb-author="bot"] [data-lb-part="message-text"]:not([data-lbw])', passWas;
-    [].forEach.call(document.querySelectorAll(sel), function (box) {
+    var passWas;
+    [].forEach.call(H.texts(null, 'bot', ':not([data-lbw])'), function (box) {
       if (box.textContent.indexOf('[[') < 0) return;
       box.setAttribute('data-lbw', '1');
       // v0.9.5 · one message at a time: an exception anywhere in it (a widget, the DOM) no longer leaves it raw, and
@@ -1117,7 +1080,7 @@
       try { one(box); } catch (e) { drop('message failed: ' + (e && e.message) + ' (its tags removed)'); strip(box); }
     });
     function one(box) {
-      var host = box.closest('[data-lb-part="message"]') || box, made = [], late = [], held = [];
+      var host = H.messageOf(box) || box, made = [], late = [], held = [];
       var whole = box.textContent, names = [], left = eachTag(whole, function (m, name) { names.push(String(name).toLowerCase()); return ''; });
       // v0.9.5 (security review) · a widget fed by a flow (LBW.widget(name, fn, { flow: true })) is written by a flow message
       // that holds that one tag, with field values in it. A value someone else wrote (a review, a sheet cell) can close the tag
@@ -1168,15 +1131,15 @@
       // measured once per pass, before any card adds height: on a chat that loads with its history every message is
       // scanned in one go, and only the last one is revealed. The message's own text doesn't count against "at the end"
       // (a chat that scrolls a frame late, or smoothly, hasn't reached the end yet when the text is already in).
-      if (passWas === undefined) passWas = (function () { try { var ms = document.querySelectorAll('[data-lb-part="message"]'), lastM = ms[ms.length - 1], sc0 = lastM && scroller(lastM); return sc0 ? atEnd(sc0, 96, lastM) : null; } catch (e) { return null; } })();
+      if (passWas === undefined) passWas = (function () { try { var ms = H.messages(), lastM = ms[ms.length - 1], sc0 = lastM && scroller(lastM); return sc0 ? atEnd(sc0, 96, lastM) : null; } catch (e) { return null; } })();
       var wasAtEnd = passWas;
       made.forEach(function (w) { host.appendChild(w); emit('render', { widget: w.getAttribute('data-widget'), tag: w.getAttribute('data-tag'), lang: w.getAttribute('lang'), el: w, message: host }); });
       if (made.length) host.classList.add('has-lbw');
       if (made.length) reveal(host, wasAtEnd);
     }
     // one-shot groups nobody used go quiet once the visitor has written after them
-    var all = document.querySelectorAll('[data-lb-part="message"]'), lastU = -1;
-    [].forEach.call(all, function (m, i) { if (m.getAttribute('data-lb-author') === 'user') lastU = i; });
+    var all = H.messages(), lastU = -1;
+    [].forEach.call(all, function (m, i) { if (H.isUser(m)) lastU = i; });
     [].forEach.call(all, function (m, i) { if (i < lastU) [].forEach.call(m.querySelectorAll('.lbw-unsent'), function (x) { x.remove(); }); });   // v0.9.5: the visitor moved on
     [].forEach.call(all, function (m, i) { if (i < lastU) [].forEach.call(m.querySelectorAll('.lbw-once:not(.is-done)'), function (g) { g.classList.add('is-stale'); done(g); var w = g.closest('.lbw'); if (w && !w.querySelector('.is-sent')) w.classList.add('is-spent'); }); });   // v0.8.1.9: is-spent: nothing was sent from this card
   }
@@ -1184,11 +1147,11 @@
     if (started) return; started = true;
     gate(); document.addEventListener('visibilitychange', gate);   // v0.10 · the motion gate
     try { if (RM) { if (RM.addEventListener) RM.addEventListener('change', gate); else if (RM.addListener) RM.addListener(gate); } } catch (e) {}
-    new MutationObserver(function (list) {
+    H.observe(document.documentElement, function (list, inChat) {
       // the chat is busy while any message outside our widgets changes (the agent's reply arriving)
-      if (list.some(function (r) { var x = r.target.nodeType === 1 ? r.target : r.target.parentElement; return x && x.closest && x.closest('[data-lb-part="message"]') && !x.closest('.lbw'); })) quietSince = Date.now();
+      if (inChat) quietSince = Date.now();
       scan();
-    }).observe(document.documentElement, { childList: true, subtree: true, characterData: true });
+    }, '.lbw');
     // after the current script: init() runs before the widgets are registered. v0.9.5 · then the runtime is READY: LBW.ready
     // and the class lbw-ready on <html>, which ends the guard CSS's hiding of bot text (dist/guard.min.css) and stops
     // fallback.js. LBW.on('ready') is told once
@@ -1197,6 +1160,7 @@
 
   root.LBW = {
     version: '0.11.0',
+    host: H,   // the Landbot v4 adapter (runtime/host-v4.js): LBW.host.check() → { ok, missing, input }
     ready: false,   // v0.9.5: true once init() ran and the first scan is done
     // LBW.init({ prefix, langs, defaultLang, labels: {en:{…}}, links: ['https://shop.example/', 'tel:', 'mailto:', 'https://calendar.google.com/'], maxPerMessage, quietMs, timeZone: 'Europe/Madrid' })
     init: function (o) { for (var k in o) cfg[k] = o[k]; start(); return root.LBW; },

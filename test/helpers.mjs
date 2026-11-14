@@ -14,6 +14,7 @@ export function boot({ lbw = true, kit = false, landbot = true, scripts = [] } =
     { runScripts: 'outside-only', pretendToBeVisual: true, url: 'https://chat.example/' });
   const w = dom.window, sent = [];
   if (landbot) w.Landbot = { exec: (name, payload) => { sent.push([name, json(payload)]); } };
+  w.eval(read('runtime/host-v4.js'));   // the Landbot adapter: lbw.js and fallback.js both read the chat through it
   if (lbw) w.eval(read('runtime/lbw.js'));
   if (kit) w.eval(read('kit/kit.js'));
   scripts.forEach((p) => w.eval(read(p)));

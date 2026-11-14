@@ -1,0 +1,112 @@
+name: canary
+
+# A daily early warning: opens a published bot's share URL in Chrome, clicks one welcome button and checks the library still
+# works (scripts/canary.mjs). Read-only. Needs two repository secrets: LBW_CANARY_URL and LBW_CANARY_BUTTON.
+# Opens (or comments on) one issue labelled "canary" when a check fails or Landbot's front-end bundle changes.
+on:
+  schedule:
+    - cron: '0 7 * * *'
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  contents: read
+
+concurrency:
+  group: canary
+  cancel-in-progress: false
+
+jobs:
+  canary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      LBW_CANARY_URL: ${{ secrets.LBW_CANARY_URL }}
+      LBW_CANARY_BUTTON: ${{ secrets.LBW_CANARY_BUTTON }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Secrets present?
+        id: cfg
+        run: |
+          if [ -z "$LBW_CANARY_URL" ] || [ -z "$LBW_CANARY_BUTTON" ]; then
+            echo "::notice::LBW_CANARY_URL / LBW_CANARY_BUTTON are not set: the canary has nothing to open. Skipping."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.cfg.outputs.run == 'true'
+
+      - uses: actions/setup-node@v4
+        if: steps.cfg.outputs.run == 'true'
+        with:
+          node-version: 22
+
+      # the previous run's hashes of Landbot's front-end bundle (a cache entry is immutable: a new key per run, newest restored)
+      - name: Restore the bundle-hash state
+        if: steps.cfg.outputs.run == 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: canary-state.json
+          key: canary-state-${{ github.run_id }}
+          restore-keys: canary-state-
+
+      - name: Run the canary
+        id: canary
+        if: steps.cfg.outputs.run == 'true'
+        run: |
+          set +e
+          CHROME="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium)" \
+            node scripts/canary.mjs --json --state-from canary-state.json --state-to canary-state.json \
+            > canary.json 2> canary.err
+          code=$?
+          echo "exit=$code" >> "$GITHUB_OUTPUT"
+          node -e '
+            const f=require("fs");let j=null;try{j=JSON.parse(f.readFileSync("canary.json","utf8"))}catch(e){}
+            const err=f.readFileSync("canary.err","utf8").trim();
+            const L=[];
+            if(!j){L.push("The canary did not produce a result (exit '"$code"').");if(err)L.push("","```",err.slice(0,1500),"```")}
+            else{
+              if(j.fails.length){L.push("### Failing checks","",...j.fails.map(x=>"- "+x))}
+              if(j.bundleChanged){L.push("","### Landbot front-end changed","",...j.bundles.filter(b=>b.changed).map(b=>"- `"+b.url+"`: `"+b.previous+"` -> `"+b.hash+"`"),"","The day to rerun the whole battery.")}
+              L.push("","<details><summary>Info</summary>","",...j.info.map(x=>"- "+x),"","</details>")
+            }
+            f.writeFileSync("canary-body.md",L.join("\n")+"\n");
+            const changed=j&&j.bundleChanged;
+            f.appendFileSync(process.env.GITHUB_OUTPUT,"changed="+(changed?"true":"false")+"\n");
+          '
+          cat canary-body.md
+          exit 0
+
+      - name: Save the bundle-hash state
+        if: always() && steps.cfg.outputs.run == 'true' && hashFiles('canary-state.json') != ''
+        uses: actions/cache/save@v4
+        with:
+          path: canary-state.json
+          key: canary-state-${{ github.run_id }}
+
+      - name: Open or update the issue
+        if: steps.cfg.outputs.run == 'true' && (steps.canary.outputs.exit != '0' || steps.canary.outputs.changed == 'true')
+        run: |
+          gh label create canary --description "lbw-kit canary" --color D93F0B 2>/dev/null || true
+          if [ "${{ steps.canary.outputs.exit }}" != "0" ]; then
+            title="canary failed"
+          else
+            title="canary: Landbot's front-end changed"
+          fi
+          {
+            echo "Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            echo
+            cat canary-body.md
+          } > issue.md
+          open="$(gh issue list --label canary --state open --limit 1 --json number --jq '.[0].number // empty')"
+          if [ -n "$open" ]; then
+            gh issue comment "$open" --body-file issue.md
+          else
+            gh issue create --title "$title" --label canary --body-file issue.md
+          fi
+
+      - name: Fail the run when a check failed
+        if: steps.cfg.outputs.run == 'true' && steps.canary.outputs.exit != '0'
+        run: exit 1

@@ -16,6 +16,7 @@ const read = (p) => fs.readFileSync(new URL(p, root), 'utf8');
 export function tables() {
   const window = { document: { documentElement: {}, querySelector: () => null, querySelectorAll: () => [] } };
   const ctx = vm.createContext({ window, document: window.document });
+  vm.runInContext(read('runtime/host-v4.js'), ctx);
   vm.runInContext(read('runtime/lbw.js'), ctx);
   window.LBW.kit = { h: {} };
   vm.runInContext(read('kit/setup.js'), ctx);

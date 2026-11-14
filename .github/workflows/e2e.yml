@@ -1,0 +1,57 @@
+name: e2e
+
+# The gallery page in real browsers (playwright.config.mjs, e2e/gallery.spec.mjs).
+# Pull requests and pushes to main: the @smoke subset on Chromium. Tags, the weekly run and a manual run: the full
+# matrix on Chromium, Firefox and WebKit.
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+    tags: ['v*']
+  schedule:
+    - cron: '17 5 * * 1'   # Mondays, 05:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # full on a tag, the schedule or a manual run; smoke otherwise
+      FULL: ${{ startsWith(github.ref, 'refs/tags/v') || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Install browsers
+        run: |
+          if [ "$FULL" = "true" ]; then npx playwright install --with-deps chromium firefox webkit
+          else npx playwright install --with-deps chromium; fi
+      - run: npm run build
+      - run: node gallery/build.mjs --page
+      - name: Run (smoke)
+        if: env.FULL != 'true'
+        run: npx playwright test --project=chromium --grep @smoke
+      - name: Run (full matrix)
+        if: env.FULL == 'true'
+        run: npx playwright test --project=chromium --project=firefox --project=webkit
+      - name: Upload the HTML report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ github.run_id }}
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14

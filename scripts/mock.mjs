@@ -67,7 +67,7 @@ try {
   }
 
   // 3 · the page
-  const m = run('python3', [lib('tools/build-mock.py'), '--runtime', lib('runtime/lbw.js'),
+  const m = run('python3', [lib('tools/build-mock.py'), '--runtime', lib('runtime/host-v4.js'), '--widgets', lib('runtime/lbw.js'),
     ...['kit/kit.js', 'kit/setup.js', 'kit/setup-check.js'].flatMap((f) => ['--widgets', lib(f)]), '--widgets', path.join(build, 'mock-widgets.js'),
     ...css.flatMap((f) => ['--css', f]), ...(opt.skin ? ['--fonts', opt.skin] : []), '--cases', opt.cases, '--out', opt.out]);
   process.stderr.write(m.stderr || '');

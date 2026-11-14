@@ -39,7 +39,8 @@ function boot({ checker = false, fetchMap = {} } = {}) {
   w.fetch = (url) => Object.prototype.hasOwnProperty.call(fetchMap, url)
     ? Promise.resolve({ ok: true, status: 200, text: () => Promise.resolve(fetchMap[url]), json: () => Promise.resolve(JSON.parse(fetchMap[url])) })
     : Promise.reject(new Error('offline (golden test)'));
-  ['runtime/lbw.js', 'kit/kit.js', 'kit/setup.js'].concat(checker ? ['kit/setup-check.js'] : []).forEach((p) => w.eval(src(p)));
+  // runtime/host-v4.js (v0.11): an older copy (GOLDEN_ROOT) has none
+  ['runtime/host-v4.js', 'runtime/lbw.js', 'kit/kit.js', 'kit/setup.js'].concat(checker ? ['kit/setup-check.js'] : []).filter((p) => fs.existsSync(new URL(p, ROOT))).forEach((p) => w.eval(src(p)));
   const chat = w.document.getElementById('chat');
   const bot = (text) => {
     const m = w.document.createElement('div'), t = w.document.createElement('div');

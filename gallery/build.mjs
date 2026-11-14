@@ -59,7 +59,7 @@ function section(t) {
         <li>
           <h4>${esc(g.h || 'El agente escribe el tag')}</h4>
           <p class="by">${md(g.by)}</p>
-          <div class="ptable"><table>
+          <div class="ptable" tabindex="0" role="region" aria-label="Parámetros"><table>
             <thead><tr><th scope="col">Clave</th><th scope="col">Acepta</th><th scope="col">Si falta</th><th scope="col">Si no existe</th></tr></thead>
             <tbody>${g.p.map((r) => `<tr><th scope="row"><code>${esc(r[0])}</code></th><td>${md(r[1])}</td><td>${md(r[2])}</td><td>${md(r[3])}</td></tr>`).join('')}</tbody>
           </table></div>
@@ -228,12 +228,14 @@ code.ex-src { display: block; padding: 4px 8px; font-size: 12px; line-height: 1.
 .sent .fields { display: block; font-family: var(--f-mono); font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
 
 /* common pieces */
-.ref { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.ref { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); }
+.ref td { overflow-wrap: anywhere; }
 .ref > div { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; min-width: 0; }
 .ref h3 { font: 700 18px/1.2 var(--f-display); margin: 0 0 10px; }
 .ref table { width: 100%; border-collapse: collapse; font-size: 14px; }
 .ref td { border-top: 1px solid var(--line); padding: 7px 8px 7px 0; vertical-align: top; }
 .ref td:first-child { white-space: nowrap; }
+@media (max-width: 400px) { .ref td:first-child { white-space: normal; } }
 .ref p, .ref ul { margin: 0 0 8px; font-size: 14px; }
 .ref ul { padding-left: 18px; display: grid; gap: 4px; }
 .tones { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; }
@@ -404,6 +406,6 @@ writeFileSync(new URL('gallery/index.html', root), html);
 if (process.argv.includes('--page')) {
   const { mkdirSync } = await import('node:fs');
   mkdirSync(new URL('site/', root), { recursive: true });
-  writeFileSync(new URL('site/index.html', root), '<!doctype html>\n<html lang="es">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n' + html + '\n<p style="max-width:960px;margin:32px auto;padding:0 16px;font:13px/1.5 system-ui,sans-serif;color:#667">Proyecto personal, no es un producto oficial de Landbot. Código: <a href="https://github.com/pausanchez/lbw-kit">github.com/pausanchez/lbw-kit</a>. Datos ficticios.</p>\n</html>\n');   // the head closes itself at the first element of the body
+  writeFileSync(new URL('site/index.html', root), '<!doctype html>\n<html lang="es">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n' + html + '\n<p style="max-width:960px;margin:32px auto;padding:0 16px;font:13px/1.5 system-ui,sans-serif;color:var(--muted)">Proyecto personal, no es un producto oficial de Landbot. Código: <a href="https://github.com/pausanchez/lbw-kit">github.com/pausanchez/lbw-kit</a>. Datos ficticios.</p>\n</html>\n');   // the head closes itself at the first element of the body
 }
 console.log('wrote gallery/index.html', (html.length / 1024).toFixed(0) + ' KB', count + ' types', types.length + ' entries');
