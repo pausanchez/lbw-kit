@@ -90,6 +90,7 @@
     consent: 'cls lang icon title text yes no link allowDup',
     compare: 'cls lang kicker title param items rows min max empty note allowDup same primary',
     season: 'cls lang kicker ranges words rows note reply links allowDup',   // v0.8.1.4: missing since 0.8.1, so dev mode threw and the season card drew nothing
+    tracker: 'cls lang kicker title note param default ref eta steps states actions links live allowDup',   // v0.10
     rating: 'cls lang kicker title text kind min max labels say note allowDup'
   };
   function checkCfg(maker, name, cfg, required) {
@@ -1093,7 +1094,118 @@
     });
   }
 
+  // ── v0.10 · tracker: where an order, a booking or a repair is, step by step (the design review's "status timeline") ──
+  // cfg = { cls, lang, kicker, title, note, allowDup, param: 'estado' (the tag key that names the current step),
+  //         default: a step or state key for an unset or unknown value (none: nothing is drawn),
+  //         ref: { param, label } (an order code the tag carries: shown, never invented), eta: { day, time, text: 'Lista {when}' }
+  //         (tag keys; {when} = "hoy a las 18:00"), live: a key of LBW.data (a data message redraws the newest tracker in place),
+  //         steps: [{ key, label, detail, time, tone }], states: [{ key, text, tone, at: a step key (a delay), end: true (cancelled) }],
+  //         actions(key, ref, ctx) → [el…] (while that step or state is the current one), links(ref, ctx) → [el…] (always) }
+  // One rule for updates: the NEWEST tracker of a widget and reference is the live one. Drawing one marks every earlier one
+  // with the same name and ref "Actualizado: <its state>" and quiets its one-shot actions; the old card stays as written.
+  var TW = {
+    en: { steps: 'Steps', s: ['done', 'now', 'to come'], at: 'at {t}', on: 'on {d}', eta: 'Expected {when}', ref: 'Ref.' },
+    es: { steps: 'Pasos', s: ['hecho', 'ahora', 'pendiente'], at: 'a las {t}', on: 'el {d}', eta: 'Previsto para {when}', ref: 'Ref.' },
+    it: { steps: 'Fasi', s: ['fatto', 'ora', 'in attesa'], at: 'alle {t}', on: '{d}', eta: 'Previsto per {when}', ref: 'Rif.' },
+    de: { steps: 'Schritte', s: ['erledigt', 'jetzt', 'ausstehend'], at: 'um {t} Uhr', on: 'am {d}', eta: 'Voraussichtlich {when}', ref: 'Nr.' },
+    fr: { steps: 'Étapes', s: ['fait', 'en cours', 'à venir'], at: 'à {t}', on: 'le {d}', eta: 'Prévu {when}', ref: 'Réf.' },
+    ca: { steps: 'Passos', s: ['fet', 'ara', 'pendent'], at: 'a les {t}', on: 'el {d}', eta: 'Previst per a {when}', ref: 'Ref.' }
+  };
+  var REFV = /^[A-Za-z0-9][A-Za-z0-9._\/#-]{0,31}$/, TRKON = false;
+  function tracker(name, cfg) {
+    var cls = cfg.cls || ('kit-' + name), param = cfg.param || 'estado', steps = cfg.steps || [], states = cfg.states || [], R = cfg.ref, E = cfg.eta;
+    var keys = steps.concat(states).map(function (s) { return s.key; }), idx = function (k) { for (var i = 0; i < steps.length; i++) if (steps[i].key === k) return i; return -1; };
+    checkCfg('tracker', name, cfg, ['title', 'steps']); budget("tracker('" + name + "')", 'title', cfg.title);
+    steps.forEach(function (s) { budget("tracker('" + name + "') " + s.key, 'title', s.label); budget("tracker('" + name + "') " + s.key, 'line', s.detail); });
+    register('tracker', name, param, keys);
+    if (cfg.live) trkLive();
+    function render(p, ctx) {
+      if (!cfg.allowDup && dup(ctx, cls)) return null;
+      var key = p.one(param, keys) || (keys.indexOf(cfg['default']) >= 0 ? cfg['default'] : null); if (!key) return null;
+      var lang = langOf(cfg, ctx), w = words(lang), tw = TW[lang] || TW.en, o = U.card(lang, 'kit-tracker ' + cls), ref = null;
+      if (R && p.has(R.param)) { ref = String(p.raw[R.param]).trim(); if (!REFV.test(ref)) { LBW.drop(name + ': bad value ' + R.param + '=' + ref.slice(0, 40)); ref = null; } }
+      var st = states.filter(function (s) { return s.key === key; })[0], i = idx(st ? st.at : key), last = steps.length - 1;
+      var end = st ? !!st.end : i === last, tn = st ? tone(st.tone, st.end ? 'danger' : 'warn') : tone(steps[i].tone, i === last ? 'ok' : 'info'), text = st ? st.text : steps[i].label;
+      U.head(o.box, cfg.kicker || '', cfg.title, ref ? badge((R.label || tw.ref) + ' ' + ref) : null);
+      statusHead(o.box, { text: text, tone: tn });
+      var eta = end ? '' : when(p, lang, w, tw); if (eta) o.box.appendChild(withIcon(el('p', 'kit-trk-eta', fill(E.text || tw.eta, { when: eta })), 'clock'));
+      // an ordered list; the current step has aria-current="step", and every step says its state in words (never colour only)
+      var ol = el('ol', 'kit-trk-steps'); ol.setAttribute('aria-label', tw.steps);
+      steps.forEach(function (s, j) {
+        var n = j < i || (j === i && end && !st) ? 0 : j === i ? 1 : 2, li = el('li', 'kit-trk-step ' + ['is-past', 'is-now', 'is-next'][n]), dot = el('span', 'kit-trk-dot');
+        if (j === i) { li.setAttribute('aria-current', 'step'); if (st) li.classList.add('is-' + tn); }
+        var ic = n === 0 ? icon('check') : j === i && st ? icon(tn === 'danger' ? 'x' : 'bang') : null; if (ic) dot.appendChild(ic);
+        dot.setAttribute('aria-hidden', 'true'); li.appendChild(dot);
+        var b = el('span', 'kit-trk-b'); b.appendChild(el('span', 'kit-trk-l', s.label)); b.appendChild(el('span', 'kit-sr', ' (' + tw.s[n] + ')'));
+        if (s.detail && n < 2) b.appendChild(el('span', 'kit-trk-d', s.detail)); if (s.time && n < 2) b.appendChild(el('span', 'kit-trk-t', s.time));
+        li.appendChild(b); ol.appendChild(li);
+      });
+      o.box.appendChild(ol); note(o.box, cfg.note, 'is-muted');
+      var a = buttons(cfg.actions && cfg.actions(key, ref, ctx)), acts = [];
+      if (a.length) { var g = U.once('kit-trk-acts'); a.forEach(function (x) { g.appendChild(x); }); acts.push(g); }
+      acts = acts.concat(buttons(cfg.links && cfg.links(ref, ctx))); if (acts.length) U.row(o, acts);
+      o.setAttribute('data-trk', name + '|' + (ref || '').toLowerCase()); o.setAttribute('data-trk-state', key);
+      o.__trk = { p: p, ctx: ctx, render: render, text: text, live: cfg.live, ref: ref, refKey: R && R.param, keys: [param, R && R.param, E && E.day, E && E.time].filter(Boolean) };
+      Promise.resolve().then(function () { trkSettle(o); });   // once the runtime has put it in the chat
+      return o;
+    }
+    // "hoy a las 18:00", "mañana", "el sábado, 21 de noviembre a las 9:30"; a time alone is today's; a past one isn't shown
+    function when(p, lang, w, tw) {
+      if (!E) return '';
+      var n = E.day ? p.day(E.day) : null, m = E.time && p.has(E.time) ? T.read(String(p.raw[E.time])) : null, today = D.today();
+      if (E.day && p.has(E.day) && n == null) LBW.drop(name + ': bad value ' + E.day + '=' + String(p.raw[E.day]).slice(0, 40));
+      if (E.time && p.has(E.time) && m == null) LBW.drop(name + ': bad value ' + E.time + '=' + String(p.raw[E.time]).slice(0, 40));
+      if (n == null && m == null) return ''; if (n == null) n = today;
+      if (n < today || (n === today && m != null && m < T.now())) { LBW.drop(name + ': the eta has passed'); return ''; }
+      return (n === today ? w.today : n === today + 1 ? w.tomorrow : fill(tw.on, { d: D.format(n, lang, { weekday: 'long', day: 'numeric', month: 'long' }) })) + (m != null ? ' ' + fill(tw.at, { t: T.format(m) }) : '');
+    }
+    LBW.widget(name, render);
+  }
+  // the newest tracker of a name and ref is the live one; the earlier ones say what it says now, and their actions go quiet.
+  // Said in the live region when it is in the newest message, or when a data message changed it (force)
+  function trkSettle(o, force) {
+    if (!o.isConnected) return;
+    var id = o.getAttribute('data-trk'), all = [].filter.call(document.querySelectorAll('.kit-tracker'), function (x) { return x.getAttribute('data-trk') === id && x.__trk; }), top = all[all.length - 1];
+    all.forEach(function (x) {
+      if (x === top) return; var u = x.querySelector('.kit-trk-upd') || x.box.insertBefore(el('p', 'kit-trk-upd'), x.box.firstChild);
+      u.textContent = words(x.getAttribute('lang')).updated + ': ' + top.__trk.text;
+      if (!x.classList.contains('is-old')) { x.classList.add('is-old'); quietAgain(x); }
+    });
+    if (o !== top) return;
+    if (!o.__trkSeen) {   // the pulse runs once the card is on screen in a visible tab (kit.css: twice, then still; never with reduced motion)
+      o.__trkSeen = 1; var on = function () { o.classList.add('is-seen'); }, IO = root.IntersectionObserver;
+      if (!IO) on(); else { var io = new IO(function (es) { if (!es.some(function (e) { return e.isIntersecting; })) return; io.disconnect();
+        if (document.visibilityState !== 'hidden') on(); else document.addEventListener('visibilitychange', function v() { document.removeEventListener('visibilitychange', v); on(); }); }); io.observe(o); }
+    }
+    var ms = document.querySelectorAll('[data-lb-part="message"]'), prev = all[all.length - 2], t = U.titleOf(o), w = words(o.getAttribute('lang'));
+    if (force || (ms.length && ms[ms.length - 1] === o.closest('[data-lb-part="message"]')))
+      LBW.announce((force || (prev && prev.getAttribute('data-trk-state') !== o.getAttribute('data-trk-state')) ? w.updated + ': ' : '') + t + ' · ' + o.__trk.text, o.getAttribute('lang'), 'card:' + t);
+  }
+  // live: a data message under the tracker's "live" key ({ estado, orden, … } or a list of them) redraws the newest tracker
+  // of that ref in place: the same keys the tag carries, checked the same way. An unknown state changes nothing.
+  function trkLive() {
+    if (TRKON) return; TRKON = true;
+    LBW.on('data', function (e) {
+      if (!e.ok) return; var d = LBW.data.get(e.key);
+      [].forEach.call(document.querySelectorAll('.kit-tracker:not(.is-old)'), function (o) {
+        var t = o.__trk; if (!t || t.live !== e.key) return;
+        var r = (Array.isArray(d) ? d : [d]).filter(function (x) { return x && typeof x === 'object' && (!t.ref || String(x[t.refKey] == null ? '' : x[t.refKey]).toLowerCase() === t.ref.toLowerCase()); })[0];
+        if (!r) return; var raw = {}, same = true, k;
+        for (k in t.p.raw) if (Object.prototype.hasOwnProperty.call(t.p.raw, k)) raw[k] = t.p.raw[k];
+        t.keys.forEach(function (x) { var v = r[x]; if (v != null && typeof v !== 'object' && Object.prototype.hasOwnProperty.call(r, x)) { if (String(v) !== String(raw[x])) same = false; raw[x] = String(v); } });
+        if (same) return;
+        var p2 = Object.create(Object.getPrototypeOf(t.p)), s = Object.prototype.hasOwnProperty.call(r, t.keys[0]) ? String(r[t.keys[0]]).trim().toLowerCase().replace(/-/g, '_') : null; p2.raw = raw;
+        var n = t.render(p2, t.ctx); if (!n || (s != null && n.getAttribute('data-trk-state') !== s)) { LBW.drop('tracker: data "' + e.key + '" has no known state; the card stays'); return; }
+        var back = keepPlace(o), q = wasQuieted(o);
+        o.textContent = ''; o.className = n.className; while (n.firstChild) o.appendChild(n.firstChild); o.box = n.box;
+        ['data-trk', 'data-trk-state'].forEach(function (a) { o.setAttribute(a, n.getAttribute(a)); }); o.__trk = n.__trk; o.__trkSeen = 0;
+        back(); if (q) quietAgain(o); o.setAttribute('data-lbw-upgraded', '1'); trkSettle(o, true);
+      });
+    });
+  }
+
   LBW.kit = { version: '0.9.5.2', dev: DEV, describe: describe, L: L, last: last, cards: cards, table: table, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent, compare: compare, season: season, rating: rating,
     h: { usedByVisitor: usedByVisitor, wasQuieted: wasQuieted, quietAgain: quietAgain, keepPlace: keepPlace, upgraded: upgraded, radioGroup: radioGroup, note: note, list: list, label: label, dup: dup, choice: choice, multiChoice: multiChoice, copyBox: copyBox, status: status, wa: wa, fill: fill, money: money, total: total, lightbox: lightbox, chart: chart, statusHead: statusHead,
       icon: icon, withIcon: withIcon, icons: Object.keys(ICONS), badge: badge, tones: TONES.slice() } };
+  LBW.kit.tracker = tracker;   // v0.10
 })(typeof window !== 'undefined' ? window : this);

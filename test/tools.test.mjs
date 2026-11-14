@@ -71,7 +71,7 @@ test('build: the live bundle leaves the checker out, the dev bundle has it', () 
   const m = JSON.parse(fs.readFileSync(new URL('../dist/manifest.json', import.meta.url), 'utf8'));
   const live = fs.readFileSync(new URL('../dist/lbw-kit.min.js', import.meta.url), 'utf8'), dev = fs.readFileSync(new URL('../dist/lbw-kit.dev.min.js', import.meta.url), 'utf8');
   assert.ok(!/is not under any entry of/.test(live) && /is not under any entry of/.test(dev));
-  assert.ok(m.files['lbw-kit.min.js'].bytes < 140000,   // a guard against a runaway, not a budget: size isn't a blocker (owner, 11 Nov 2026); 90.6 KB at 0.8.1.6, 100.8 KB at 0.8.1.12 (table, stack), 133.5 KB at 0.9.5 (accessibility, the data message, failed sends, the raw-tag watch, the linear tag scan)
+  assert.ok(m.files['lbw-kit.min.js'].bytes < 150000,   // v0.10: 140.5 KB with tracker · a guard against a runaway, not a budget: size isn't a blocker (owner, 11 Nov 2026); 90.6 KB at 0.8.1.6, 100.8 KB at 0.8.1.12 (table, stack), 133.5 KB at 0.9.5 (accessibility, the data message, failed sends, the raw-tag watch, the linear tag scan)
     'live bundle ' + m.files['lbw-kit.min.js'].bytes + ' B');
   const a = boot({ lbw: false }), b = boot({ lbw: false }); a.w.eval(live); b.w.eval(dev);
   assert.equal(typeof a.LBW, 'undefined'); assert.equal(a.w.LBW.kit.setup.check, undefined); assert.equal(typeof b.w.LBW.kit.setup.check, 'function');
