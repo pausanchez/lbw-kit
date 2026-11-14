@@ -31,32 +31,32 @@
           open: 'Open now · until {t}', closed: 'Closed now · opens {d} at {t}', closedLong: 'Closed now', today: 'today', tomorrow: 'tomorrow',
           days: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'], localTime: 'Local time: {t}', sent: 'Sent', show: 'Show', hide: 'Hide', busy: 'Busy', pick: 'Pick a time', confirm: 'Confirm', yes: 'Yes', no: 'No',
           close: 'Close', prev: 'Previous photo', next: 'Next photo', photos: 'Photos', enlarge: 'Enlarge on the page', cSame: 'The same in all:', cSame2: 'The same in both:',
-          sOpen: 'Open today', sClosed: 'Closed today', sUntil: 'Open until', sOpens: 'Opens', sIn: 'Opens in', sCloses: 'Season', sDay: '1 day', sDays: '{n} days', sUnknown: 'The next dates aren’t published yet.' , rateOf: '{n} of {max}', tMore: 'See all {n} rows', tLess: 'See fewer', tPick: 'Choose', tPicked: 'Chosen', tTotal: 'Total', updated: 'Updated', photoOf: 'photo {n} of {max}', day: 'Day' },
+          sOpen: 'Open today', sClosed: 'Closed today', sUntil: 'Open until', sOpens: 'Opens', sIn: 'Opens in', sCloses: 'Season', sDay: '1 day', sDays: '{n} days', sUnknown: 'The next dates aren’t published yet.' , rateOf: '{n} of {max}', tMore: 'See all {n} rows', tLess: 'See fewer', tPick: 'Choose', tPicked: 'Chosen', tTotal: 'Total', updated: 'Updated', photoOf: 'photo {n} of {max}', day: 'Day', live: 'Live', full: 'Full' },
     es: { copy: 'Copiar', copied: 'Copiado ✓', select: 'Selecciona el texto y cópialo', summary: 'Tu resumen',
           open: 'Abierto ahora · hasta las {t}', closed: 'Cerrado ahora · abre {d} a las {t}', closedLong: 'Cerrado ahora', today: 'hoy', tomorrow: 'mañana',
           days: ['el domingo', 'el lunes', 'el martes', 'el miércoles', 'el jueves', 'el viernes', 'el sábado'], localTime: 'Hora local: {t}', sent: 'Enviado', show: 'Ver', hide: 'Ocultar', busy: 'Ocupado', pick: 'Elige una hora', confirm: 'Confirmar', yes: 'Sí', no: 'No',
           close: 'Cerrar', prev: 'Foto anterior', next: 'Foto siguiente', photos: 'Fotos', enlarge: 'Ampliar en la página', cSame: 'Igual en todas:', cSame2: 'Igual en las dos:',
-          sOpen: 'Abierto hoy', sClosed: 'Cerrado hoy', sUntil: 'Abierto hasta', sOpens: 'Abre', sIn: 'Abre en', sCloses: 'Temporada', sDay: '1 día', sDays: '{n} días', sUnknown: 'Las próximas fechas aún no están publicadas.' , rateOf: '{n} de {max}', tMore: 'Ver las {n} filas', tLess: 'Ver menos', tPick: 'Elegir', tPicked: 'Elegido', tTotal: 'Total', updated: 'Actualizado', photoOf: 'foto {n} de {max}', day: 'Día' },
+          sOpen: 'Abierto hoy', sClosed: 'Cerrado hoy', sUntil: 'Abierto hasta', sOpens: 'Abre', sIn: 'Abre en', sCloses: 'Temporada', sDay: '1 día', sDays: '{n} días', sUnknown: 'Las próximas fechas aún no están publicadas.' , rateOf: '{n} de {max}', tMore: 'Ver las {n} filas', tLess: 'Ver menos', tPick: 'Elegir', tPicked: 'Elegido', tTotal: 'Total', updated: 'Actualizado', photoOf: 'foto {n} de {max}', day: 'Día', live: 'En directo', full: 'Completo' },
     it: { copy: 'Copia', copied: 'Copiato ✓', select: 'Seleziona il testo e copialo', summary: 'Il tuo riepilogo',
           open: 'Aperto ora · fino alle {t}', closed: 'Chiuso ora · apre {d} alle {t}', closedLong: 'Chiuso ora', today: 'oggi', tomorrow: 'domani',
           days: ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato'], localTime: 'Ora locale: {t}', sent: 'Inviato', show: 'Mostra', hide: 'Nascondi', busy: 'Occupato', pick: 'Scegli un orario', confirm: 'Conferma', yes: 'Sì', no: 'No',
           close: 'Chiudi', prev: 'Foto precedente', next: 'Foto successiva', photos: 'Foto', enlarge: 'Ingrandisci nella pagina', cSame: 'Uguale in tutte:', cSame2: 'Uguale in entrambe:',
-          sOpen: 'Aperto oggi', sClosed: 'Chiuso oggi', sUntil: 'Aperto fino a', sOpens: 'Apre', sIn: 'Apre tra', sCloses: 'Stagione', sDay: '1 giorno', sDays: '{n} giorni', sUnknown: 'Le prossime date non sono ancora pubblicate.' , rateOf: '{n} su {max}', tMore: 'Vedi tutte le {n} righe', tLess: 'Vedi meno', tPick: 'Scegli', tPicked: 'Scelto', tTotal: 'Totale', updated: 'Aggiornato', photoOf: 'foto {n} di {max}', day: 'Giorno' },
+          sOpen: 'Aperto oggi', sClosed: 'Chiuso oggi', sUntil: 'Aperto fino a', sOpens: 'Apre', sIn: 'Apre tra', sCloses: 'Stagione', sDay: '1 giorno', sDays: '{n} giorni', sUnknown: 'Le prossime date non sono ancora pubblicate.' , rateOf: '{n} su {max}', tMore: 'Vedi tutte le {n} righe', tLess: 'Vedi meno', tPick: 'Scegli', tPicked: 'Scelto', tTotal: 'Totale', updated: 'Aggiornato', photoOf: 'foto {n} di {max}', day: 'Giorno', live: 'In diretta', full: 'Completo' },
     de: { copy: 'Kopieren', copied: 'Kopiert ✓', select: 'Text markieren und kopieren', summary: 'Deine Zusammenfassung',
           open: 'Jetzt geöffnet · bis {t} Uhr', closed: 'Jetzt geschlossen · öffnet {d} um {t} Uhr', closedLong: 'Jetzt geschlossen', today: 'heute', tomorrow: 'morgen',
           days: ['am Sonntag', 'am Montag', 'am Dienstag', 'am Mittwoch', 'am Donnerstag', 'am Freitag', 'am Samstag'], localTime: 'Ortszeit: {t}', sent: 'Gesendet', show: 'Anzeigen', hide: 'Ausblenden', busy: 'Belegt', pick: 'Uhrzeit wählen', confirm: 'Bestätigen', yes: 'Ja', no: 'Nein',
           close: 'Schließen', prev: 'Vorheriges Foto', next: 'Nächstes Foto', photos: 'Fotos', enlarge: 'Auf der Seite vergrößern', cSame: 'Bei allen gleich:', cSame2: 'Bei beiden gleich:',
-          sOpen: 'Heute geöffnet', sClosed: 'Heute geschlossen', sUntil: 'Geöffnet bis', sOpens: 'Öffnet', sIn: 'Öffnet in', sCloses: 'Saison', sDay: '1 Tag', sDays: '{n} Tagen', sUnknown: 'Die nächsten Termine sind noch nicht veröffentlicht.' , rateOf: '{n} von {max}', tMore: 'Alle {n} Zeilen anzeigen', tLess: 'Weniger anzeigen', tPick: 'Wählen', tPicked: 'Gewählt', tTotal: 'Gesamt', updated: 'Aktualisiert', photoOf: 'Foto {n} von {max}', day: 'Tag' },
+          sOpen: 'Heute geöffnet', sClosed: 'Heute geschlossen', sUntil: 'Geöffnet bis', sOpens: 'Öffnet', sIn: 'Öffnet in', sCloses: 'Saison', sDay: '1 Tag', sDays: '{n} Tagen', sUnknown: 'Die nächsten Termine sind noch nicht veröffentlicht.' , rateOf: '{n} von {max}', tMore: 'Alle {n} Zeilen anzeigen', tLess: 'Weniger anzeigen', tPick: 'Wählen', tPicked: 'Gewählt', tTotal: 'Gesamt', updated: 'Aktualisiert', photoOf: 'Foto {n} von {max}', day: 'Tag', live: 'Live', full: 'Ausgebucht' },
     fr: { copy: 'Copier', copied: 'Copié ✓', select: 'Sélectionnez le texte et copiez-le', summary: 'Votre résumé',
           open: 'Ouvert · jusqu’à {t}', closed: 'Fermé · ouvre {d} à {t}', closedLong: 'Fermé', today: 'aujourd’hui', tomorrow: 'demain',
           days: ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'], localTime: 'Heure locale : {t}', sent: 'Envoyé', show: 'Voir', hide: 'Masquer', busy: 'Occupé', pick: 'Choisissez une heure', confirm: 'Confirmer', yes: 'Oui', no: 'Non',
           close: 'Fermer', prev: 'Photo précédente', next: 'Photo suivante', photos: 'Photos', enlarge: 'Agrandir sur la page', cSame: 'Identique pour toutes :', cSame2: 'Identique pour les deux :',
-          sOpen: 'Ouvert aujourd’hui', sClosed: 'Fermé aujourd’hui', sUntil: 'Ouvert jusqu’au', sOpens: 'Ouverture', sIn: 'Ouvre dans', sCloses: 'Saison', sDay: '1 jour', sDays: '{n} jours', sUnknown: 'Les prochaines dates ne sont pas encore publiées.' , rateOf: '{n} sur {max}', tMore: 'Voir les {n} lignes', tLess: 'Voir moins', tPick: 'Choisir', tPicked: 'Choisi', tTotal: 'Total', updated: 'Mis à jour', photoOf: 'photo {n} sur {max}', day: 'Jour' },
+          sOpen: 'Ouvert aujourd’hui', sClosed: 'Fermé aujourd’hui', sUntil: 'Ouvert jusqu’au', sOpens: 'Ouverture', sIn: 'Ouvre dans', sCloses: 'Saison', sDay: '1 jour', sDays: '{n} jours', sUnknown: 'Les prochaines dates ne sont pas encore publiées.' , rateOf: '{n} sur {max}', tMore: 'Voir les {n} lignes', tLess: 'Voir moins', tPick: 'Choisir', tPicked: 'Choisi', tTotal: 'Total', updated: 'Mis à jour', photoOf: 'photo {n} sur {max}', day: 'Jour', live: 'En direct', full: 'Complet' },
     ca: { copy: 'Copia', copied: 'Copiat ✓', select: 'Selecciona el text i copia’l', summary: 'El teu resum',
           open: 'Obert ara · fins a les {t}', closed: 'Tancat ara · obre {d} a les {t}', closedLong: 'Tancat ara', today: 'avui', tomorrow: 'demà',
           days: ['diumenge', 'dilluns', 'dimarts', 'dimecres', 'dijous', 'divendres', 'dissabte'], localTime: 'Hora local: {t}', sent: 'Enviat', show: 'Mostra', hide: 'Amaga', busy: 'Ocupat', pick: 'Tria una hora', confirm: 'Confirma', yes: 'Sí', no: 'No',
           close: 'Tanca', prev: 'Foto anterior', next: 'Foto següent', photos: 'Fotos', enlarge: 'Amplia a la pàgina', cSame: 'Igual a totes:', cSame2: 'Igual a les dues:',
-          sOpen: 'Obert avui', sClosed: 'Tancat avui', sUntil: 'Obert fins al', sOpens: 'Obre', sIn: 'Obre d’aquí a', sCloses: 'Temporada', sDay: '1 dia', sDays: '{n} dies', sUnknown: 'Les properes dates encara no estan publicades.' , rateOf: '{n} de {max}', tMore: 'Veure les {n} files', tLess: 'Veure’n menys', tPick: 'Tria', tPicked: 'Triat', tTotal: 'Total', updated: 'Actualitzat', photoOf: 'foto {n} de {max}', day: 'Dia' }
+          sOpen: 'Obert avui', sClosed: 'Tancat avui', sUntil: 'Obert fins al', sOpens: 'Obre', sIn: 'Obre d’aquí a', sCloses: 'Temporada', sDay: '1 dia', sDays: '{n} dies', sUnknown: 'Les properes dates encara no estan publicades.' , rateOf: '{n} de {max}', tMore: 'Veure les {n} files', tLess: 'Veure’n menys', tPick: 'Tria', tPicked: 'Triat', tTotal: 'Total', updated: 'Actualitzat', photoOf: 'foto {n} de {max}', day: 'Dia', live: 'En directe', full: 'Complet' }
   };
   function words(lang) { return L[lang] || L.en; }
   function fill(s, o) { return String(s).replace(/\{(\w+)\}/g, function (m, k) { return o[k] == null ? '' : o[k]; }); }
@@ -79,7 +79,7 @@
     form: 'cls lang kicker title cta note preset steps summary fields sent allowDup collapse',
     contact: 'cls lang kicker title big rows topic hours note buttons summary compact allowDup',
     chips: 'cls lang max items own carriedBy',
-    carousel: 'cls lang select slide allowDup',
+    carousel: 'cls lang select slide allowDup live',
     calc: 'cls lang kicker title state cta controls result ready send notes links sent allowDup collapse',
     slots: 'cls lang kicker title days cta say ics note sep h12 allowDup collapse sent',
     confirm: 'cls lang form status title rows steps note actions allowDup',
@@ -278,7 +278,7 @@
       statusHead(o.box, sk ? cfg.status.items[sk] : it.status);   // under the title, as on every card (v0.8.1.4 critique)
       if (it.who) o.box.appendChild(el('p', 'kit-who', it.who));
       if (it.line) o.box.appendChild(el('p', 'kit-line', it.line));
-      if (it.rows) U.rows(o.box, it.rows).classList.add('kit-lines');
+      if (it.rows) meters(U.rows(o.box, it.rows), it.rows, lang).classList.add('kit-lines');   // v0.10: [label, value, { of }] rows carry a meter
       if (it.pointsTitle) o.box.appendChild(el('p', 'kit-ql', it.pointsTitle));
       list(o.box, it.points, it.pointsCls || cfg.pointsCls);
       note(o.box, it.note, it.noteCls || 'is-safe');
@@ -314,6 +314,8 @@
       if (!id && cfg.fallback && !p.has(param) && cfg.items[cfg.fallback]) id = cfg.fallback;
       if (!id || !cfg.items[id]) return null;
       var t = cfg.items[id], cols = t.cols || [], rows = t.rows || [], lang = langOf(cfg, ctx), w = words(lang), o = U.card(lang, 'kit-table ' + cls);
+      // v0.10 · "meter": { "col": "plazas", "of": 12 | "aforo" (a column), "low", "full" }: that column draws a meter, a row at 0 is muted and has no pick
+      var mt = t.meter && typeof t.meter.col === 'string' ? t.meter : null, ck = cols.map(function (c) { return c[0]; }), mi = mt ? ck.indexOf(mt.col) : -1, oi = mt && typeof mt.of === 'string' ? ck.indexOf(mt.of) : -1;
       U.head(o.box, t.kicker || val(cfg.kicker, id, t) || '', t.title);
       var wrap = el('div', 'kit-tbl-wrap'), tb = el('table', 'kit-tbl' + (cfg.pick ? ' is-pick' : '')), head = el('thead'), hr = el('tr'), body = el('tbody');
       // a keyboard stop and a region only when it scrolls (critique 0.8.1.11: an empty tab stop otherwise)
@@ -326,21 +328,22 @@
       // v0.8.1.14 · a column that says the same in every row (3 rows or more, not the first) leaves the table for one line
       // above it, "Días: L/X o M/J" (Callan: the days on every timetable row squeezed the times into two lines)
       var same = [];
-      if (rows.length >= 3 && cfg.same !== false) cols.forEach(function (c, j) { if (!j || !shown[j]) return; var v = rows[0][j] == null ? '' : String(rows[0][j]); if (v.trim() && rows.every(function (r) { return String(r[j] == null ? '' : r[j]) === v; }) && shown.filter(Boolean).length > 2) { same.push(c[1] + ': ' + v); shown[j] = false; } });
+      if (rows.length >= 3 && cfg.same !== false) cols.forEach(function (c, j) { if (!j || !shown[j] || j === mi) return; var v = rows[0][j] == null ? '' : String(rows[0][j]); if (v.trim() && rows.every(function (r) { return String(r[j] == null ? '' : r[j]) === v; }) && shown.filter(Boolean).length > 2) { same.push(c[1] + ': ' + v); shown[j] = false; } });
       cols.forEach(function (c, j) { if (!shown[j]) return; var th = el('th', c[2] === 'end' ? 'is-end' : '', c[1]); th.setAttribute('scope', 'col'); hr.appendChild(th); });
       if (cfg.pick) { var thp = el('th', 'kit-tbl-act', ''); thp.appendChild(el('span', 'kit-sr', cfg.pick.label || w.tPick)); hr.appendChild(thp); }
       head.appendChild(hr); tb.appendChild(head); tb.appendChild(body);
       var g = cfg.pick ? U.once('kit-tbl-once') : null, more = null;
       rows.forEach(function (r, i) {
         var tr = el('tr', i >= fold && rows.length > fold + 1 ? 'is-folded' : '');
-        var first = true; cols.forEach(function (c, j) { if (!shown[j]) return; var td = el(first ? 'th' : 'td', c[2] === 'end' ? 'is-end' : '', r[j] == null ? '' : String(r[j])); if (first) td.setAttribute('scope', 'row'); first = false; tr.appendChild(td); });
+        var first = true, mtd = null; cols.forEach(function (c, j) { if (!shown[j]) return; var td = el(first ? 'th' : 'td', c[2] === 'end' ? 'is-end' : '', r[j] == null ? '' : String(r[j])); if (first) td.setAttribute('scope', 'row'); first = false; if (j === mi) mtd = td; tr.appendChild(td); });
+        var full = mtd ? meterIn(tr, mtd, { of: oi >= 0 ? r[oi] : mt.of, low: mt.low, full: mt.full, word: !!mt.full }, r[mi], lang) === 'full' : false;
         if (cfg.pick) {
           var row = {}; cols.forEach(function (c, j) { row[c[0]] = r[j] == null ? '' : String(r[j]); });
           var say = cfg.pick.say(row, id); var td2 = el('td', 'kit-tbl-act');
           // the verb on a bordered button, not a bare ›: in a chat › reads as "open details" (critique 0.8.1.11). Its label
           // names the whole row ("Elegir: Hora 12:00, Plazas 4, Precio 14 €"); once sent it says it was chosen.
           var whole = cols.filter(function (c, j) { return shown[j]; }).map(function (c) { var j = cols.indexOf(c); return c[1] + ' ' + (r[j] == null ? '' : r[j]); }).join(', ');
-          if (say) { var b = U.reply(cfg.pick.label || w.tPick, say, { fields: cfg.pick.fields ? cfg.pick.fields(row, id) : undefined, cls: 'kit-tbl-b', onSent: function (x) {
+          if (say && !full) { var b = U.reply(cfg.pick.label || w.tPick, say, { fields: cfg.pick.fields ? cfg.pick.fields(row, id) : undefined, cls: 'kit-tbl-b', onSent: function (x) {
               var t2 = x.closest('tr'); if (t2) t2.classList.add('is-picked');
               x.textContent = ''; x.setAttribute('aria-label', w.tPicked + ': ' + x.getAttribute('data-row'));   /* v0.8.1.14: only the ✓ (CSS) — a wider "✓ Elegido" overflowed the table and the held first column covered the next one (Callan live) */ x.setAttribute('aria-pressed', 'true');
               tb.classList.add('is-open'); if (more) more.hidden = true;   // the chosen row never folds away, and nothing is left to unfold
@@ -611,14 +614,14 @@
       // the snapshot }. The card is a skeleton until the data comes; with no data and no fallback it removes itself.
       if (sel.later) {
         o = U.loading(lang, 'kit-carousel ' + cls);
-        return LBW.later(o, sel.later, function (d) { return fill(o, sel.then(d)); },
+        return LBW.later(o, sel.later, function (d) { var ok = fill(o, sel.then(d)); if (ok && cfg.live) liveMark(o, lang); return ok; },   // v0.10: drawn from the live answer
           sel.fallback ? function () { if (!fill(o, sel.fallback())) throw new Error('nothing to show');
             // v0.9.2 · upgrade(o) → a promise of the selection from data that came late (null: keep these slides). Drawn on a
-            // fresh card and moved in: the strip starts again at the first slide, the tag's attributes stay.
+            // fresh card and moved in; v0.10: the strip stays on the slide it showed, and what changed flashes (liveSwap)
             if (sel.upgrade) sel.upgrade(o).then(function (s2) { var n = U.card(lang, 'kit-carousel ' + cls); if (!s2 || !fill(n, s2)) return;
-              var q = wasQuieted(o), back = keepPlace(o);   // v0.9.3: the conversation moved on: the live slides come in quiet too
-              while (o.firstChild) o.removeChild(o.firstChild); o.className = n.className; while (n.firstChild) o.appendChild(n.firstChild); o.box = n.box;
-              if (q) quietAgain(o); o.setAttribute('data-lbw-upgraded', '1'); back(); upgraded(o, lang); }, function () {}); } : null);   // v0.9.5: focus kept, "Updated" said
+              var q = wasQuieted(o);   // v0.9.3: the conversation moved on: the live slides come in quiet too
+              liveSwap(o, function () { while (o.firstChild) o.removeChild(o.firstChild); o.className = n.className; while (n.firstChild) o.appendChild(n.firstChild); o.box = n.box; if (q) quietAgain(o); }, lang);
+              if (cfg.live) liveMark(o, lang); }, function () {}); } : null);   // v0.9.5: focus kept, "Updated" said
       }
       o = U.card(lang, 'kit-carousel ' + cls);
       return fill(o, sel) ? o : null;
@@ -646,7 +649,7 @@
         send: function (s) { var r = cfg.send(s); said = r && r[0]; return r; },
         sent: function (s) { if (cfg.collapse !== false && said) fold(o, said, lang); if (cfg.sent) cfg.sent(s); },
         // v0.9.5 · a changed total is said (the total lines only, never the breakdown), after the control that changed it
-        change: function (s) { out.textContent = ''; cfg.result(s, out, ctx); var t = totalsText(out); if (was != null && t && t !== was) LBW.announce(t, lang, 'total:' + name); was = t; } });
+        change: function (s) { var shown = tots(out); out.textContent = ''; cfg.result(s, out, ctx); tots(out).forEach(function (n, i) { if (was != null) tick(n, shown[i] && shown[i].textContent, n.textContent); }); var t = totalsText(out); if (was != null && t && t !== was) LBW.announce(t, lang, 'total:' + name); was = t; } });
       U.head(o.box, val(cfg.kicker, p, ctx, state) || '', val(cfg.title, p, ctx, state)); o.box.appendChild(f.el);
       cfg.controls.forEach(function (c) {
         if (c.stepper) f.add(U.stepper(c.label, f.state[c.stepper], { min: c.min, max: c.max, step: c.step, format: c.format, less: c.less, more: c.more, hint: c.hint, change: function (v) { f.state[c.stepper] = v; f.update(); } }));
@@ -668,6 +671,7 @@
     var cur = o.cur == null ? '' : o.cur; return (neg ? '−' : '') + (o.after ? n + (cur ? sp + cur : '') : (cur ? cur + (o.space === false ? '' : sp) : '') + n);
   }
   // a label/value line in bold, for a total or a due date: total(out, 'Importe total', 'S/ 247.00', 'is-due')
+  function tots(box) { return [].slice.call(box.querySelectorAll('.kit-total > strong')); }   // v0.10: the totals a change ticks
   function totalsText(box) { return [].map.call(box.querySelectorAll('.kit-total'), function (t) { return [].map.call(t.children, function (c) { return c.textContent.trim(); }).join(' '); }).join('. '); }
   function total(box, labelText, value, cls) { var t = el('div', 'kit-total' + (cls ? ' ' + cls : '')); t.appendChild(el('span', null, labelText)); t.appendChild(el('strong', null, value)); box.appendChild(t); return t; }
 
@@ -876,7 +880,7 @@
       var state = cfg.state(p, ctx); if (!state) return null;
       var lang = langOf(cfg, ctx), o = U.card(lang, 'kit-review ' + cls), said = '', vals = [], was = null;
       var f = U.form('kit-reviewform', { state: state, cta: cfg.cta, ready: cfg.ready,
-        change: function (s) { vals.forEach(function (v) { v.node.textContent = v.fn(s); }); if (tot) { var t = cfg.total.value(s); tot.textContent = t; if (was != null && t !== was) LBW.announce(cfg.total.label + ' ' + t, lang, 'total:' + name); was = t; } },   // v0.9.5
+        change: function (s) { vals.forEach(function (v) { v.node.textContent = v.fn(s); }); if (tot) { var t = cfg.total.value(s), shown = tot.textContent; tot.textContent = t; if (was != null) tick(tot, shown, t); if (was != null && t !== was) LBW.announce(cfg.total.label + ' ' + t, lang, 'total:' + name); was = t; } },   // v0.9.5
         send: function (s) { var r = cfg.send(s); said = r && r[0]; return r; },
         sent: function (s) { if (cfg.collapse !== false && said) fold(o, said, lang); if (cfg.sent) cfg.sent(s); } });
       U.head(o.box, cfg.kicker || '', cfg.title || ''); o.box.appendChild(f.el);
@@ -921,6 +925,129 @@
   function upgraded(o, lang) { lang = lang || o.getAttribute('lang'); var t = U.titleOf(o), w = words(lang); LBW.announce(t ? w.updated + ': ' + t : w.updated, lang, 'card:' + t); }
   function wasQuieted(o) { return !!o.querySelector('.lbw-once.is-stale') || o.classList.contains('is-spent'); }
   function quietAgain(o) { [].forEach.call(o.querySelectorAll('.lbw-once'), function (g) { g.classList.add('is-stale'); U.done(g); }); o.classList.add('is-spent'); }
+
+  // ── v0.10 · live & numbers ───────────────────────────────────────────────────────────────────────
+  // Data that is alive looks alive: a "Live" chip on a card drawn from live rows, the values the late data changed flash once
+  // (a number ticks to its new value), and a row with a count can carry a meter. Motion only in a visible tab without
+  // prefers-reduced-motion (moving()); otherwise the final state at once, and a flash is a colour change of 150 ms. The text
+  // is always the real value first: a tick only redraws it for ≤ 400 ms, and a timer writes the final value even in a tab
+  // that stopped painting. The live region still says one line per upgrade or total (upgraded(), calc/review).
+  function seen() { try { return document.visibilityState === 'visible'; } catch (e) { return false; } }
+  function moving() { try { return seen() && typeof root.matchMedia === 'function' && !root.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } }
+  // live(o, lang): "● Live" beside the title (decided: on by default for rows from data, opt-in for a flow tag's params)
+  function liveMark(o, lang) {
+    var hd = o && o.querySelector('.lbw-head'); if (!hd) return null;
+    var t = hd.querySelector('.kit-live'), wl = words(lang || o.getAttribute('lang')).live; if (t) return t;
+    if ([].some.call(hd.querySelectorAll(':scope > .kit-tag'), function (b) { return b.textContent.trim() === wl; })) return null;   // the card's own "En directo" badge already says it
+    t = el('span', 'kit-live' + (moving() ? ' is-pulse' : ''), wl);   // two pulses, then still (WCAG 2.2.2: under 5 s)
+    var cnt = hd.querySelector(':scope > .kit-count'); hd.insertBefore(t, cnt || null); o.setAttribute('data-lbw-live', '1'); return t;
+  }
+  // numbers inside a text: "1.234,50 €" → parts ['', ' €'] + nums ['1.234,50']; a token's separators read as the text writes them
+  var NUMRE = /\d+(?:[.,  ]\d+)*/g;
+  function numsOf(t) { return { parts: String(t).split(NUMRE), nums: String(t).match(NUMRE) || [] }; }
+  function numRead(s) {
+    var seps = s.replace(/\d/g, ''), d = '', th = '';
+    if (seps) { var last = seps.charAt(seps.length - 1), tail = s.length - s.lastIndexOf(last) - 1;
+      if (seps.split(last).join('')) { d = last; th = seps.charAt(0); }   // two kinds: "1.234,50" (the last one is the decimal mark)
+      else if (seps.length > 1 || tail === 3 || /[  ]/.test(last)) th = last;   // "1.234.567", "1.234", "1 234"
+      else d = last; }   // "2,5", "247.00"
+    var n = +s.split(th || '\u0000').join('').replace(d || '\u0000', '.'), dec = d ? s.length - s.lastIndexOf(d) - 1 : 0;
+    return isFinite(n) ? { n: n, d: d, th: th, dec: dec } : null;
+  }
+  function numWrite(x, f) {
+    var s = Math.abs(x).toFixed(f.dec), i = s.split('.')[0], r = s.split('.')[1];
+    if (f.th) i = i.replace(/\B(?=(\d{3})+(?!\d))/g, f.th);
+    return i + (r ? f.d + r : '');
+  }
+  function joinNums(parts, nums) { var s = parts[0]; for (var i = 0; i < nums.length; i++) s += nums[i] + parts[i + 1]; return s; }
+  // tick(node, from, to): the node already says `to`; for ≤ 400 ms it counts from `from` (one number differs, the rest of the
+  // text the same: "762 €" → "870 €"). false when it doesn't move (no motion, not one number, a node with elements inside).
+  function tick(n, from, to) {
+    if (!moving() || !n || n.firstElementChild || from == null || from === to) return false;
+    var a = numsOf(from), b = numsOf(to), at = -1;
+    if (a.parts.join('\u0000') !== b.parts.join('\u0000') || a.nums.length !== b.nums.length) return false;
+    for (var i = 0; i < b.nums.length; i++) if (a.nums[i] !== b.nums[i]) { if (at >= 0) return false; at = i; }
+    var x = at >= 0 && numRead(a.nums[at]), y = at >= 0 && numRead(b.nums[at]); if (!x || !y || x.n === y.n) return false;
+    var me = {}, t0 = null, D = 380, nums = b.nums.slice(), done = function () { if (n.__kitTick !== me) return; n.__kitTick = null; n.textContent = to; n.classList.remove('is-ticking'); };
+    n.__kitTick = me; n.classList.add('is-ticking');
+    var step = function (ts) {
+      if (n.__kitTick !== me) return; if (!seen()) return done();
+      if (t0 == null) t0 = ts; var k = Math.min(1, (ts - t0) / D); if (k >= 1) return done();
+      nums[at] = numWrite(x.n + (y.n - x.n) * (1 - Math.pow(1 - k, 3)), y); n.textContent = joinNums(b.parts, nums); requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step); setTimeout(done, D + 250);   // the real value, even if frames stop (a hidden tab)
+    return true;
+  }
+  // flash(node): a soft highlight that fades (1.2 s; reduced motion: held, then 150 ms). Never in a hidden tab.
+  function flash(n) {
+    if (!seen()) return false; n.classList.remove('kit-flash', 'is-still'); n.classList.add('kit-flash'); if (!moving()) n.classList.add('is-still');
+    setTimeout(function () { n.classList.remove('kit-flash', 'is-still'); }, 1300); return true;
+  }
+  // the values of a card, by a key that survives a redraw: the slide's id, the table row's first cell, the row's label or
+  // the stat's label, then the element's place under it. Buttons, links, the kicker and the counters are not values.
+  var NOTVAL = 'button, a, .lbw-kicker, .kit-count, .kit-live, .kit-sr, .lbw-loading, svg';
+  function valuesOf(o) {
+    var out = [], seenK = {};
+    [].forEach.call(o.querySelectorAll('.lbw-box *'), function (n) {
+      if (n.closest(NOTVAL)) return; var t = ''; for (var c = n.firstChild; c; c = c.nextSibling) if (c.nodeType === 3) t += c.nodeValue; t = t.trim(); if (!t) return;
+      var a = n.closest('[data-id], tr, [role="row"], .lbw-rows > div, .kit-stat'), key = '', h;
+      if (a && !o.contains(a)) a = null;
+      if (a) { h = a.hasAttribute('data-id') ? a.getAttribute('data-id') : (a.querySelector('th, [role="rowheader"], dt, .kit-stat > span') || a.firstElementChild || a).textContent.trim(); key = a.tagName + ':' + h; }
+      for (var p = n; p && p !== a && p !== o; p = p.parentElement) { var sib = 0, sig = p.tagName + '.' + (p.classList[0] || ''); for (var q = p.previousElementSibling; q; q = q.previousElementSibling) if (q.tagName + '.' + (q.classList[0] || '') === sig) sib++; key += '/' + sig + sib; }
+      if (seenK[key]) key += '#' + (seenK[key]++); else seenK[key] = 1;
+      out.push([n, t, key]);
+    });
+    return out;
+  }
+  // what scrolls inside a card (the strip, a wide table) and an unfolded table, kept across a redraw
+  function holdScroll(o) {
+    var st = o.querySelector('.lbw-strip'), tw = o.querySelector('.kit-tbl-wrap'), open = !!o.querySelector('.kit-tbl.is-open'), sx = null, tx = tw ? tw.scrollLeft : 0;
+    if (st && st.scrollLeft > 0 && st.children.length) { var k0 = st.children[0].offsetLeft;
+      for (var i = 0; i < st.children.length; i++) { var c = st.children[i]; if (c.offsetLeft - k0 + c.offsetWidth > st.scrollLeft) { sx = [c.getAttribute('data-id'), st.scrollLeft - (c.offsetLeft - k0)]; break; } } }
+    return function () {
+      var s2 = o.querySelector('.lbw-strip'); if (s2 && sx) { var tg = [].filter.call(s2.children, function (c) { return c.getAttribute('data-id') === sx[0]; })[0];
+        if (tg) { var x = tg.offsetLeft - s2.children[0].offsetLeft + sx[1]; if (typeof s2.scrollTo === 'function') { try { s2.scrollTo({ left: x, behavior: 'instant' }); } catch (e) { s2.scrollLeft = x; } } else s2.scrollLeft = x; } }
+      var t2 = o.querySelector('.kit-tbl-wrap'); if (t2 && tx) t2.scrollLeft = tx;
+      var mb = open && o.querySelector('.kit-tbl-more'); if (mb && mb.getAttribute('aria-expanded') === 'false') mb.click();
+    };
+  }
+  // liveSwap(o, swap, lang): the late data redraws a card in place. swap() moves the new content in; focus, scroll and an
+  // unfolded table stay; what changed flashes (a number ticks), what didn't stays still; "Updated: …" is said once. When most
+  // of the card is new (other rows altogether) nothing flashes: the chip and the line say it.
+  function liveSwap(o, swap, lang) {
+    var before = {}; valuesOf(o).forEach(function (v) { before[v[2]] = v[1]; });
+    var back = keepPlace(o), hold = holdScroll(o);
+    swap(); hold(); back();
+    var after = valuesOf(o), ch = after.filter(function (v) { return before[v[2]] !== v[1]; });
+    o.setAttribute('data-lbw-upgraded', '1'); o.setAttribute('data-lbw-changed', String(ch.length));
+    // the changed text gets its own span, so the highlight hugs the words (a block cell or a stat would light up whole)
+    if (ch.length <= Math.max(3, after.length * 0.6)) ch.forEach(function (v) {
+      var n = v[0], ts = [].filter.call(n.childNodes, function (c) { return c.nodeType === 3 && c.nodeValue.trim(); }), was = before[v[2]];
+      if (ts.length === 1) { var sp = el('span', 'kit-chg'); n.insertBefore(sp, ts[0]); sp.appendChild(ts[0]); n = sp; }
+      if (was != null) tick(n, was, n.textContent.trim() === v[1] ? n.textContent : v[1]); flash(n); });
+    upgraded(o, lang);
+    return ch.length;
+  }
+  // ── meters: a count against a capacity ("3 of 12 seats"), on a card's row or a table's column ──
+  // m = { of: 12 (or a numeric text), low: 3 (≤ low is "low"; 20 % of `of` by default), n: the count (else the value's first
+  // number), full: the words at 0 }. 0 → the row is full: muted, and a bare "0" says `full` (or the kit's "Full").
+  function firstNum(v) { var m = String(v == null ? '' : v).match(/-?\d+(?:[.,]\d+)?/); return m ? +m[0].replace(',', '.') : NaN; }
+  function meterIn(row, cell, m, v, lang) {
+    var of = firstNum(m.of), n = m.n != null ? +m.n : firstNum(v); if (!(of > 0) || !isFinite(n) || !cell) return null;
+    n = Math.max(0, n); var low = m.low != null && isFinite(+m.low) ? +m.low : Math.max(1, Math.round(of * 0.2)), st = n <= 0 ? 'full' : n <= low ? 'low' : 'ok', w = words(lang);
+    row.classList.add('kit-m-' + st);
+    if (st === 'full' && m.word !== false && /^\s*0\s*$/.test(String(v))) cell.textContent = m.full || w.full;   // a table says it only with its own "full" (a narrow column)
+    var bar = el('span', 'kit-meter is-' + st), f = el('i'); f.style.setProperty('--kit-fill', String(Math.min(1, n / of)));
+    bar.setAttribute('role', 'meter'); bar.setAttribute('aria-valuemin', '0'); bar.setAttribute('aria-valuemax', String(of)); bar.setAttribute('aria-valuenow', String(Math.min(n, of)));
+    bar.setAttribute('aria-valuetext', fill(w.rateOf, { n: n, max: of })); var lb = row.querySelector('dt, th'); if (lb) bar.setAttribute('aria-label', lb.textContent.trim());
+    bar.appendChild(f); cell.appendChild(bar); return st;
+  }
+  // a card's rows: [label, value, { of, low, n, full }] (U.rows draws only rows with a value: the same filter here)
+  function meters(dl, rows, lang) {
+    var shown = (rows || []).filter(function (p) { return p && p[1] != null && p[1] !== ''; });
+    [].forEach.call(dl.children, function (r, i) { var m = shown[i] && shown[i][2]; if (m && typeof m === 'object' && !Array.isArray(m) && m.of != null) meterIn(r, r.querySelector('dd'), m, shown[i][1], lang); });
+    return dl;
+  }
   // ── chart: a card around LBW.kit.h.chart ────────────────────────────────────────────────────────
   // cfg = { cls, lang, kicker, title, sub, data(p, ctx) → chart spec | null, note: text | fn(p, ctx, spec), links: fn(p, ctx) → [el…] }
   // Money or savings charts are promises: compute them only from the client's own published rule, and say so in `note`.
@@ -1096,4 +1223,6 @@
   LBW.kit = { version: '0.9.5.2', dev: DEV, describe: describe, L: L, last: last, cards: cards, table: table, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent, compare: compare, season: season, rating: rating,
     h: { usedByVisitor: usedByVisitor, wasQuieted: wasQuieted, quietAgain: quietAgain, keepPlace: keepPlace, upgraded: upgraded, radioGroup: radioGroup, note: note, list: list, label: label, dup: dup, choice: choice, multiChoice: multiChoice, copyBox: copyBox, status: status, wa: wa, fill: fill, money: money, total: total, lightbox: lightbox, chart: chart, statusHead: statusHead,
       icon: icon, withIcon: withIcon, icons: Object.keys(ICONS), badge: badge, tones: TONES.slice() } };
+  // v0.10 · live & numbers (its own line: other makers' exports stay where they are)
+  Object.assign(LBW.kit.h, { live: liveMark, liveSwap: liveSwap, tick: tick, flash: flash, meter: meterIn, moving: moving });
 })(typeof window !== 'undefined' ? window : this);
