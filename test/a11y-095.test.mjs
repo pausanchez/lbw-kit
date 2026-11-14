@@ -180,7 +180,7 @@ test('M2: the not-ready CTA is focusable (aria-disabled); pressing it says what 
 test('M5: compare: the item names are column headers and every cell says its column', () => {
   const c = chat(), m = draw(c, '[[gx:vs ids=urbana,ebike]]'), g = m.querySelector('[role="table"]');
   assert.equal(g.getAttribute('aria-label'), 'Dos bicis frente a frente');
-  const hs = [...g.querySelectorAll('[role="columnheader"]')]; assert.deepEqual(hs.map((h) => [h.textContent, h.getAttribute('aria-colindex')]), [['Urbana', '2'], ['Eléctrica', '3']]);
+  const hs = [...g.querySelectorAll('[role="columnheader"]')]; assert.deepEqual(hs.map((h) => [h.textContent, h.getAttribute('aria-colindex')]), [['Urbana', '2'], ['Eléctrica, La más alquilada', '3']]);   // v0.10: the gallery's best column says so
   const row = g.querySelectorAll('[role="row"]')[1]; assert.equal(row.querySelector('[role="rowheader"]').getAttribute('aria-colindex'), '1');
   assert.deepEqual([...row.querySelectorAll('[role="cell"]')].map((x) => x.getAttribute('aria-colindex')), ['2', '3']);
 });

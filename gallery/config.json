@@ -125,9 +125,10 @@
     },
 
     "hecho": {
-      "type": "confirm", "form": "cita", "status": "Cita pedida", "title": "Nos vemos el {day:date}",
-      "rows": [["Hora", "{from:time}–{to:time}"]],
+      "type": "confirm", "style": "pass", "form": "cita", "status": "Cita pedida", "title": "Revisión en el taller",
+      "rows": [["Hora", "{from:time}–{to:time}"], ["Dónde", "Taller Roda Norte"]],
       "steps": ["Te confirmamos por teléfono", "Traes la bici al taller"],
+      "ics": { "title": "Revisión de la bici · Roda Norte", "where": "Taller Roda Norte" },
       "note": "Demo: no se reserva nada.", "actions": ["call"]
     },
 
@@ -144,11 +145,12 @@
 
     "vs": {
       "type": "compare", "kicker": "Comparar", "titles": { "2": "Dos bicis frente a frente", "3": "Tres bicis frente a frente" },
-      "rows": [["peso", "Peso"], ["autonomia", "Autonomía"], ["cesta", "Cesta"], ["precio", "Día", "is-strong"]],
+      "rows": [["peso", "Peso", "", "kg"], ["autonomia", "Autonomía", "", "km"], ["cesta", "Cesta"], ["precio", "Día", "is-strong"]],
+      "best": { "id": "ebike", "label": "La más alquilada" },
       "items": {
-        "urbana": { "name": "Urbana", "values": { "peso": "16 kg", "cesta": "Sí", "precio": "15 €" }, "reply": ["La urbana", "Quiero la urbana"] },
-        "ebike": { "name": "Eléctrica", "values": { "peso": "23 kg", "autonomia": "80 km", "cesta": "Sí", "precio": "35 €" }, "reply": ["La eléctrica", "Quiero la eléctrica"] },
-        "mtb": { "name": "Montaña", "values": { "peso": "14 kg", "cesta": "No", "precio": "25 €" } }
+        "urbana": { "name": "Urbana", "values": { "peso": "16", "cesta": true, "precio": "15 €" }, "reply": ["La urbana", "Quiero la urbana"] },
+        "ebike": { "name": "Eléctrica", "values": { "peso": "23", "autonomia": "80", "cesta": true, "precio": "35 €" }, "reply": ["La eléctrica", "Quiero la eléctrica"] },
+        "mtb": { "name": "Montaña", "values": { "peso": "14", "cesta": false, "precio": "25 €" } }
       }
     },
 

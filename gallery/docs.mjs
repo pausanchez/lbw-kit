@@ -15,7 +15,7 @@ export const types = [
     when: 'Un servicio, una FAQ, una zona de cobertura, un producto suelto. Es el widget por defecto.',
     tag: '[[gx:servicio id=revision]]',
     saves: 'Su botón puede guardar campos: `{id}` y `{title}` dicen qué tarjeta era.',
-    keys: ['`items` por id, o `item` para una sola tarjeta', '`badge` y `status` con tono: neutral, ok, info, warn, danger', '`status.param`: un estado que trae el flujo (`estado=@{estado}`) cambia la línea y los botones'],
+    keys: ['`items` por id, o `item` para una sola tarjeta', '`badge` y `status` con tono: neutral, ok, info, warn, danger', '`status.param`: un estado que trae el flujo (`estado=@{estado}`) cambia la línea y los botones', '`img` (v0.10): la foto encabeza la tarjeta, con la insignia y el `price` encima'],
     watch: 'El estado de una reparación o una cita vive en Landbot, no en el agente: lo escribe un bloque Message del flujo.',
     demo: [['Esto incluye la revisión:', '[[gx:servicio id=revision]]'], ['Con un estado que viene del flujo:', '[[gx:servicio id=revision estado=lista]]']] },
 
@@ -33,7 +33,7 @@ export const types = [
     when: 'Productos, habitaciones, proyectos, la flota. Puede leer las diapositivas en vivo de un Google Sheet publicado o de una API.',
     tag: '[[gx:bicis]] · [[gx:bicis tipo=electrica]] · [[gx:bicis ids=ebike,urbana]]',
     saves: 'Las respuestas de cada diapositiva guardan sus campos tal cual.',
-    keys: ['`filter`: `{ by, param }` y `titles` por valor', '`source`: CSV o JSON en vivo, con `items` como copia de respaldo', '`until`: "D/M/AAAA" quita la diapositiva pasada esa fecha', '`photos`: carpetas de tamaños de un CDN, o el `srcset` de WordPress'],
+    keys: ['`filter`: `{ by, param }` y `titles` por valor', '`source`: CSV o JSON en vivo, con `items` como copia de respaldo', '`until`: "D/M/AAAA" quita la diapositiva pasada esa fecha', '`photos`: carpetas de tamaños de un CDN, o el `srcset` de WordPress', 'Con fotos (v0.10), cada diapositiva es la tarjeta y el precio va sobre la foto; `"style": "box"` vuelve a la caja. El botón de cada diapositiva es secundario: el principal es el `reply` del carrusel'],
     watch: 'Sin `max` muestra todas las que pasan el filtro. Un `ids` que no existe no dibuja nada.',
     demo: [['Para este fin de semana tienes:', '[[gx:bicis]]']] },
 
@@ -42,7 +42,7 @@ export const types = [
     when: 'Cuando el visitante duda entre dos opciones: «¿urbana o eléctrica?».',
     tag: '[[gx:vs ids=urbana,ebike]]',
     saves: 'Cada columna puede llevar su respuesta rápida.',
-    keys: ['`rows`: `[clave, etiqueta]` o con `"is-strong"` para destacar', '`titles` por número de columnas: `{ "2": …, "3": … }`', '`same: "fold"` resume en una línea lo que es igual en todas'],
+    keys: ['`rows`: `[clave, etiqueta]`, con `"is-strong"` para destacar y una unidad de cuarto elemento: `["peso", "Peso", "", "kg"]`', '`titles` por número de columnas: `{ "2": …, "3": … }`', '`same: "fold"` resume en una línea lo que es igual en todas', '`best` (v0.10): la columna recomendada, con su insignia y el botón principal', '`true` / `false` (o «Sí» / «No») se dibujan ✓ / ✕; `img` pone la foto arriba de la columna'],
     watch: 'Nunca más de tres. Una fila sin ningún valor desaparece.',
     demo: [['Así se comparan:', '[[gx:vs ids=urbana,ebike]]']] },
 
@@ -151,7 +151,7 @@ export const types = [
     when: 'Justo después de reservar o enviar un formulario.',
     tag: '[[gx:hecho]]',
     saves: 'Nada: muestra lo que ya se envió.',
-    keys: ['`form`: el nombre del formulario o la agenda que confirma', 'Plantillas con lo que se envió, más `{text}`', '`steps`: lo que pasa después'],
+    keys: ['`form`: el nombre del formulario o la agenda que confirma', 'Plantillas con lo que se envió, más `{text}`', '`steps`: lo que pasa después', '`"style": "pass"` (v0.10): un billete con la fecha grande, «En 3 días», «Añadir al calendario» (`ics`) y `code`: `"{ref}"`, un código que trae un param o el envío, nunca inventado'],
     watch: 'Lee lo enviado de la memoria de la página: si todavía no se ha enviado nada, no dibuja nada. El de aquí es un ejemplo; reserva una hora en la agenda de arriba y aparece el tuyo.',
     demo: [['Hecho (ejemplo):', '[[gx:hecho]]']] },
 

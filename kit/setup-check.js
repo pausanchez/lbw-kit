@@ -21,21 +21,21 @@
     form: 'type cls lang kicker title cta note preset steps summary fields allowDup collapse params money',
     contact: 'type cls lang kicker title big rows hours note buttons buttonsWithSummary summary compact allowDup params money',
     chips: 'type cls lang max items own carriedBy crowd params money',
-    carousel: 'type cls lang allowDup items source filter kicker title titles lead note reply links max params money',
+    carousel: 'type cls lang allowDup items source filter kicker title titles lead note reply links max params money style',
     calc: 'type cls lang kicker title cta state controls tables compute money result send notes links allowDup collapse params',
     stats: 'type cls lang allowDup items item reply links params money source',
     people: 'type cls lang kicker title note allowDup items filter reply params money source',
     consent: 'type cls lang icon title text yes no link allowDup params money',
     slots: 'type cls lang kicker title cta note sep h12 collapse allowDup ics days weekly say params money',
-    confirm: 'type cls lang allowDup form status title rows steps note actions params money',
+    confirm: 'type cls lang allowDup form status title rows steps note actions params money style code ics countdown',
     review: 'type cls lang kicker title cta note collapse allowDup state tables compute money lines total discard send params',
     chart: 'type cls lang kicker title sub note links allowDup kind stack height state tables compute money x series y mark summary params',
-    compare: 'type cls lang kicker title titles param items rows min max empty note same primary allowDup params money source',
+    compare: 'type cls lang kicker title titles param items rows min max empty note same primary allowDup params money source best',
     season: 'type cls lang kicker ranges words rows note reply links allowDup params money',
     rating: 'type cls lang kicker title text kind min max labels bands send note allowDup params money'
   };
-  var ITEM = { table: 'kicker title cols rows note source link'.split(' '), cards: 'kicker title who line points pointsCls pointsTitle rows note noteCls link status badge'.split(' '), stats: 'kicker title stats source'.split(' '), people: 'name role img note'.split(' '),
-    slide: 'id img badge kicker name sub price save status desc reply link gallery until'.split(' '), compare: 'name values reply link'.split(' ') };
+  var ITEM = { table: 'kicker title cols rows note source link'.split(' '), cards: 'kicker title who line points pointsCls pointsTitle rows note noteCls link status badge img price'.split(' '), stats: 'kicker title stats source'.split(' '), people: 'name role img note'.split(' '),
+    slide: 'id img badge kicker name sub price save status desc reply link gallery until'.split(' '), compare: 'name values reply link img'.split(' ') };
   var NEED = { cards: [], table: [], form: ['steps', 'summary', 'cta'], contact: ['title'], chips: ['items'], carousel: [], calc: ['state', 'controls', 'result', 'send', 'cta'],
     stats: [], people: ['items'], consent: ['title', 'yes', 'no'], slots: ['cta', 'say'], confirm: ['form', 'title'], review: ['state', 'lines', 'send', 'cta'], chart: ['title', 'x', 'series'], compare: ['items', 'rows'], season: ['ranges'], rating: ['title', 'send'] };
   // check every language's copy; a problem that every language has is reported once, the others with their language
@@ -330,6 +330,9 @@
         (I.NEEDS[ty] || []).forEach(function (k) { if (!has(mp[k] == null ? '' : mp[k]) && so.merge !== true) err('source.map.' + k + ' must name a column, as "{' + k + '}" (a row without it is skipped), or leave it to the saved item with "merge": true'); });
       }
       function url(pair, where) { if (pair == null) return; if (!isPair(pair)) err(where + ' is [label, url]'); else if (!linkOK(pair[1])) err(where + ': "' + pair[1] + '" is not under any entry of "links"'); }
+      // v0.10 · a card's or a compared item's photo and a card's price, as a slide's
+      function imgOK(im, where) { if (im == null) return; if (!(isObj(im) && isStr(im.src))) err(where + ' is { "src": an https URL, "srcset", "alt" } (or a "photos" reference)'); else if (!linkOK(im.src)) err(where + '.src is not under any entry of "links"'); }
+      function priceOK(pr, where) { if (pr == null) return; if (!(isObj(pr) && isStr(pr.now))) err(where + ' is { "now": text, "unit": text, "list": text }'); else { only(pr, ['now', 'unit', 'list'], where); strs(pr, ['unit', 'list'], where); } }
 
       try {
         if (!/^[a-z][a-z0-9_]*$/.test(name)) err('a widget name is lower-case letters, digits and _');
@@ -389,7 +392,7 @@
           if (!w.items && !w.item && w.source == null) err('missing "items" (or "item" for a single card)');
           if (w.items != null && !isObj(w.items)) err('"items" must be an object of cards by id');
           var cs = isObj(w.item) ? { item: w.item } : isObj(w.items) ? w.items : {};
-          Object.keys(cs).forEach(function (id) { var it = cs[id]; if (!isObj(it) || !isStr(it.title)) { err('card "' + id + '" has no "title"'); return; } strs(it, ['kicker', 'who', 'line', 'note', 'pointsTitle'], id); only(it, ITEM.cards, id); toned(it.status, id + '.status', true); toned(it.badge, id + '.badge', false); url(it.link, id + '.link'); pairs(it.rows, id + '.rows'); list(it.points, id + '.points', function (x, at) { if (!isStr(x)) err(at + ' must be text'); }); });
+          Object.keys(cs).forEach(function (id) { var it = cs[id]; if (!isObj(it) || !isStr(it.title)) { err('card "' + id + '" has no "title"'); return; } strs(it, ['kicker', 'who', 'line', 'note', 'pointsTitle'], id); only(it, ITEM.cards, id); toned(it.status, id + '.status', true); toned(it.badge, id + '.badge', false); url(it.link, id + '.link'); pairs(it.rows, id + '.rows'); imgOK(it.img, id + '.img'); priceOK(it.price, id + '.price'); list(it.points, id + '.points', function (x, at) { if (!isStr(x)) err(at + ' must be text'); }); });
           param(w.param, 'param'); if (w.fallback != null && !own(cs, w.fallback)) err('fallback "' + w.fallback + '" is not one of the items');
           // v0.8.1.4 · "status": { param, items: { key: { text, tone } } }: a status the tag names from a closed list (a flow's @{field})
           if (w.status != null) { if (!isObj(w.status) || !isObj(w.status.items) || !Object.keys(w.status.items).length) err('"status" is { "param": "…", "items": { key: { "text", "tone" } } }'); else { if (!isStr(w.status.param)) err('status.param names the tag\'s key, as "estado"'); param(w.status.param, 'status.param'); if (w.status.param === (w.param || 'id')) err('status.param must differ from the card\'s own param'); only(w.status, ['param', 'items'], 'status'); Object.keys(w.status.items).forEach(function (k) { var si = w.status.items[k]; if (!WORD.test(k)) err('status.items key "' + k + '" must be a plain word (a-z, 0-9, _)');
@@ -494,6 +497,7 @@
           }
           if (w.filter != null) { if (!isObj(w.filter) || !isStr(w.filter.by)) err('filter is { "by": a key of the items, "param": the tag key }'); else param(w.filter.param || w.filter.by, 'filter.param'); if ((w.filter.param || w.filter.by) === 'ids') err('filter.param can\'t be "ids": a carousel reads ids= as the slides to show'); }
           if (w.titles != null && !isObj(w.titles)) err('"titles" must be an object');
+          if (w.style != null && w.style !== 'media' && w.style !== 'box') err('"style" is "media" (photos lead, no box: the default when a slide has a photo) or "box"');
         }
 
         if (w.type === 'calc' || w.type === 'review' || w.type === 'chart') {
@@ -595,16 +599,19 @@
         if (w.type === 'compare') {
           if (w.same != null && w.same !== 'fold' && w.same !== 'mute') err('"same" is "fold" (equal rows go in one line under the table) or "mute" (the default: drawn quieter)');
           var rk = [];
-          list(w.rows, 'rows', function (r, at) { if (!isArr(r) || !isStr(r[0]) || !isStr(r[1]) || (r[2] != null && !isStr(r[2]))) err(at + ' is [key, label] or [key, label, class]'); else rk.push(r[0]); });
+          list(w.rows, 'rows', function (r, at) { if (!isArr(r) || r.length > 4 || !isStr(r[0]) || !isStr(r[1]) || (r[2] != null && typeof r[2] !== 'string') || (r[3] != null && !isStr(r[3]))) err(at + ' is [key, label], [key, label, class] or [key, label, class, unit] (the class may be "")'); else rk.push(r[0]); });
+          // v0.10 · "best": the column you recommend, "id" or { "id", "label" }
+          var bid = isStr(w.best) ? w.best : isObj(w.best) ? w.best.id : null;
+          if (w.best != null) { if (!isStr(bid)) err('"best" is an item id, or { "id": …, "label": text }'); else if (isObj(w.items) && !own(w.items, bid)) err('best "' + bid + '" is not one of the items'); if (isObj(w.best)) { only(w.best, ['id', 'label'], 'best'); strs(w.best, ['label'], 'best'); } }
           if (isArr(w.rows) && !w.rows.length) err('"rows" is empty');
           if (w.source != null && w.items == null) {}   // v0.9.0: the items come from the data (no saved copy)
           else if (!isObj(w.items) || Object.keys(w.items).length < 2) err('"items" must hold at least two items by id');
           else {
             Object.keys(w.items).forEach(function (id) {
               var it = w.items[id]; if (!isObj(it) || !isStr(it.name)) { err('"' + id + '" has no "name"'); return; }
-              only(it, ITEM.compare, id); rep(it.reply, id + '.reply'); url(it.link, id + '.link');
+              only(it, ITEM.compare, id); rep(it.reply, id + '.reply'); url(it.link, id + '.link'); imgOK(it.img, id + '.img');
               if (!isObj(it.values)) { err(id + '.values must be an object of text by row key'); return; }
-              Object.keys(it.values).forEach(function (k) { if (rk.indexOf(k) < 0) err(id + '.values.' + k + ' is not one of the rows (' + rk.join(', ') + ')'); else if (typeof it.values[k] !== 'string') err(id + '.values.' + k + ' must be text (format numbers and money yourself)'); });
+              Object.keys(it.values).forEach(function (k) { if (rk.indexOf(k) < 0) err(id + '.values.' + k + ' is not one of the rows (' + rk.join(', ') + ')'); else if (typeof it.values[k] !== 'string' && typeof it.values[k] !== 'boolean') err(id + '.values.' + k + ' must be text, or true/false for ✓/✕ (format numbers and money yourself)'); });
             });
             rk.forEach(function (k) { if (!Object.keys(w.items).some(function (id) { return isObj(w.items[id]) && isObj(w.items[id].values) && w.items[id].values[k] != null; })) err('row "' + k + '" has no value in any item'); });
           }
@@ -686,6 +693,11 @@
             list(w.rows, 'rows', function (x, at) { if (!isPair(x)) err(at + ' is [label, value]'); else { C(x[0], at); C(x[1], at); } });
             list(w.steps, 'steps', function (x, at) { if (!isStr(x)) err(at + ' must be text'); else C(x, at); });
             list(w.actions, 'actions', function (a, at) { var x = resolve({ actions: acts }, a); if (x) text(x.text, at + '.text', ['text']); });
+            // v0.10 · the pass
+            if (w.style != null && w.style !== 'pass' && w.style !== 'card') err('"style" is "pass" (a ticket) or "card" (the default)');
+            if (w.countdown != null && typeof w.countdown !== 'boolean') err('"countdown" is true or false');
+            if (w.code != null) { if (!isStr(w.code)) err('"code" is text, as "{ref}": a param or a value the ' + kind + ' sent (never invented)'); else C(w.code, 'code'); }
+            if (w.ics != null && w.ics !== false) { if (!isObj(w.ics)) err('"ics" is { "title", "where", "label" } or false'); else { only(w.ics, ['title', 'where', 'label', 'file'], 'ics'); ['title', 'where', 'label'].forEach(function (k) { if (w.ics[k] != null) { if (!isStr(w.ics[k])) err('ics.' + k + ' must be text'); else C(w.ics[k], 'ics.' + k); } }); if (w.ics.file != null && !(isStr(w.ics.file) && /^[a-z0-9_-]{1,40}$/i.test(w.ics.file))) err('ics.file is a file name: letters, digits, - and _'); } }
           }
         }
       } catch (e) { err('could not be checked (' + e.message + ')'); }
