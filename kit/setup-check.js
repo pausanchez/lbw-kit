@@ -16,25 +16,25 @@
   // ── checking a config: every problem as a sentence, nothing drawn, never a throw ─────────────────
   var TOP = '$schema version prefix langs defaultLang timeZone maxPerMessage links labels quietMs maxWaitMs reveal motion photos actions replies widgets'.split(' ');
   var KEYS = {
-    cards: 'type cls param items item kicker disclaimer single fallback pointsCls allowDup lang reply links status params money source',
-    table: 'type cls param items item kicker fold pick same allowDup lang reply links fallback params money source',
+    cards: 'type cls param items item kicker disclaimer single fallback pointsCls allowDup lang reply links status params money source live',
+    table: 'type cls param items item kicker fold pick same allowDup lang reply links fallback params money source live',
     form: 'type cls lang kicker title cta note preset steps summary fields allowDup collapse density params money',
     contact: 'type cls lang kicker title big rows hours note buttons buttonsWithSummary summary compact allowDup params money',
     chips: 'type cls lang max items own carriedBy crowd params money',
-    carousel: 'type cls lang allowDup items source filter kicker title titles lead note reply links max params money',
+    carousel: 'type cls lang allowDup items source filter kicker title titles lead note reply links max params money live',
     calc: 'type cls lang kicker title cta state controls tables compute money result send notes links allowDup collapse density params',
-    stats: 'type cls lang allowDup items item reply links params money source',
-    people: 'type cls lang kicker title note allowDup items filter reply params money source',
+    stats: 'type cls lang allowDup items item reply links params money source live',
+    people: 'type cls lang kicker title note allowDup items filter reply params money source live',
     consent: 'type cls lang icon title text yes no link allowDup params money',
     slots: 'type cls lang kicker title cta note sep h12 collapse density allowDup ics days weekly say params money',
     confirm: 'type cls lang allowDup form status title rows steps note actions params money',
     review: 'type cls lang kicker title cta note collapse density allowDup state tables compute money lines total discard send params',
     chart: 'type cls lang kicker title sub note links allowDup kind stack height state tables compute money x series y mark summary params',
-    compare: 'type cls lang kicker title titles param items rows min max empty note same primary allowDup params money source',
+    compare: 'type cls lang kicker title titles param items rows min max empty note same primary allowDup params money source live',
     season: 'type cls lang kicker ranges words rows note reply links allowDup params money',
     rating: 'type cls lang kicker title text kind min max labels bands send note allowDup params money'
   };
-  var ITEM = { table: 'kicker title cols rows note source link'.split(' '), cards: 'kicker title who line points pointsCls pointsTitle rows note noteCls link status badge'.split(' '), stats: 'kicker title stats source'.split(' '), people: 'name role img note'.split(' '),
+  var ITEM = { table: 'kicker title cols rows note source link meter'.split(' '), cards: 'kicker title who line points pointsCls pointsTitle rows note noteCls link status badge'.split(' '), stats: 'kicker title stats source'.split(' '), people: 'name role img note'.split(' '),
     slide: 'id img badge kicker name sub price save status desc reply link gallery until'.split(' '), compare: 'name values reply link'.split(' ') };
   var NEED = { cards: [], table: [], form: ['steps', 'summary', 'cta'], contact: ['title'], chips: ['items'], carousel: [], calc: ['state', 'controls', 'result', 'send', 'cta'],
     stats: [], people: ['items'], consent: ['title', 'yes', 'no'], slots: ['cta', 'say'], confirm: ['form', 'title'], review: ['state', 'lines', 'send', 'cta'], chart: ['title', 'x', 'series'], compare: ['items', 'rows'], season: ['ranges'], rating: ['title', 'send'] };
@@ -270,13 +270,28 @@
           Object.keys(x).forEach(function (k) {
             if (own(PSKIP, k) || k === 'result') return; var here = at ? at + '.' + k : k;
             if (k === 'rows' && isArr(x[k])) x[k].forEach(function (r, i) { if (!isArr(r) || r.length < 3) return; var ra = here + '[' + i + ']';
-              if (r.length > 4) err(ra + ' is [label, value], [label, value, key] or [label, value, key, text for 0]');
+              // v0.10 · a meter: [label, value, { "of": 12 }] (fixed), or a 5th element after a number param's key and its text for 0
+              if (isObj(r[2])) { if (w.type !== 'cards') err(ra + ': a meter row ([label, value, { "of": … }]) is drawn on cards only'); else if (r.length > 3) err(ra + ' is [label, value, { "of": 12 }]: a meter row with a fixed value has 3 elements'); else meterCheck(r[2], ra + '[2]', true); return; }
+              if (r.length > 5) err(ra + ' is [label, value], [label, value, key], [label, value, key, text for 0] or [label, value, key, text for 0, { "of": max }]');
+              else if (r.length === 5 && w.type !== 'cards') err(ra + '[4]: a meter is drawn on cards only');
               else if (!isStr(r[2]) || !own(P, r[2]) || !isObj(P[r[2]]) || !own(PNUM, P[r[2]].type) || P[r[2]].type === 'day' || P[r[2]].type === 'time') err(ra + '[2] "' + r[2] + '" is not a number param of this widget (int, num or money): the row is left out, or shows its 4th text, while that number is 0');
-              else if (r.length === 4 && typeof r[3] !== 'string') err(ra + '[3] must be text: what the row says while ' + r[2] + ' is 0 ("Completa")'); });
+              else if (r.length >= 4 && typeof r[3] !== 'string' && !(r.length === 5 && r[3] === null)) err(ra + '[3] must be text: what the row says while ' + r[2] + ' is 0 ("Completa")' + (r.length === 5 ? ', or null to leave the row out' : ''));
+              else if (r.length === 5) meterCheck(r[4], ra + '[4]', false); });
             else look(x[k], here);
           });
         };
         look(w, '');
+      }
+      // v0.10 · a meter { of, low } (and "full" on a fixed row): "of" is the capacity, a number over 0 or a "{placeholder}"
+      function meterCheck(m, at, fixed) {
+        if (!isObj(m)) { err(at + ' is a meter: { "of": 12 } (the capacity), with "low" (the count from which it reads low)'); return; }
+        only(m, fixed ? ['of', 'low', 'full'] : ['of', 'low'], at);
+        var of = typeof m.of === 'number' ? m.of : isStr(m.of) && !/\{/.test(m.of) ? +m.of : null;
+        if (m.of == null) err(at + '.of is missing: the capacity the count is measured against, as 12');
+        else if (!(typeof m.of === 'number' || isStr(m.of)) || (of != null && !(of > 0))) err(at + '.of is the capacity: a number over 0, or a "{placeholder}" that holds one');
+        if (m.low != null && !(typeof m.low === 'number' && m.low >= 0)) err(at + '.low is a number, 0 or more: from that count down the meter reads low');
+        else if (m.low != null && of != null && m.low >= of) err(at + '.low (' + m.low + ') must be under "of" (' + of + ')');
+        if (m.full != null && typeof m.full !== 'string') err(at + '.full must be text: what a row at 0 says ("Completa")');
       }
       // the widget as the rest of the checks see it: each param placeholder filled with a sample value
       function sampled(x, P) {
@@ -322,7 +337,9 @@
         only(mp, ty === 'table' ? tcols : TEXT.concat(LIST), 'source.map');
         (ty === 'table' ? tcols : TEXT).forEach(txt);
         if (mp.points != null) { if (!isArr(mp.points)) err('source.map.points is a list of texts'); else mp.points.forEach(function (x, i) { if (!isStr(x)) err('source.map.points[' + i + '] must be text'); else cols(x, 'source.map.points[' + i + ']'); }); }
-        ['rows', 'stats'].forEach(function (k) { if (mp[k] != null) { if (!isArr(mp[k])) err('source.map.' + k + ' is a list of [label, "{column}"]'); else mp[k].forEach(function (x, i) { pair(k, x, 'source.map.' + k + '[' + i + ']'); }); } });
+        ['rows', 'stats'].forEach(function (k) { if (mp[k] != null) { if (!isArr(mp[k])) err('source.map.' + k + ' is a list of [label, "{column}"]'); else mp[k].forEach(function (x, i) { var at = 'source.map.' + k + '[' + i + ']';
+          if (k === 'rows' && ty === 'cards' && isArr(x) && x.length === 3 && isObj(x[2])) { pair(k, x.slice(0, 2), at); meterCheck(x[2], at + '[2]', true); cols(x[2], at + '[2]'); return; }   // v0.10: [label, "{plazas}", { "of": "{aforo}" }]
+          pair(k, x, at); }); } });
         if (mp.link != null) pair('link', mp.link, 'source.map.link');
         if (mp.badge != null && !isStr(mp.badge) && !(isObj(mp.badge) && isStr(mp.badge.text))) err('source.map.badge is "{column}" or { "text": "{column}", "tone": … }'); else if (mp.badge != null) cols(mp.badge, 'source.map.badge');
         if (mp.status != null) { if (!(isObj(mp.status) && isStr(mp.status.text))) err('source.map.status is { "text": "{column}", "tone": … }'); else { only(mp.status, ['text', 'tone'], 'source.map.status'); cols(mp.status, 'source.map.status'); } }
@@ -342,6 +359,8 @@
         NEED[w.type].forEach(function (k) { if (w[k] == null && !(k === 'items' && w.source != null)) err('missing "' + k + '"'); });
         var pdefs = isObj(w.params) ? w.params : {};
         keyedRows(w);   // v0.9.4.2
+        // v0.10 · "live": the "Live" chip. On by default for rows from a source; true for a flow tag's params (opt-in)
+        if (w.live != null) { if (typeof w.live !== 'boolean') err('"live" is true or false: the "Live" chip beside the title'); else if (w.live && w.source == null && w.params == null) err('"live": true needs "params" (a flow tag\'s values) or a "source": fixed data isn\'t live'); }
         if (w.params != null) { paramsCheck(w); w = sampled(w, pdefs); }
         if (w.source != null && w.type !== 'carousel') itemSource(w, pdefs);
         // v0.9.0 · "money" formats {x:money} in every type (a money param): { cur, after, dec, th, cents, space }
@@ -368,6 +387,12 @@
               if (c[2] != null && ['start', 'end'].indexOf(c[2]) < 0) err(id + '.cols[' + i + ']: align is "start" or "end" (numbers)');
             });
             if (ckeys && ckeys.join() !== ks.join() && isObj(w.pick)) err(id + '.cols: with "pick", every table has the same column keys (' + ckeys.join(', ') + ')'); if (!ckeys) ckeys = ks;
+            // v0.10 · "meter": { "col": a column with the count, "of": the capacity (a number or another column), "low", "full" }
+            if (t.meter != null) { if (!isObj(t.meter) || !isStr(t.meter.col)) err(id + '.meter is { "col": "plazas", "of": 12 }: the column with the count, and the capacity (a number, or the column that holds it)');
+              else { only(t.meter, ['col', 'of', 'low', 'full'], id + '.meter'); if (ks.indexOf(t.meter.col) < 0) err(id + '.meter.col "' + t.meter.col + '" is not one of the columns (' + ks.join(', ') + ')');
+                else if (ks.indexOf(t.meter.col) === 0) err(id + '.meter.col: the first column names the row; the count goes in another one');
+                if (isStr(t.meter.of) && ks.indexOf(t.meter.of) < 0 && !(+t.meter.of > 0)) err(id + '.meter.of "' + t.meter.of + '" is not a column, nor a number over 0');
+                else meterCheck({ of: isStr(t.meter.of) && ks.indexOf(t.meter.of) >= 0 ? '{' + t.meter.of + '}' : t.meter.of, low: t.meter.low, full: t.meter.full }, id + '.meter', true); } }
             if (w.source != null && t.rows == null) return;   // v0.9.0: the rows come from the data (no saved copy)
             if (!isArr(t.rows) || !t.rows.length || t.rows.length > 30) err(id + '.rows holds 1 to 30 rows (more is a page, not a card: link it)');
             else t.rows.forEach(function (r, i) {

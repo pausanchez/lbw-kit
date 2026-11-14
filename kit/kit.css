@@ -372,3 +372,28 @@
 @container lbw (min-width: 472px) { .kit-rate.is-scale { grid-template-columns: repeat(var(--kit-n, 11), minmax(0, 1fr)); } }
 @media (hover: hover) { .kit-rate:not(.is-done) .lbw-pill.kit-rate-b:hover { background: var(--lbw-tint); } }
 /* /v0.10 · density & forms */
+/* v0.10 · live & numbers ──────────────────────────────────────────────────────────────────────────
+   The "Live" chip beside the title of a card drawn from live rows, a changed value's flash after the late-data upgrade, number
+   ticks (tabular, so the width holds) and meters on rows with a count. Motion only where the kit adds it (is-pulse, kit-flash:
+   a visible tab, no reduced motion); with reduced motion a flash is held, then fades in 150 ms, and nothing moves. Paint only:
+   transform, opacity, colours. Tokens: --kit-flash (the highlight), the kit's tones (--kit-ok, --kit-warn) for meters and the dot. */
+.lbw { --kit-flash-c: var(--kit-flash, var(--lbw-tint, #EEEEFF)); --kit-track: var(--lbw-line, rgba(13,13,13,.12)); }
+@supports (color: color-mix(in srgb, red, blue)) { .lbw { --kit-flash-c: var(--kit-flash, color-mix(in srgb, var(--lbw-accent) 22%, var(--lbw-card, #FFFFFF))); --kit-track: color-mix(in srgb, var(--lbw-ink) 12%, transparent); } }
+.kit-live { position: relative; flex: none; align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; margin-top: 1px; font: 600 12px/16px var(--lbw-font); color: var(--lbw-muted); white-space: nowrap; }
+.kit-live::before { content: ''; flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--kit-ok-c); }
+.kit-live.is-pulse::after { content: ''; position: absolute; left: 0; top: 4px; width: 8px; height: 8px; border-radius: 50%; background: var(--kit-ok-c); opacity: 0; pointer-events: none; animation: kit-pulse 1.6s cubic-bezier(.2,.8,.2,1) 2; }   /* two pulses: still after 3.2 s (WCAG 2.2.2) */
+@keyframes kit-pulse { from { transform: scale(1); opacity: .6; } to { transform: scale(2.75); opacity: 0; } }
+.lbw.kit-stats { --kit-flash-c: rgba(255,255,255,.26); } .lbw.kit-stats .kit-live { color: inherit; } .lbw.kit-stats .kit-live::before, .lbw.kit-stats .kit-live::after { background: currentColor; }
+.kit-flash { border-radius: 4px; animation: kit-flash 1.2s cubic-bezier(.2,.8,.2,1); }
+.kit-flash.is-still { animation-name: kit-flash-still; animation-timing-function: linear; }
+@keyframes kit-flash { 0%, 18% { background-color: var(--kit-flash-c); box-shadow: 0 0 0 3px var(--kit-flash-c); } to { background-color: transparent; box-shadow: 0 0 0 3px transparent; } }
+@keyframes kit-flash-still { 0%, 87% { background-color: var(--kit-flash-c); box-shadow: 0 0 0 3px var(--kit-flash-c); } to { background-color: transparent; box-shadow: 0 0 0 3px transparent; } }   /* the last 13 % of 1.2 s: 150 ms */
+.lbw .kit-chg { display: inline; margin: 0; font: inherit; letter-spacing: inherit; text-transform: inherit; opacity: inherit; }   /* the changed words (a stat's label rule styles every span) */
+.is-ticking, .lbw-rows > [class*="kit-m-"] dd { font-variant-numeric: tabular-nums; }
+.kit-meter { position: relative; display: block; height: 4px; max-width: 160px; margin-top: 5px; border-radius: 2px; overflow: hidden; background: var(--kit-track); }
+.kit-meter > i { position: absolute; inset: 0; border-radius: inherit; background: var(--kit-ok-c); transform-origin: 0 50%; transform: scaleX(var(--kit-fill, 0)); }
+.kit-meter.is-low > i { background: var(--kit-warn-c); } .kit-meter.is-full > i { background: transparent; }
+.kit-tbl td .kit-meter { width: 100%; min-width: 32px; max-width: 72px; margin-inline-start: auto; }   /* as wide as the column already is: a meter never makes the table scroll */
+.lbw-rows > .kit-m-full > dt, .lbw-rows > .kit-m-full > dd, .kit-tbl tr.kit-m-full > th, .kit-tbl tr.kit-m-full > td { color: var(--lbw-muted); font-weight: 400; }
+@container lbw (min-width: 460px) { .lbw-rows .kit-meter { max-width: 220px; } } 
+@media (prefers-reduced-motion: reduce) { .kit-live.is-pulse::after { animation: none; } .kit-flash { animation-name: kit-flash-still; animation-timing-function: linear; } }

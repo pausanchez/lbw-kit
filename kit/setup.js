@@ -294,7 +294,8 @@
       }
       // fetched once when the chat loads; with a URL per language, only the default language's
       if (load && src.data == null && src.prefetch !== false && typeof fetch === 'function' && (!lang || lang === (cfg.defaultLang && (cfg.langs || []).indexOf(cfg.defaultLang) >= 0 ? cfg.defaultLang : (cfg.langs || [lang])[0]))) { try { load().then(null, function () {}); } catch (e) {} }
-      K.carousel(name, merge(pick(w, ['cls', 'lang', 'allowDup']), {
+      K.carousel(name, merge(pick(w, ['cls', 'lang', 'allowDup']), { live: !!src && w.live !== false,   // v0.10: the "Live" chip on slides from the source
+
         select: function (p) {
           var k = by ? p.one(param, vals) : null, today = LBW.day.today();
           // v0.7.8 · ids=a,b in the tag: only those slides, in that order ("does it work with X?"). Saved items only: a live
@@ -631,8 +632,10 @@
         if (k === 'rows' && isArr(x[k]) && ['cards', 'contact', 'season'].indexOf(w.type) >= 0) {
           var rs = []; x[k].forEach(function (r) {
             if (!(isArr(r) && r.length >= 3 && isStr(r[2]) && own(defs, r[2]) && own(PNUM, defs[r[2]].type))) { rs.push(walk(r, sent, false)); return; }
-            if (vals[r[2]] === 0) { if (r.length > 3) rs.push([walk(r[0], sent, false), walk(r[3], sent, false)]); return; }
-            rs.push([walk(r[0], sent, false), walk(r[1], sent, false)]);
+            // v0.10 · a 5th element { "of": 12, "low": 3 } draws a meter from that number ("Completa" muted at 0; a null 4th leaves the row out)
+            var mo = isObj(r[4]) && own(vals, r[2]) ? { n: vals[r[2]], of: walk(r[4].of, sent, false), low: r[4].low } : null;
+            if (vals[r[2]] === 0) { if (r.length > 3 && r[3] != null) rs.push([walk(r[0], sent, false), walk(r[3], sent, false)].concat(mo ? [mo] : [])); return; }
+            rs.push([walk(r[0], sent, false), walk(r[1], sent, false)].concat(mo ? [mo] : []));
           });
           o[k] = rs; return;
         }
@@ -686,7 +689,7 @@
     var cur = LBW.data.get(key);
     if (cur !== undefined) {
       var lw; try { lw = liveW(c, name, w, lang, key, cur); } catch (e) { LBW.drop(name + ': data "' + key + '": ' + e.message + ' (the saved copy)'); return has ? saved() : null; }
-      return lw ? build(c, name, lw, lang)(p, ctx) : null;
+      var now = lw ? build(c, name, lw, lang)(p, ctx) : null; if (now && w.live !== false) H.live(now, lang); return now;   // v0.10: drawn from the data
     }
     var o = U.loading(lang, 'kit-' + w.type), up = w.source.upgrade == null ? 20000 : w.source.upgrade;
     // v0.9.1 · measured live (13 Nov 2026): a flow Code block runs late, after every message up to the next block that
@@ -701,11 +704,12 @@
         var lw; try { lw = liveW(c, name, w, lang, key, d); } catch (e) { return; }
         var el = lw && build(c, name, lw, lang)(p, ctx); if (!el) return;
         var q = H.wasQuieted(o);   // v0.9.3: the visitor wrote since: the live card comes in quiet, as the saved one was
-        transplant(o, el); if (q) H.quietAgain(o); o.setAttribute('data-lbw-upgraded', '1'); H.upgraded(o, lang);   // v0.9.5: "Updated: …"
+        // v0.10: what changed flashes, focus and scroll stay, "Updated: …" is said once (v0.9.5), and the card says it is live
+        H.liveSwap(o, function () { transplant(o, el); if (q) H.quietAgain(o); }, lang); if (w.live !== false) H.live(o, lang);
       }, function () {});
     };
     return LBW.later(o, LBW.data.wait(key, has ? w.source.wait : Math.max(w.source.wait == null ? 1500 : w.source.wait, up)).then(function (d) { return liveW(c, name, w, lang, key, d); }),
-      function (lw) { var el = lw && build(c, name, lw, lang)(p, ctx); if (!el) return false; transplant(o, el); },
+      function (lw) { var el = lw && build(c, name, lw, lang)(p, ctx); if (!el) return false; transplant(o, el); if (w.live !== false) H.live(o, lang); },
       has ? function () { var el = saved(); if (!el) throw new Error('nothing to show'); transplant(o, el); lateUp(); } : null);
   }
   // a widget with params or a data source is made again for each tag, from its copy in the tag's language
@@ -715,7 +719,8 @@
       // "data": { "param": "src" } · the key is the value of a "one" param ([[p:tarifas src=tarifas_es]])
       if (isObj(w.source) && isObj(w.source.data)) { var dk = vals[w.source.data.param]; if (!isStr(dk)) return null; w = merge(w, { source: merge(w.source, { data: dk }) }); } }
     if (isObj(w.source) && w.source.data != null && w.type !== 'carousel') return fromData(c, name, w, lang, p, ctx);
-    return build(c, name, w, lang)(p, ctx);
+    var e = build(c, name, w, lang)(p, ctx); if (e && w.live === true && !isObj(w.source)) H.live(e, lang);   // v0.10: a flow tag's live values, opt-in (an agent may write params from memory)
+    return e;
   }
   function setup(cfg) {
     // the checker is a separate file (kit/setup-check.js): `npm run bot` runs it before a config is uploaded, and the

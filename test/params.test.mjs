@@ -183,6 +183,7 @@ test('params (v0.9.4.2): the checker knows forms, :count and keyed rows', () => 
   assert.match(bad((w) => { w.item.rows[2][1] = '{jard_l:count}'; }), /asks for a count, and params\.jard_l has no "forms"/);
   assert.match(bad((w) => { w.params.mar_p.forms = { other: 'x' }; }), /unknown|forms/);
   assert.match(bad((w) => { w.item.rows[0][2] = 'nada'; }), /rows\[0\]\[2\] "nada" is not a number param/);
-  assert.match(bad((w) => { w.item.rows[1].push('x'); }), /rows\[1\] is \[label, value\], \[label, value, key\] or \[label, value, key, text for 0\]/);
+  assert.match(bad((w) => { w.item.rows[1].push('x'); }), /rows\[1\]\[4\] is a meter: \{ "of": 12 \}/);   // v0.10: a 5th element is a meter
+  assert.match(bad((w) => { w.item.rows[1].push({ of: 9 }, 'x'); }), /rows\[1\] is \[label, value\], \[label, value, key\], \[label, value, key, text for 0\] or \[label, value, key, text for 0, \{ "of": max \}\]/);
   assert.match(bad((w) => { w.item.rows[2][1] = '{mar_p:count}'; }), /:count is for an int param/);
 });

@@ -182,7 +182,7 @@
     },
 
     "dispo": {
-      "type": "cards", "kicker": "Rutas guiadas · disponibilidad",
+      "type": "cards", "kicker": "Rutas guiadas · disponibilidad", "live": true,
       "money": { "cur": "€", "after": true, "dec": ",", "th": "." },
       "params": {
         "fecha": { "type": "day", "required": true, "min": "today" },
@@ -190,8 +190,8 @@
         "precio": { "type": "money", "max": 100000, "required": true }
       },
       "items": {
-        "ria": { "title": "Ruta de la ría · {fecha:date}", "line": "Tres horas en bici con guía, con parada para comer.", "rows": [["Plazas libres", "{plazas}"], ["Precio por persona", "{precio:money}"]], "link": ["Ver la ruta ↗", "https://rodanorte.example/rutas/ria/"] },
-        "monte": { "title": "Subida al monte · {fecha:date}", "line": "Media jornada, para quien ya sube cuestas.", "rows": [["Plazas libres", "{plazas}"], ["Precio por persona", "{precio:money}"]] }
+        "ria": { "title": "Ruta de la ría · {fecha:date}", "line": "Tres horas en bici con guía, con parada para comer.", "rows": [["Plazas libres", "{plazas}", "plazas", "Completa", { "of": 12 }], ["Precio por persona", "{precio:money}"]], "link": ["Ver la ruta ↗", "https://rodanorte.example/rutas/ria/"] },
+        "monte": { "title": "Subida al monte · {fecha:date}", "line": "Media jornada, para quien ya sube cuestas.", "rows": [["Plazas libres", "{plazas}", "plazas", "Completa", { "of": 12 }], ["Precio por persona", "{precio:money}"]] }
       },
       "reply": ["Reservar plaza", "Quiero una plaza en la ruta del {fecha:dmy}", { "gx_ruta": "{id}", "gx_fecha": "{fecha:dmy}" }]
     },
@@ -199,7 +199,7 @@
     "hoy": {
       "type": "table", "kicker": "Salidas guiadas", "same": false,
       "source": { "data": "salidas", "path": "salidas", "map": { "hora": "{hora}", "ruta": "{ruta}", "plazas": "{plazas}" } },
-      "item": { "title": "Hoy salen", "cols": [["hora", "Hora"], ["ruta", "Ruta"], ["plazas", "Plazas", "end"]],
+      "item": { "title": "Hoy salen", "meter": { "col": "plazas", "of": 8 }, "cols": [["hora", "Hora"], ["ruta", "Ruta"], ["plazas", "Plazas", "end"]],
         "rows": [["10:00", "Ría de Bilbao", "—"], ["12:30", "Mirador d'Artxanda", "—"], ["17:00", "Puerto Viejo", "—"]] },
       "pick": { "say": "Quiero la salida de las {hora}", "fields": { "gx_salida": "{hora}" }, "label": "Elegir" }
     }
