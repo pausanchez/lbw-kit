@@ -179,6 +179,24 @@
       "note": "Lugares, calles y plano ficticios para la galería."
     },
 
+    "pedido": {
+      "type": "tracker", "kicker": "Taller Roda Norte", "title": "Tu reparación", "default": "recibida",
+      "ref": { "param": "orden", "label": "Orden" },
+      "eta": { "time": "hora", "text": "Lista {when}" },
+      "steps": [
+        { "key": "recibida", "label": "Recibida", "detail": "La dejaste en el taller" },
+        { "key": "diagnostico", "label": "Diagnóstico", "detail": "Cadena y pastillas de freno" },
+        { "key": "taller", "label": "En el taller" },
+        { "key": "lista", "label": "Lista para recoger", "tone": "ok", "actions": [{ "reply": ["Voy a recogerla", "Voy a recoger la bici", { "estado": "recogida", "gx_orden": "{ref}" }], "primary": true, "icon": "check" }] },
+        { "key": "recogida", "label": "Recogida" }
+      ],
+      "states": [
+        { "key": "pieza", "at": "taller", "text": "Retrasado: esperando una pieza", "actions": [{ "reply": ["Avisadme cuando llegue", "Avisadme cuando llegue la pieza", { "gx_aviso": "si" }] }] },
+        { "key": "anulada", "end": true, "text": "Reparación anulada" }
+      ],
+      "links": ["call"]
+    },
+
     "salidas": {
       "type": "chart", "kicker": "Datos de ejemplo", "title": "Alquileres por mes", "sub": "Alquileres", "note": "Cifras ficticias para la galería.",
       "kind": "bar", "stack": true,

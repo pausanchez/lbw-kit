@@ -448,6 +448,15 @@
       };
       K.calendar(name, o);
     },
+    // v0.10 · tracker: the current step is a key the tag carries (a flow writes estado=@{estado}). A step's or a state's
+    // "actions" show while it is the current one; their replies are templates over {ref} {step} {label} {title}
+    tracker: function (cfg, name, w, lang) {
+      var o = pick(w, ['cls', 'lang', 'kicker', 'title', 'note', 'param', 'default', 'ref', 'eta', 'live', 'allowDup', 'steps', 'states']), all = (w.steps || []).concat(w.states || []);
+      var A = function (list, v) { return (list || []).map(function (a) { var r = resolve(cfg, a); if (r && isArr(r.reply)) { var sc = plain(v); r = merge(r, { reply: [tpl(r.reply[0], sc), tpl(r.reply[1], sc), r.reply[2]] }); } return action(cfg, r, '', v); }); };
+      o.actions = function (k, ref) { var s = all.filter(function (x) { return x.key === k; })[0]; return s ? A(s.actions, { ref: ref || '', step: k, label: s.label || s.text, title: w.title }) : []; };
+      if (w.links) o.links = function (ref) { return A(w.links, { title: w.title }); };
+      K.tracker(name, o);
+    },
     consent: function (cfg, name, w, lang) { K.consent(name, pick(w, ['cls', 'lang', 'icon', 'title', 'text', 'yes', 'no', 'link', 'allowDup'])); },
     slots: function (cfg, name, w, lang) {
       var o = pick(w, ['cls', 'lang', 'kicker', 'title', 'cta', 'note', 'sep', 'h12', 'collapse', 'allowDup', 'ics', 'density']), D = LBW.day;

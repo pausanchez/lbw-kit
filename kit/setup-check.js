@@ -33,6 +33,7 @@
     compare: 'type cls lang kicker title titles param items rows min max empty note same primary allowDup params money source live best',
     season: 'type cls lang kicker ranges words rows note reply links allowDup params money',
     map: 'type cls lang kicker title note places image lines from directions sort max links allowDup params money',
+    tracker: 'type cls lang kicker title note param default ref eta steps states links live allowDup params money',   // v0.10
     rating: 'type cls lang kicker title text kind min max labels bands send note allowDup params money'
   };
   var ITEM = { table: 'kicker title cols rows note source link meter'.split(' '), cards: 'kicker title who line points pointsCls pointsTitle rows note noteCls link status badge img price'.split(' '), stats: 'kicker title stats source'.split(' '), people: 'name role img note'.split(' '),
@@ -42,6 +43,7 @@
   KEYS.calendar = 'type cls lang kicker title cta note mode nights notice horizon months rates days closed unlisted priceFrom source send collapse allowDup params money';   // v0.10
   NEED.calendar = ['cta', 'send'];
   NEED.map = ['places'];   // v0.10
+  NEED.tracker = ['title', 'steps'];   // v0.10
   // check every language's copy; a problem that every language has is reported once, the others with their language
   // v0.8.1.10 · the photo sets: a base under "links", sizes as [folder, width] going up, an optional ratio [w, h]
   function photoSets(cfg, top) {
@@ -741,6 +743,49 @@
           var pr = reply({ replies: reps }, w.reply); if (isPair(pr)) { text(pr[0], 'reply', ['id', 'name', 'role']); text(pr[1], 'reply', ['id', 'name', 'role']); }
         }
 
+        if (w.type === 'tracker') {   // v0.10 · a step timeline: the current step is a key the tag carries
+          var tk = [], TA = ['ref', 'step', 'label', 'title'], KW = /^[a-z][a-z0-9_]{0,39}$/;
+          // a step's or a state's actions: as everywhere, and their replies may hold {ref} {step} {label} {title}
+          var tacts = function (l, where) { list(l, where, function (a, at) { var r = resolve({ actions: acts }, a);
+            if (r && isPair(r.reply)) { act(merge0(r, { reply: r.reply.slice(0, 2) }), err, at); fieldsCheck(r.reply[2], at + '.reply', err, TA); text(r.reply[0], at + '.reply', TA); text(r.reply[1], at + '.reply', TA); } else act(a, err, at); }); };
+          var merge0 = function (x, y) { var o = {}; [x, y].forEach(function (z) { Object.keys(z).forEach(function (k) { o[k] = z[k]; }); }); return o; };
+          var tone1 = function (s, at) { if (s.tone != null && TONES.indexOf(s.tone) < 0) err(at + '.tone "' + s.tone + '" is not a tone. Known: ' + TONES.join(', ')); };
+          if (!isArr(w.steps) || w.steps.length < 2 || w.steps.length > 8) err('"steps" is 2 to 8 steps in order: [{ "key": "lista", "label": "Lista para recoger" }, …]');
+          else w.steps.forEach(function (s, i) {
+            var at = 'steps[' + i + ']';
+            if (!isObj(s) || !KW.test(s.key || '')) { err(at + ' needs a "key": a lower-case word, the value the flow writes (estado=lista)'); return; }
+            if (tk.indexOf(s.key) >= 0) err(at + ': the key "' + s.key + '" is there twice'); else tk.push(s.key);
+            only(s, ['key', 'label', 'detail', 'time', 'tone', 'actions'], at); strs(s, ['label', 'detail', 'time'], at); tone1(s, at);
+            if (!isStr(s.label)) err(at + ' needs a "label": the step\'s name ("Lista para recoger")');
+            else if (Array.from(s.label).length > 40) err(at + '.label is a short name, 40 characters at most (' + Array.from(s.label).length + '): put the rest in "detail"');
+            ['label', 'detail', 'time'].forEach(function (k) { if (typeof s[k] === 'string') text(s[k], at + '.' + k, []); });
+            tacts(s.actions, at + '.actions');
+          });
+          var sk = tk.slice();
+          list(w.states, 'states', function (s, at) {
+            if (!isObj(s) || !KW.test(s.key || '')) { err(at + ' needs a "key": a lower-case word, the value the flow writes (estado=retraso)'); return; }
+            if (sk.indexOf(s.key) >= 0) err(at + ': the key "' + s.key + '" is already a step or a state'); else sk.push(s.key);
+            only(s, ['key', 'text', 'tone', 'at', 'end', 'actions'], at); tone1(s, at);
+            if (!isStr(s.text)) err(at + ' needs a "text": what its status line says ("Retrasado: esperando una pieza")'); else text(s.text, at + '.text', []);
+            if (s.end != null && s.end !== true) err(at + '.end is true (the state ends the tracking: cancelled, refused) or left out');
+            if (s.at != null && tk.indexOf(s.at) < 0) err(at + '.at "' + s.at + '" is not a step. Known: ' + tk.join(', '));
+            else if (s.at == null && s.end !== true) err(at + ' needs "at" (the step it holds up: a delay, in the warn tone) or "end": true (it ends the tracking: cancelled)');
+            tacts(s.actions, at + '.actions');
+          });
+          param(w.param, 'param');
+          if (w['default'] != null && sk.indexOf(w['default']) < 0) err('"default" "' + w['default'] + '" is not a step or a state. Known: ' + sk.join(', '));
+          if (w.ref != null) { if (!isObj(w.ref) || !isStr(w.ref.param)) err('"ref" is { "param": the tag key of the order code, "label": "Orden" }: shown as the tag writes it, never invented'); else { only(w.ref, ['param', 'label'], 'ref'); param(w.ref.param, 'ref.param'); strs(w.ref, ['label'], 'ref'); } }
+          if (w.eta != null) {
+            if (!isObj(w.eta) || (w.eta.day == null && w.eta.time == null)) err('"eta" is { "day": a tag key, "time": a tag key, "text": "Lista {when}" }, with a day, a time or both');
+            else { only(w.eta, ['day', 'time', 'text'], 'eta'); param(w.eta.day, 'eta.day'); param(w.eta.time, 'eta.time');
+              if (w.eta.text != null) { text(w.eta.text, 'eta.text', ['when']); if (typeof w.eta.text === 'string' && w.eta.text.indexOf('{when}') < 0) err('eta.text needs {when}: the kit writes the day and the time there ("hoy a las 18:00")'); } }
+          }
+          // the tag keys it reads are different keys, and no param reads one of them
+          var rk = ['lang', w.param || 'estado'];
+          [isObj(w.ref) && w.ref.param, isObj(w.eta) && w.eta.day, isObj(w.eta) && w.eta.time].forEach(function (k) { if (!isStr(k)) return; if (rk.indexOf(k) >= 0) err('the tag key "' + k + '" is read twice: param, ref.param, eta.day, eta.time and lang are different keys'); rk.push(k); });
+          Object.keys(pdefs).forEach(function (k) { var d = pdefs[k], key = isObj(d) && isStr(d.param) ? d.param : k; if (rk.indexOf(key) >= 0) err('params.' + k + ': the tag key "' + key + '" is already read by this tracker (its step, ref or eta)'); });
+          if (w.live != null && !(typeof w.live === 'string' && KW.test(w.live))) err('"live" is a key of LBW.data (a data message [[lbw:data key=…]] that updates it): a lower-case word, 40 at most');
+        }
         if (w.type === 'rating') {   // v0.8.1.6
           var kd = w.kind == null ? 'stars' : w.kind;
           if (['thumbs', 'stars', 'scale'].indexOf(kd) < 0) err('"kind" is thumbs, stars or scale');
