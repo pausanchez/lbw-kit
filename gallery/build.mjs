@@ -400,4 +400,10 @@ LBW.data.put('salidas', SALIDAS);
 `;
 
 writeFileSync(new URL('gallery/index.html', root), html);
+// --page: a standalone copy for GitHub Pages (the Artifact wrapper adds the doctype, charset and viewport; a plain host doesn't)
+if (process.argv.includes('--page')) {
+  const { mkdirSync } = await import('node:fs');
+  mkdirSync(new URL('site/', root), { recursive: true });
+  writeFileSync(new URL('site/index.html', root), '<!doctype html>\n<html lang="es">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n' + html + '\n<p style="max-width:960px;margin:32px auto;padding:0 16px;font:13px/1.5 system-ui,sans-serif;color:#667">Proyecto personal, no es un producto oficial de Landbot. Código: <a href="https://github.com/pausanchez/lbw-kit">github.com/pausanchez/lbw-kit</a>. Datos ficticios.</p>\n</html>\n');   // the head closes itself at the first element of the body
+}
 console.log('wrote gallery/index.html', (html.length / 1024).toFixed(0) + ' KB', count + ' types', types.length + ' entries');

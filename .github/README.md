@@ -63,6 +63,8 @@ The agent then ends a message with `[[np:service id=loft]]`. Check a config with
 
 ## The 20 widget types
 
+See them all drawn by the library, and tap them: **[the gallery](https://pausanchez.github.io/lbw-kit/)**.
+
 Every key of every type, a minimal example and what the checker rejects: [reference/types](https://github.com/pausanchez/lbw-kit/blob/main/reference/types/README.md).
 
 | Type | What it draws |
