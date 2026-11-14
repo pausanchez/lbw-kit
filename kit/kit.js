@@ -1,4 +1,4 @@
-/* AI Widgets kit v0.12.0 · on lbw.js v0.12.0 · the widgets every url-to-demo build rewrote, written once with options. Load it after lbw.js and before the
+/* AI Widgets kit v0.13.0 · on lbw.js v0.13.0 · the widgets every url-to-demo build rewrote, written once with options. Load it after lbw.js and before the
    client's widgets.js: custom_js = <script>lbw.js</script><script>kit.js</script><script>widgets.js</script>.
 
    Each maker registers a widget under the name you give it, from data you pass. Nothing here holds client facts.
@@ -1750,7 +1750,7 @@
     });
   }
 
-  LBW.kit = { version: '0.12.0', dev: DEV, describe: describe, L: L, last: last, cards: cards, table: table, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent, compare: compare, season: season, rating: rating,
+  LBW.kit = { version: '0.13.0', dev: DEV, describe: describe, L: L, last: last, cards: cards, table: table, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent, compare: compare, season: season, rating: rating,
     h: { usedByVisitor: usedByVisitor, wasQuieted: wasQuieted, quietAgain: quietAgain, keepPlace: keepPlace, upgraded: upgraded, radioGroup: radioGroup, note: note, list: list, label: label, dup: dup, choice: choice, multiChoice: multiChoice, copyBox: copyBox, status: status, wa: wa, fill: fill, money: money, total: total, lightbox: lightbox, chart: chart, statusHead: statusHead,
       icon: icon, withIcon: withIcon, icons: Object.keys(ICONS), badge: badge, tones: TONES.slice() } };
   // v0.10 · live & numbers (its own line: other makers' exports stay where they are)

@@ -19,14 +19,14 @@ Pin the version in the URL (never `@latest`) and keep `integrity` and `crossorig
 Custom JS:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/pausanchez/lbw-kit@v0.12.0/dist/lbw-kit.min.js" integrity="sha384-OVU7YxZtAh0S8S5ZGnincRAYar+GHMYSfzzWPkM0fK501CxtPCLZPaZFz3d3b0zi" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/gh/pausanchez/lbw-kit@v0.13.0/dist/lbw-kit.min.js" integrity="sha384-OesXUDjRbX8GN+KMKzw1z7XoGMdmgDaIL/oTzhP1H4SGBzDCLqPtDMmakOvsjv5b" crossorigin="anonymous"></script>
 <script>LBW.landbot&&LBW.landbot(this);LBW.kit.setup({ …your config… })</script>
 ```
 
 Custom CSS, first line:
 
 ```css
-@import url("https://cdn.jsdelivr.net/gh/pausanchez/lbw-kit@v0.12.0/dist/lbw-kit.min.css");
+@import url("https://cdn.jsdelivr.net/gh/pausanchez/lbw-kit@v0.13.0/dist/lbw-kit.min.css");
 ```
 
 `npm run bot` writes both for you, with the fallback script that removes raw tags if the library fails to load.
@@ -90,9 +90,13 @@ Every key of every type, a minimal example and what the checker rejects: [refere
 | `season` | Open or closed today from dated ranges, with the next dates. |
 | `chart` | Line or bar chart (one or two series; stacked bars) from formulas or values. |
 
+## Screen mode: the chat as an app
+
+Add `"screen": { "on": true, "header": { "title": "Book a flight", "steps": [["where", "Where"], ["when", "When"], ["pay", "Pay"]] }, "bar": true, "bleed": true }` to a config and the chat reads as an app: one screen at a time, a header with the steps, a sticky bar with the primary action, earlier messages behind "View conversation". The visitor can still type, and an AI agent's reply shows under the current screen. Every key: [reference/types](https://github.com/pausanchez/lbw-kit/blob/main/reference/types/README.md#screen-mode-the-screen-key). Try it in [the gallery](https://pausanchez.github.io/lbw-kit/).
+
 ## Editor support
 
-- **JSON Schema:** start a config with `"$schema": "https://cdn.jsdelivr.net/gh/pausanchez/lbw-kit@v0.12.0/dist/lbw-kit.schema.json"` for completion and inline errors in your editor. It checks structure and keys; `npm run check:config` also checks what depends on the rest of the config (names, links, formulas).
+- **JSON Schema:** start a config with `"$schema": "https://cdn.jsdelivr.net/gh/pausanchez/lbw-kit@v0.13.0/dist/lbw-kit.schema.json"` for completion and inline errors in your editor. It checks structure and keys; `npm run check:config` also checks what depends on the rest of the config (names, links, formulas).
 - **TypeScript:** `dist/lbw-kit.d.ts` types the global `LBW` and `LbwConfig`.
 - **For agents:** `npm run -s check:config -- config.json --json` prints `[{ widget, path, message, fix }]`, with "did you mean" for misspelt keys.
 
