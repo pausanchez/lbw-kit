@@ -480,7 +480,7 @@
     confirm: function (cfg, name, w, lang) {
       var o = pick(w, ['cls', 'lang', 'form', 'allowDup']), src = cfg.widgets[w.form] || {};
       // what the form or the booking sent: its state, plus {text} for the sentence. Dates are written in the language of this tag
-      var sc = function (l, ctx) { return { v: merge(l.state, { text: l.text }), items: FORMS[w.form + '|' + lang] || {}, money: String, lang: w.lang || (ctx && ctx.lang) || cfg.defaultLang || 'en', sep: src.sep, h12: src.h12 }; };
+      var sc = function (l, ctx) { return { v: merge(l.state, { text: l.text }), items: FORMS[w.form + '|' + lang] || {}, money: src.type === 'calendar' ? function (n) { return H.money(n, merge(src.money, n % 100 ? { cents: true } : null)); } : String, lang: w.lang || (ctx && ctx.lang) || cfg.defaultLang || 'en', sep: src.sep, h12: src.h12 }; };
       var T = function (t) { return function (l, ctx) { return tpl(t, sc(l, ctx)); }; };
       o.title = T(w.title); if (w.status != null) o.status = T(w.status); if (w.note != null) o.note = T(w.note);
       // v0.10 · "style": "pass" (a ticket), "code": "{ref}" (a param or a sent value; empty → none), "countdown": false, and the

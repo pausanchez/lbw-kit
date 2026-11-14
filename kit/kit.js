@@ -972,7 +972,7 @@
   // the next steps, the note. Its primary is "Add to calendar" (the .ics the slots widget makes) when there is a date.
   function pass(o, cfg, ls, ctx, lang, t, code) {
     var w = words(lang), s = ls.state || {}, day = typeof s.day === 'number' ? s.day : null, box = o.box;
-    var fmt = function (m) { return T.format(m, cfg.sep, { h12: cfg.h12 }); }, tm = day != null && typeof s.from === 'number' ? fmt(s.from) + (typeof s.to === 'number' ? '–' + fmt(s.to) : '') : '';
+    var fmt = function (m) { return T.format(m, cfg.sep, { h12: cfg.h12 }); }, tm = day != null && !s.cal && typeof s.from === 'number' ? fmt(s.from) + (typeof s.to === 'number' ? '–' + fmt(s.to) : '') : '';
     o.classList.add('kit-pass');
     var top = box.appendChild(el('div', 'kit-pass-top')), bar = top.appendChild(el('div', 'kit-pass-bar')), ck = bar.appendChild(el('span', 'kit-pass-i')), ic = icon('check'), st = val(cfg.status, ls, ctx);
     if (ic) ck.appendChild(ic); if (st) bar.appendChild(el('span', 'kit-pass-st', st));
@@ -989,7 +989,7 @@
     list(stub, val(cfg.steps, ls, ctx), 'is-steps'); note(stub, val(cfg.note, ls, ctx), 'is-muted');
     if (stub.children.length) box.appendChild(stub); else o.classList.add('is-short');
     var a = buttons(cfg.actions && cfg.actions(ls, ctx)), e = day != null && cfg.ics !== false ? (val(cfg.ics, ls, ctx) || {}) : null;
-    if (e) { var cal = withIcon(U.ics(e.label || w.addCal, { title: e.title || t, day: day, from: s.from, to: s.to, where: e.where, file: e.file || 'reserva' }, 'is-primary kit-pass-cal'), 'calendar');
+    if (e) { var cal = withIcon(U.ics(e.label || w.addCal, (s.cal ? { title: e.title || t, day: day, end: typeof s.to === 'number' && s.to > day ? s.to - 1 : day, where: e.where, file: e.file || 'reserva' } : { title: e.title || t, day: day, from: s.from, to: s.to, where: e.where, file: e.file || 'reserva' }), 'is-primary kit-pass-cal'), 'calendar');
       a.forEach(function (x) { x.classList.remove('is-primary'); }); a.unshift(cal); }   // one primary
     if (a.length) U.row(o, a);
     whenSeen(ck, 'is-drawing', 900);
@@ -1414,7 +1414,7 @@
         var f = U.form('kit-calform', { state: { from: null, to: null }, cta: cfg.cta,
           ready: function (s) { return s.from == null ? (range ? w.pickIn : w.pickDay) : range && s.to == null ? w.pickOut : true; },
           send: function (s) { var sel = selOf(s, true), r = cfg.send(sel, ctx); pend = { sel: sel, text: r && r[0] }; return r; },
-          sent: function () { if (!pend) return; last[name] = { state: pend.sel, text: pend.text }; if (cfg.collapse !== false) fold(o, pend.text, lang); } });
+          sent: function () { if (!pend) return; last[name] = { state: Object.assign({}, pend.sel, { day: pend.sel.from, cal: true }), text: pend.text }; if (cfg.collapse !== false) fold(o, pend.text, lang); } });
         // what a day is: off (past, inside the notice, after the horizon), closed (a rule or the data), full, few or free; p in cents
         function info(n) {
           if (n < first || n > end) return { s: 'off' };

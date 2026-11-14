@@ -258,3 +258,17 @@ test('check: a calendar says what is wrong, sentence by sentence', () => {
   assert.doesNotMatch(e, /could not be checked/);
   c.close();
 });
+
+test('calendar → confirm (v0.10 merge): a pass reads the stay: the check-in big, no time, {to:dmy} {nights} {total:money}, an all-day .ics', async () => {
+  const widgets = { ...W, hecho: { type: 'confirm', form: 'noches', style: 'pass', status: 'Reserva pedida', title: 'Cabaña · {nights} noches',
+    rows: [['Salida', '{to:dmy}'], ['Total', '{total:money}']] } };
+  const c = setup(widgets); assert.equal(c.result.ok, true, JSON.stringify(c.result.errors)); assert.deepEqual(c.check(widgets), []);
+  const m = draw(c, '[[t:noches]]'); day(m, 20).click(); day(m, 23).click(); cta(m).click(); await wait(300);
+  const p = draw(c, '[[t:hecho]]').widgets()[0];
+  assert.ok(p.classList.contains('kit-pass'));
+  assert.equal(p.querySelector('.kit-pass-d').textContent, '20');
+  assert.equal(p.querySelector('.kit-pass-t'), null, 'a stay has no time');
+  assert.match(p.textContent, /Cabaña · 3 noches/); assert.match(p.textContent, /23\/11\/2026/); assert.match(p.textContent, /657\s€/);
+  assert.ok(p.querySelector('.kit-pass-cal'), 'add to calendar');
+  c.close();
+});

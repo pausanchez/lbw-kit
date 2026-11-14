@@ -832,10 +832,11 @@
 
         if (w.type === 'confirm') {
           var sw = isStr(w.form) && own(cfg.widgets, w.form) ? cfg.widgets[w.form] : null, kind = isObj(sw) ? sw.type : null;
-          if (kind !== 'form' && kind !== 'slots') err('form "' + w.form + '" is not a form or a slots widget (the two that keep what they sent)');
+          if (kind !== 'form' && kind !== 'slots' && kind !== 'calendar') err('form "' + w.form + '" is not a form, a slots or a calendar widget (the ones that keep what they sent)');
           else {
-            var ck = kind === 'slots' ? ['day', 'from', 'to'] : (isArr(sw.steps) ? sw.steps : []).map(function (x) { return isObj(x) ? x.key : null; }).filter(isStr);
-            var C = function (t, where) { text(t, where, ck.concat(['text']), kind === 'form' ? ck : [], [], kind === 'slots' ? ['day'] : [], kind === 'slots' ? ['from', 'to'] : []); };
+            // v0.10 · a calendar keeps its stay: {day} (= {from}, the check-in) {to} (check-out) as days, {nights}, {total} {price} in cents
+            var ck = kind === 'slots' ? ['day', 'from', 'to'] : kind === 'calendar' ? ['day', 'from', 'to', 'nights', 'total', 'price', 'summary'] : (isArr(sw.steps) ? sw.steps : []).map(function (x) { return isObj(x) ? x.key : null; }).filter(isStr);
+            var C = function (t, where) { text(t, where, ck.concat(['text']), kind === 'form' ? ck : [], kind === 'calendar' ? ['total', 'price'] : [], kind === 'slots' ? ['day'] : kind === 'calendar' ? ['day', 'from', 'to'] : [], kind === 'slots' ? ['from', 'to'] : []); };
             if (!isStr(w.title)) err('"title" must be text'); else C(w.title, 'title');
             C(w.status, 'status'); C(w.note, 'note');
             list(w.rows, 'rows', function (x, at) { if (!isPair(x)) err(at + ' is [label, value]'); else { C(x[0], at); C(x[1], at); } });
