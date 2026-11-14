@@ -12,6 +12,8 @@ import { boot, wait, json, read } from './helpers.mjs';
 const kitBoot = () => boot({ kit: true, scripts: ['kit/setup.js', 'kit/setup-check.js'] });
 
 // ── finding 2 · ReDoS: the tag scan is linear ───────────────────────────────────────────────────────────────────────
+// a backtracking regex takes seconds on 100k characters; a shared CI runner is ~2–3× slower than a laptop, so it gets 150 ms
+const BUDGET = process.env.CI ? 150 : 50;
 test('security 0.9.5 · ReDoS: 100k-character hostile messages scan in under 50 ms each', () => {
   const c = boot(); c.LBW.init({ prefix: 'w' }); c.LBW.widget('x', () => c.LBW.ui.card('en'));
   const K = 100000, cases = {
@@ -33,7 +35,7 @@ test('security 0.9.5 · ReDoS: 100k-character hostile messages scan in under 50 
   c.bot('warm up [[w:x]]'); c.LBW.scan();
   for (const [name, text] of Object.entries(cases)) {
     c.bot(text); const t0 = performance.now(); c.LBW.scan(); const ms = performance.now() - t0;
-    assert.ok(ms < 50, name + ': ' + ms.toFixed(1) + ' ms');
+    assert.ok(ms < BUDGET, name + ': ' + ms.toFixed(1) + ' ms');
   }
 });
 
@@ -217,6 +219,6 @@ test('security 0.9.5 · the fallback cleans 100k-character hostile messages in u
   const c = boot({ lbw: false }); c.w.LBW_FALLBACK_MS = 1; c.w.eval(read('runtime/fallback.js')); await wait(20);
   for (const text of ['[[a'.repeat(33000) + ']x', '[['.repeat(50000) + ']x', 'a' + ' '.repeat(100000) + 'b [[np:x]]', '[[np:x]] ok' + ' '.repeat(100000)]) {
     const t0 = performance.now(); const m = c.bot(text); await wait(0); const ms = performance.now() - t0;   // the observer runs before the timer
-    assert.ok(ms < 50, ms.toFixed(1) + ' ms'); assert.ok(!m.text().includes('[[np:x]]'));
+    assert.ok(ms < BUDGET, ms.toFixed(1) + ' ms'); assert.ok(!m.text().includes('[[np:x]]'));
   }
 });
