@@ -127,6 +127,6 @@ test('CSS: the density tokens are fenced on :root, controls keep 44 px, the foot
   assert.match(sec, /\.lbw-tog\.kit-day \{[^}]*min-height: 64px/);
   assert.match(sec, /\.kit-dense \.kit-q\.is-seg > \.lbw-chips \{[^}]*var\(--lbw-control\)/);
   assert.match(sec, /\.kit-foot > \.lbw-cta \{[^}]*min-height: 44px/);
-  assert.match(sec, /prefers-reduced-motion: no-preference\) \{ \.lbw\.is-anim/);
+  assert.match(sec, /\.lbw-motion \.kit-step\.is-open \{ animation/);   // v0.10 merge: the shared motion gate
   assert.ok(!/(tog|slot|day|sum|cta|sel|rate-b)[^{]*\{[^}]*min-height: (3\d|[12]\d)px/.test(sec), 'no target under 44 px');
 });

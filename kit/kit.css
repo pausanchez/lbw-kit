@@ -1,4 +1,4 @@
-/* AI Widgets kit v0.9.5.2 · the kit-* classes, from the --lbw-* tokens only (set them in the demo's theme.css).
+/* AI Widgets kit v0.10.0 · the kit-* classes, from the --lbw-* tokens only (set them in the demo's theme.css).
    Order in custom_css: @imports, lbw.css, kit.css, the demo's theme.css, the chat skin. */
 .kit-note { margin: 10px 0 0; font-size: 12px; line-height: 17px; color: var(--lbw-muted); }
 .kit-note:not(.is-safe):not(.is-flag), .kit-line, .kit-desc { max-width: 62ch; }
@@ -323,7 +323,7 @@
 .kit-sum:disabled { cursor: default; } .kit-sum:disabled .kit-sum-e { display: none; }
 .kit-stepn { margin-left: auto; }
 @media (hover: hover) { .kit-sum:not(:disabled):hover .kit-sum-e { text-decoration-thickness: 2px; } }
-@media (prefers-reduced-motion: no-preference) { .lbw.is-anim .kit-step.is-open { animation: kit-step-in 200ms var(--lbw-ease, cubic-bezier(.2,.8,.2,1)); } }
+.lbw-motion .kit-step.is-open { animation: kit-step-in var(--lbw-dur, 200ms) var(--lbw-ease, cubic-bezier(.2,.8,.2,1)); }   /* v0.10 merge: behind the shared motion gate (visible tab, no reduced motion) */
 @keyframes kit-step-in { from { opacity: 0; transform: translateY(4px); } }
 /* calc: tighter rows; the total lines move to the footer */
 .kit-dense .kit-out { margin-top: 2px; } .kit-dense .kit-out:empty { display: none; }
@@ -381,7 +381,7 @@
 @supports (color: color-mix(in srgb, red, blue)) { .lbw { --kit-flash-c: var(--kit-flash, color-mix(in srgb, var(--lbw-accent) 22%, var(--lbw-card, #FFFFFF))); --kit-track: color-mix(in srgb, var(--lbw-ink) 12%, transparent); } }
 .kit-live { position: relative; flex: none; align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; margin-top: 1px; font: 600 12px/16px var(--lbw-font); color: var(--lbw-muted); white-space: nowrap; }
 .kit-live::before { content: ''; flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--kit-ok-c); }
-.kit-live.is-pulse::after { content: ''; position: absolute; left: 0; top: 4px; width: 8px; height: 8px; border-radius: 50%; background: var(--kit-ok-c); opacity: 0; pointer-events: none; animation: kit-pulse 1.6s cubic-bezier(.2,.8,.2,1) 2; }   /* two pulses: still after 3.2 s (WCAG 2.2.2) */
+.lbw-motion .kit-live.is-pulse::after { content: ''; position: absolute; left: 0; top: 4px; width: 8px; height: 8px; border-radius: 50%; background: var(--kit-ok-c); opacity: 0; pointer-events: none; animation: kit-pulse 1.6s cubic-bezier(.2,.8,.2,1) 2; }   /* two pulses: still after 3.2 s (WCAG 2.2.2) */
 @keyframes kit-pulse { from { transform: scale(1); opacity: .6; } to { transform: scale(2.75); opacity: 0; } }
 .lbw.kit-stats { --kit-flash-c: rgba(255,255,255,.26); } .lbw.kit-stats .kit-live { color: inherit; } .lbw.kit-stats .kit-live::before, .lbw.kit-stats .kit-live::after { background: currentColor; }
 .kit-flash { border-radius: 4px; animation: kit-flash 1.2s cubic-bezier(.2,.8,.2,1); }
@@ -490,8 +490,8 @@
 .kit-pass-code strong { font: 700 17px/22px ui-monospace, "SF Mono", Menlo, Consolas, monospace; letter-spacing: .08em; color: var(--lbw-ink); overflow-wrap: anywhere; }
 .kit-pass-code + .kit-lines { border-top: 1px solid var(--lbw-hair, rgba(13,13,13,.06)); }
 @media (prefers-reduced-motion: no-preference) {   /* the check draws itself once it is seen (kit.js whenSeen); without the class it is simply drawn */
-  .kit-pass-i.is-drawing { animation: kit-pop 360ms cubic-bezier(.2,.9,.3,1.25) both; }
-  .kit-pass-i.is-drawing::after { content: ""; position: absolute; inset: 0; background: inherit; animation: kit-wipe 420ms 180ms cubic-bezier(.5,0,.2,1) both; }
+  .lbw-motion .kit-pass-i.is-drawing { animation: kit-pop 360ms cubic-bezier(.2,.9,.3,1.25) both; }
+  .lbw-motion .kit-pass-i.is-drawing::after { content: ""; position: absolute; inset: 0; background: inherit; animation: kit-wipe 420ms 180ms cubic-bezier(.5,0,.2,1) both; }
 }
 @keyframes kit-pop { from { transform: scale(.4); opacity: 0; } }
 @keyframes kit-wipe { to { transform: translateX(105%); } }
@@ -591,7 +591,7 @@
 .kit-trk-d, .kit-trk-t { font-size: 13px; line-height: 18px; color: var(--lbw-muted); overflow-wrap: anywhere; }
 .kit-tracker.is-old .kit-trk-steps { opacity: .7; }
 @media (prefers-reduced-motion: no-preference) {
-  .kit-tracker.is-seen:not(.is-old) .is-now:not(.is-warn):not(.is-danger) > .kit-trk-dot::before { content: ""; position: absolute; inset: -2px; border-radius: 50%; border: 2px solid currentColor; opacity: 0; animation: kit-trk-pulse 2s ease-out 2; }
+  .lbw-motion .kit-tracker.is-seen:not(.is-old) .is-now:not(.is-warn):not(.is-danger) > .kit-trk-dot::before { content: ""; position: absolute; inset: -2px; border-radius: 50%; border: 2px solid currentColor; opacity: 0; animation: kit-trk-pulse 2s ease-out 2; }
 }
 @keyframes kit-trk-pulse { 0% { transform: scale(1); opacity: .55; } 100% { transform: scale(1.9); opacity: 0; } }
 @container lbw (min-width: 460px) {

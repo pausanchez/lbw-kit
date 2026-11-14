@@ -370,7 +370,7 @@
         var pdefs = isObj(w.params) ? w.params : {};
         keyedRows(w);   // v0.9.4.2
         // v0.10 · "live": the "Live" chip. On by default for rows from a source; true for a flow tag's params (opt-in)
-        if (w.live != null) { if (typeof w.live !== 'boolean') err('"live" is true or false: the "Live" chip beside the title'); else if (w.live && w.source == null && w.params == null) err('"live": true needs "params" (a flow tag\'s values) or a "source": fixed data isn\'t live'); }
+        if (w.live != null && w.type !== 'tracker') { if (typeof w.live !== 'boolean') err('"live" is true or false: the "Live" chip beside the title'); else if (w.live && w.source == null && w.params == null) err('"live": true needs "params" (a flow tag\'s values) or a "source": fixed data isn\'t live'); }
         if (w.params != null) { paramsCheck(w); w = sampled(w, pdefs); }
         if (w.source != null && w.type !== 'carousel' && w.type !== 'calendar') itemSource(w, pdefs);
         // v0.9.0 · "money" formats {x:money} in every type (a money param): { cur, after, dec, th, cents, space }

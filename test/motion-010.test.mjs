@@ -165,7 +165,8 @@ test('CSS: every animation is behind html.lbw-motion, motion is tokens, and the 
   const css = read('runtime/lbw.css') + read('kit/kit.css');
   const rules = css.replace(/\/\*[\s\S]*?\*\//g, '').match(/[^{}]+\{[^{}]*\banimation\s*:[^}]*\}/g) || [];
   assert.ok(rules.length > 10);
-  for (const r of rules) assert.match(r.split('{')[0], /\.lbw-motion/, 'ungated animation: ' + r.slice(0, 120));
+  // v0.10 merge: the live-data flash is a colour fade, not movement: with reduced motion it is held, then fades in 150 ms (docs/05)
+  for (const r of rules) if (!/\banimation(-name)?\s*:\s*(kit-flash|none\b)/.test(r)) assert.match(r.split('{')[0], /\.lbw-motion/, 'ungated animation: ' + r.slice(0, 120));
   for (const t of ['--lbw-dur', '--lbw-dur-fast', '--lbw-dur-slow', '--lbw-step', '--lbw-ease', '--lbw-rise']) assert.match(css, new RegExp(t + ':'));
   assert.match(css, /\.lbw-skel:empty \{ min-height: 128px/);
   assert.doesNotMatch(css.slice(css.indexOf('v0.10 · motion')), /animation[^;]*\b(height|width|top|left|margin)\b/, 'transform and opacity only');

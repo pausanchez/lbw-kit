@@ -198,7 +198,7 @@ if (WRITE) {
   });
 } else if (!process.env.GOLDEN_SKIP) {
   for (const k of Object.keys(SOURCES)) {
-    test('golden 0.9.5: ' + k + ' draws byte for byte what v0.9.5 drew (fixtures rewritten at the 0.9.5 merge: the only changes from v0.9.4.2 were a11y attributes, slides as list items, aria-disabled CTAs and the __proto__ drop line)', async () => {
+    test('golden 0.9.5: ' + k + ' draws byte for byte what v0.10.0 drew (fixtures rewritten at the 0.10 merge: only form, calc, review, slots, carousel, compare and live-data cards changed from v0.9.5; every other type byte for byte)', async () => {
       const fx = load(k);
       for (const mode of ['withData', 'noData']) {
         const got = await draw(fx, { withData: mode === 'withData' }), want = fx[mode];
