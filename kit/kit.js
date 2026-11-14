@@ -28,32 +28,32 @@
   // ── the visitor-facing words the kit owns (everything else comes from cfg) ─────────────────────────
   var L = {
     en: { copy: 'Copy', copied: 'Copied ✓', select: 'Select the text and copy it', summary: 'Your summary',
-          open: 'Open now · until {t}', closed: 'Closed now · opens {d} at {t}', closedLong: 'Closed now', today: 'today', tomorrow: 'tomorrow',
+          open: 'Open now · until {t}', closed: 'Closed now · opens {d} at {t}', closedLong: 'Closed now', today: 'today', change: 'Change', tomorrow: 'tomorrow',
           days: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'], localTime: 'Local time: {t}', sent: 'Sent', show: 'Show', hide: 'Hide', busy: 'Busy', pick: 'Pick a time', confirm: 'Confirm', yes: 'Yes', no: 'No',
           close: 'Close', prev: 'Previous photo', next: 'Next photo', photos: 'Photos', enlarge: 'Enlarge on the page', cSame: 'The same in all:', cSame2: 'The same in both:',
           sOpen: 'Open today', sClosed: 'Closed today', sUntil: 'Open until', sOpens: 'Opens', sIn: 'Opens in', sCloses: 'Season', sDay: '1 day', sDays: '{n} days', sUnknown: 'The next dates aren’t published yet.' , rateOf: '{n} of {max}', tMore: 'See all {n} rows', tLess: 'See fewer', tPick: 'Choose', tPicked: 'Chosen', tTotal: 'Total', updated: 'Updated', photoOf: 'photo {n} of {max}', day: 'Day' },
     es: { copy: 'Copiar', copied: 'Copiado ✓', select: 'Selecciona el texto y cópialo', summary: 'Tu resumen',
-          open: 'Abierto ahora · hasta las {t}', closed: 'Cerrado ahora · abre {d} a las {t}', closedLong: 'Cerrado ahora', today: 'hoy', tomorrow: 'mañana',
+          open: 'Abierto ahora · hasta las {t}', closed: 'Cerrado ahora · abre {d} a las {t}', closedLong: 'Cerrado ahora', today: 'hoy', change: 'Cambiar', tomorrow: 'mañana',
           days: ['el domingo', 'el lunes', 'el martes', 'el miércoles', 'el jueves', 'el viernes', 'el sábado'], localTime: 'Hora local: {t}', sent: 'Enviado', show: 'Ver', hide: 'Ocultar', busy: 'Ocupado', pick: 'Elige una hora', confirm: 'Confirmar', yes: 'Sí', no: 'No',
           close: 'Cerrar', prev: 'Foto anterior', next: 'Foto siguiente', photos: 'Fotos', enlarge: 'Ampliar en la página', cSame: 'Igual en todas:', cSame2: 'Igual en las dos:',
           sOpen: 'Abierto hoy', sClosed: 'Cerrado hoy', sUntil: 'Abierto hasta', sOpens: 'Abre', sIn: 'Abre en', sCloses: 'Temporada', sDay: '1 día', sDays: '{n} días', sUnknown: 'Las próximas fechas aún no están publicadas.' , rateOf: '{n} de {max}', tMore: 'Ver las {n} filas', tLess: 'Ver menos', tPick: 'Elegir', tPicked: 'Elegido', tTotal: 'Total', updated: 'Actualizado', photoOf: 'foto {n} de {max}', day: 'Día' },
     it: { copy: 'Copia', copied: 'Copiato ✓', select: 'Seleziona il testo e copialo', summary: 'Il tuo riepilogo',
-          open: 'Aperto ora · fino alle {t}', closed: 'Chiuso ora · apre {d} alle {t}', closedLong: 'Chiuso ora', today: 'oggi', tomorrow: 'domani',
+          open: 'Aperto ora · fino alle {t}', closed: 'Chiuso ora · apre {d} alle {t}', closedLong: 'Chiuso ora', today: 'oggi', change: 'Cambia', tomorrow: 'domani',
           days: ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato'], localTime: 'Ora locale: {t}', sent: 'Inviato', show: 'Mostra', hide: 'Nascondi', busy: 'Occupato', pick: 'Scegli un orario', confirm: 'Conferma', yes: 'Sì', no: 'No',
           close: 'Chiudi', prev: 'Foto precedente', next: 'Foto successiva', photos: 'Foto', enlarge: 'Ingrandisci nella pagina', cSame: 'Uguale in tutte:', cSame2: 'Uguale in entrambe:',
           sOpen: 'Aperto oggi', sClosed: 'Chiuso oggi', sUntil: 'Aperto fino a', sOpens: 'Apre', sIn: 'Apre tra', sCloses: 'Stagione', sDay: '1 giorno', sDays: '{n} giorni', sUnknown: 'Le prossime date non sono ancora pubblicate.' , rateOf: '{n} su {max}', tMore: 'Vedi tutte le {n} righe', tLess: 'Vedi meno', tPick: 'Scegli', tPicked: 'Scelto', tTotal: 'Totale', updated: 'Aggiornato', photoOf: 'foto {n} di {max}', day: 'Giorno' },
     de: { copy: 'Kopieren', copied: 'Kopiert ✓', select: 'Text markieren und kopieren', summary: 'Deine Zusammenfassung',
-          open: 'Jetzt geöffnet · bis {t} Uhr', closed: 'Jetzt geschlossen · öffnet {d} um {t} Uhr', closedLong: 'Jetzt geschlossen', today: 'heute', tomorrow: 'morgen',
+          open: 'Jetzt geöffnet · bis {t} Uhr', closed: 'Jetzt geschlossen · öffnet {d} um {t} Uhr', closedLong: 'Jetzt geschlossen', today: 'heute', change: 'Ändern', tomorrow: 'morgen',
           days: ['am Sonntag', 'am Montag', 'am Dienstag', 'am Mittwoch', 'am Donnerstag', 'am Freitag', 'am Samstag'], localTime: 'Ortszeit: {t}', sent: 'Gesendet', show: 'Anzeigen', hide: 'Ausblenden', busy: 'Belegt', pick: 'Uhrzeit wählen', confirm: 'Bestätigen', yes: 'Ja', no: 'Nein',
           close: 'Schließen', prev: 'Vorheriges Foto', next: 'Nächstes Foto', photos: 'Fotos', enlarge: 'Auf der Seite vergrößern', cSame: 'Bei allen gleich:', cSame2: 'Bei beiden gleich:',
           sOpen: 'Heute geöffnet', sClosed: 'Heute geschlossen', sUntil: 'Geöffnet bis', sOpens: 'Öffnet', sIn: 'Öffnet in', sCloses: 'Saison', sDay: '1 Tag', sDays: '{n} Tagen', sUnknown: 'Die nächsten Termine sind noch nicht veröffentlicht.' , rateOf: '{n} von {max}', tMore: 'Alle {n} Zeilen anzeigen', tLess: 'Weniger anzeigen', tPick: 'Wählen', tPicked: 'Gewählt', tTotal: 'Gesamt', updated: 'Aktualisiert', photoOf: 'Foto {n} von {max}', day: 'Tag' },
     fr: { copy: 'Copier', copied: 'Copié ✓', select: 'Sélectionnez le texte et copiez-le', summary: 'Votre résumé',
-          open: 'Ouvert · jusqu’à {t}', closed: 'Fermé · ouvre {d} à {t}', closedLong: 'Fermé', today: 'aujourd’hui', tomorrow: 'demain',
+          open: 'Ouvert · jusqu’à {t}', closed: 'Fermé · ouvre {d} à {t}', closedLong: 'Fermé', today: 'aujourd’hui', change: 'Modifier', tomorrow: 'demain',
           days: ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'], localTime: 'Heure locale : {t}', sent: 'Envoyé', show: 'Voir', hide: 'Masquer', busy: 'Occupé', pick: 'Choisissez une heure', confirm: 'Confirmer', yes: 'Oui', no: 'Non',
           close: 'Fermer', prev: 'Photo précédente', next: 'Photo suivante', photos: 'Photos', enlarge: 'Agrandir sur la page', cSame: 'Identique pour toutes :', cSame2: 'Identique pour les deux :',
           sOpen: 'Ouvert aujourd’hui', sClosed: 'Fermé aujourd’hui', sUntil: 'Ouvert jusqu’au', sOpens: 'Ouverture', sIn: 'Ouvre dans', sCloses: 'Saison', sDay: '1 jour', sDays: '{n} jours', sUnknown: 'Les prochaines dates ne sont pas encore publiées.' , rateOf: '{n} sur {max}', tMore: 'Voir les {n} lignes', tLess: 'Voir moins', tPick: 'Choisir', tPicked: 'Choisi', tTotal: 'Total', updated: 'Mis à jour', photoOf: 'photo {n} sur {max}', day: 'Jour' },
     ca: { copy: 'Copia', copied: 'Copiat ✓', select: 'Selecciona el text i copia’l', summary: 'El teu resum',
-          open: 'Obert ara · fins a les {t}', closed: 'Tancat ara · obre {d} a les {t}', closedLong: 'Tancat ara', today: 'avui', tomorrow: 'demà',
+          open: 'Obert ara · fins a les {t}', closed: 'Tancat ara · obre {d} a les {t}', closedLong: 'Tancat ara', today: 'avui', change: 'Canvia', tomorrow: 'demà',
           days: ['diumenge', 'dilluns', 'dimarts', 'dimecres', 'dijous', 'divendres', 'dissabte'], localTime: 'Hora local: {t}', sent: 'Enviat', show: 'Mostra', hide: 'Amaga', busy: 'Ocupat', pick: 'Tria una hora', confirm: 'Confirma', yes: 'Sí', no: 'No',
           close: 'Tanca', prev: 'Foto anterior', next: 'Foto següent', photos: 'Fotos', enlarge: 'Amplia a la pàgina', cSame: 'Igual a totes:', cSame2: 'Igual a les dues:',
           sOpen: 'Obert avui', sClosed: 'Tancat avui', sUntil: 'Obert fins al', sOpens: 'Obre', sIn: 'Obre d’aquí a', sCloses: 'Temporada', sDay: '1 dia', sDays: '{n} dies', sUnknown: 'Les properes dates encara no estan publicades.' , rateOf: '{n} de {max}', tMore: 'Veure les {n} files', tLess: 'Veure’n menys', tPick: 'Tria', tPicked: 'Triat', tTotal: 'Total', updated: 'Actualitzat', photoOf: 'foto {n} de {max}', day: 'Dia' }
@@ -76,14 +76,14 @@
   var OPTS = {
     cards: 'cls param items kicker reply links disclaimer lang single fallback pointsCls allowDup status',
     table: 'cls param items kicker reply links fold pick same lang single fallback allowDup',
-    form: 'cls lang kicker title cta note preset steps summary fields sent allowDup collapse',
+    form: 'cls lang kicker title cta note preset steps summary fields sent allowDup collapse density',
     contact: 'cls lang kicker title big rows topic hours note buttons summary compact allowDup',
     chips: 'cls lang max items own carriedBy',
     carousel: 'cls lang select slide allowDup',
-    calc: 'cls lang kicker title state cta controls result ready send notes links sent allowDup collapse',
-    slots: 'cls lang kicker title days cta say ics note sep h12 allowDup collapse sent',
+    calc: 'cls lang kicker title state cta controls result ready send notes links sent allowDup collapse density',
+    slots: 'cls lang kicker title days cta say ics note sep h12 allowDup collapse sent density',
     confirm: 'cls lang form status title rows steps note actions allowDup',
-    review: 'cls lang kicker title state lines total cta discard send ready note allowDup collapse sent',
+    review: 'cls lang kicker title state lines total cta discard send ready note allowDup collapse sent density',
     chart: 'cls lang kicker title sub data note links allowDup',
     stats: 'cls lang items single reply links allowDup',
     people: 'cls lang kicker title items select reply note allowDup',
@@ -162,10 +162,22 @@
       if (!dir && k !== 'Home' && k !== 'End') return; if (g.closest('.is-done')) return;
       var bs = live(), i = bs.indexOf(document.activeElement); if (i < 0 || !bs.length) return;
       e.preventDefault(); var n = k === 'Home' ? 0 : k === 'End' ? bs.length - 1 : (i + dir + bs.length) % bs.length;
-      bs[n].focus(); bs[n].click();
+      bs[n].focus(); g.kbd = true; try { bs[n].click(); } finally { g.kbd = false; }   // v0.10: a pick by arrow key doesn't move a progressive form on
     });
     return rove;
   }
+  // v0.10 · density. "compact" (the default for the multi-step makers: form, calc, review, slots) or "comfy" (the v0.9.5 layout):
+  // cfg.density, else the theme's --lbw-density on :root. Compact: one question at a time, short picks as a segmented control,
+  // the total and the CTA in a footer that stays in view; every target stays 44 px
+  function dense(cfg) {
+    var d = cfg.density; if (!d) try { d = getComputedStyle(document.documentElement).getPropertyValue('--lbw-density').trim(); } catch (e) {}
+    return d !== 'comfy';
+  }
+  // 2–3 short options (≤ 14 characters, no description) draw as a segmented control beside their question
+  function seg(w, items) { if (items.length >= 2 && items.length <= 3 && items.every(function (it) { return !it[2] && String(it[1]).length <= 14; })) w.classList.add('is-seg'); return w; }
+  // the total(s) and the CTA in one footer, sticky at the card's foot (the box clips, it doesn't scroll, so sticky reaches the chat)
+  function foot(f, o) { var ft = f.add(el('div', 'kit-foot')), t = ft.appendChild(el('div', 'kit-foot-t')); ft.appendChild(f.cta); o.classList.add('kit-dense'); ft.t = t;
+    f.add = function (n) { if (n) f.el.insertBefore(n, ft); return n; }; return ft; }
   function radio(b, on) { b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', on ? 'true' : 'false'); return b; }
   function choice(title, items, cur, pick, aria) {   // one of [[key, label], …]; returns the block
     var g = listy(el('div', 'lbw-chips'), items, function (it) { return it[2]; }), w = question(title, g, aria), rove = radioGroup(g);
@@ -403,9 +415,36 @@
         },
         sent: function (s) { if (pend) last[name] = pend; if (cfg.collapse !== false && pend) fold(o, pend.text, lang); if (cfg.sent) cfg.sent(s); }
       });
-      if (cfg.title) U.head(o.box, cfg.kicker || '', cfg.title);
+      // v0.10 · compact: one question at a time. An answered step folds to one line ("Who with · As a couple · Change") that
+      // opens it again; the next question appears once this one is answered; "2 / 3" beside the title
+      var prog = dense(cfg) && cfg.steps.length > 1, at = -1, wraps = [], sums = [], ind = prog && cfg.title ? el('span', 'kit-count kit-stepn') : null, w = words(lang);
+      if (prog) { o.classList.add('kit-dense'); ind && ind.setAttribute('aria-hidden', 'true'); }
+      if (cfg.title) U.head(o.box, cfg.kicker || '', cfg.title, ind);
       o.box.appendChild(f.el);
-      var slots = cfg.steps.map(function () { return f.add(el('div', 'kit-step')); });   // was 'kit-slot', the time button's class: every form step drew as a bordered box (v0.8.1)
+      var slots = cfg.steps.map(function (st, i) {
+        if (!prog) return f.add(el('div', 'kit-step'));   // was 'kit-slot', the time button's class: every form step drew as a bordered box (v0.8.1)
+        var wr = wraps[i] = f.add(el('div', 'kit-step')), sm = sums[i] = wr.appendChild(U.btn('', 'kit-sum'));
+        sm.setAttribute('aria-expanded', 'false');
+        sm.addEventListener('click', function () { if (sm.closest('.is-done')) return; at = i; lay(); var t = slots[i].querySelector('[tabindex="0"], .lbw-tog'); if (t) t.focus(); });
+        return wr.appendChild(el('div', 'kit-step-q'));
+      });
+      function answered(i) { var v = f.state[cfg.steps[i].key]; return cfg.steps[i].multi ? !!(v && v.length) : v != null; }
+      function lay(from) {
+        var had = from && from.contains(document.activeElement), gate = false, opened = null, n = 0, pos = 0;
+        cfg.steps.forEach(function (st, i) {
+          var has = !!slots[i].firstChild, ans = answered(i), mode = !has ? 'skip' : i === at ? 'open' : ans ? 'sum' : gate ? 'wait' : 'open';
+          if (mode === 'open' && !ans && !st.optional) { if (!gate && !pos) pos = n + 1; gate = true; }
+          if (mode === 'open' && opened == null && i !== at) opened = i;
+          if (has) n++;
+          wraps[i].className = 'kit-step is-' + mode;
+          if (mode === 'sum') {
+            var items = val(st.items, f.state) || [], v = f.state[st.key], picked = (st.multi ? v : [v]).map(function (k) { return label(items, k); }).join(', ');
+            sums[i].textContent = ''; sums[i].appendChild(el('span', 'kit-sum-q', st.title || '')); sums[i].appendChild(el('span', 'kit-sum-a', picked)); sums[i].appendChild(el('span', 'kit-sum-e', w.change));
+          }
+        });
+        if (ind) ind.textContent = (pos || n) + ' / ' + n;
+        if (had && !from.parentNode.classList.contains('is-open')) { var t = opened != null ? slots[opened].querySelector('[tabindex="0"], .lbw-tog') : null; try { (t || f.cta).focus({ preventScroll: true }); } catch (e) {} }
+      }
       function draw(i) {
         var st = cfg.steps[i], slot = slots[i]; slot.textContent = '';
         var items = val(st.items, f.state); if (!items || !items.length) return;
@@ -413,11 +452,13 @@
           var changed = JSON.stringify(f.state[st.key]) !== JSON.stringify(v); f.state[st.key] = v;
           if (changed) for (var j = i + 1; j < cfg.steps.length; j++) if (typeof cfg.steps[j].items === 'function') { f.state[cfg.steps[j].key] = cfg.steps[j].multi ? [] : null; draw(j); }
           f.update();
+          if (prog) { var rg = slot.querySelector('[role="radiogroup"]'); at = st.multi || (rg && rg.kbd) ? i : -1; lay(slot); }   // a multi step stays open until another is touched
         };
-        slot.appendChild(st.multi ? multiChoice(st.title, items, f.state[st.key], pick, st.none) : choice(st.title, items, f.state[st.key], pick));
+        slot.appendChild(st.multi ? multiChoice(st.title, items, f.state[st.key], pick, st.none) : prog ? seg(choice(st.title, items, f.state[st.key], pick), items) : choice(st.title, items, f.state[st.key], pick));
         f.el.classList.toggle('has-list', !!f.el.querySelector('.lbw-chips.is-list'));   // v0.8.1.10: the plain steps then draw as a grid that matches
       }
       cfg.steps.forEach(function (s, i) { draw(i); });
+      if (prog) lay();
       note(o.box, cfg.note, 'is-safe');
       return o;
     });
@@ -646,14 +687,19 @@
         send: function (s) { var r = cfg.send(s); said = r && r[0]; return r; },
         sent: function (s) { if (cfg.collapse !== false && said) fold(o, said, lang); if (cfg.sent) cfg.sent(s); },
         // v0.9.5 · a changed total is said (the total lines only, never the breakdown), after the control that changed it
-        change: function (s) { out.textContent = ''; cfg.result(s, out, ctx); var t = totalsText(out); if (was != null && t && t !== was) LBW.announce(t, lang, 'total:' + name); was = t; } });
+        // v0.10 · compact: the total lines go to the footer, beside the CTA
+        change: function (s) { out.textContent = ''; cfg.result(s, out, ctx); var ts = out.querySelectorAll('.kit-total'); if (ft) { ft.t.textContent = ''; [].forEach.call(ts, function (x) { ft.t.appendChild(x); }); }
+          var t = totalsText(ft ? ft.t : out); if (was != null && t && t !== was) LBW.announce(t, lang, 'total:' + name); was = t; } });
+      var cpt = dense(cfg), ft = null;
       U.head(o.box, val(cfg.kicker, p, ctx, state) || '', val(cfg.title, p, ctx, state)); o.box.appendChild(f.el);
+      var grid = null;   // v0.10 · compact: steppers side by side, two to a row (an odd last one takes the row, label beside it)
       cfg.controls.forEach(function (c) {
-        if (c.stepper) f.add(U.stepper(c.label, f.state[c.stepper], { min: c.min, max: c.max, step: c.step, format: c.format, less: c.less, more: c.more, hint: c.hint, change: function (v) { f.state[c.stepper] = v; f.update(); } }));
-        else if (c.pick) f.add(choice(c.title, val(c.items, f.state, p, ctx), f.state[c.pick], function (k) { f.state[c.pick] = k; f.update(); }));
+        if (!c.stepper) grid = null; else if (cpt && !grid) grid = f.add(el('div', 'kit-stepgrid'));
+        if (c.stepper) (grid ? function (n) { return grid.appendChild(n); } : f.add)(U.stepper(c.label, f.state[c.stepper], { min: c.min, max: c.max, step: c.step, format: c.format, less: c.less, more: c.more, hint: c.hint, change: function (v) { f.state[c.stepper] = v; f.update(); } }));
+        else if (c.pick) { var its = val(c.items, f.state, p, ctx), q = f.add(choice(c.title, its, f.state[c.pick], function (k) { f.state[c.pick] = k; f.update(); })); if (cpt) seg(q, its || []); }
         else if (c.node) f.add(c.node(f.state, p, ctx));
       });
-      f.add(out);
+      f.add(out); if (cpt) ft = foot(f, o);
       (val(cfg.notes, p, ctx, state) || []).forEach(function (n) { note(o.box, n[0], n[1]); });
       var ls = buttons(cfg.links && cfg.links(p, ctx, state)); if (ls.length) U.row(o, ls);
       return o;
@@ -829,7 +875,15 @@
           var ex = cfg.ics ? [U.ics(cfg.ics.label || '📅', { title: cfg.ics.title, day: s.day, from: s.from, to: s.to, where: cfg.ics.where, file: cfg.ics.file || 'visita' }, 'kit-sent-ics')] : [];
           if (cfg.collapse !== false && said) fold(o, said, lang, ex); if (cfg.sent) cfg.sent(s); } });
       U.head(o.box, cfg.kicker || '', cfg.title || ''); o.box.appendChild(f.el);
-      f.add(choice('', days.map(function (d) { return [String(d.day), dayLabel(d.day)]; }), String(days[0].day), function (k) { f.state.day = +k; f.state.from = f.state.to = null; drawDay(); f.update(); }, w.day));
+      var dq = f.add(choice('', days.map(function (d) { return [String(d.day), dayLabel(d.day)]; }), String(days[0].day), function (k) { f.state.day = +k; f.state.from = f.state.to = null; drawDay(); f.update(); }, w.day));
+      if (dense(cfg)) {   // v0.10 · compact: the days as a date strip (weekday, a big day number, the month), the full date as each one's name
+        o.classList.add('kit-dense'); dq.classList.add('kit-dates');
+        [].forEach.call(dq.querySelectorAll('[role="radio"]'), function (b) {
+          var n = +b.getAttribute('data-k'), part = function (x) { return D.format(n, lang, x); };
+          b.setAttribute('aria-label', part({ weekday: 'long', day: 'numeric', month: 'long' })); b.textContent = ''; b.classList.add('kit-day');
+          b.appendChild(el('span', 'kit-dw', part({ weekday: 'short' }).replace(/\.$/, ''))); b.appendChild(el('span', 'kit-dn', part({ day: 'numeric' }))); b.appendChild(el('span', 'kit-dm', part({ month: 'short' }).replace(/\.$/, '')));
+        });
+      }
       var list = f.add(el('div', 'kit-slotlist')), rove = radioGroup(list); list.setAttribute('aria-label', w.pick);   // v0.9.5: the times are one of several
       function drawDay() {
         list.textContent = ''; var d = days.filter(function (x) { return x.day === f.state.day; })[0]; if (!d) return;
@@ -874,7 +928,7 @@
     LBW.widget(name, function (p, ctx) {
       if (!cfg.allowDup && dup(ctx, cls)) return null;
       var state = cfg.state(p, ctx); if (!state) return null;
-      var lang = langOf(cfg, ctx), o = U.card(lang, 'kit-review ' + cls), said = '', vals = [], was = null;
+      var lang = langOf(cfg, ctx), o = U.card(lang, 'kit-review ' + cls), said = '', vals = [], was = null, cpt = dense(cfg);
       var f = U.form('kit-reviewform', { state: state, cta: cfg.cta, ready: cfg.ready,
         change: function (s) { vals.forEach(function (v) { v.node.textContent = v.fn(s); }); if (tot) { var t = cfg.total.value(s); tot.textContent = t; if (was != null && t !== was) LBW.announce(cfg.total.label + ' ' + t, lang, 'total:' + name); was = t; } },   // v0.9.5
         send: function (s) { var r = cfg.send(s); said = r && r[0]; return r; },
@@ -887,12 +941,14 @@
           var sel = el('select', 'kit-sel'); sel.id = id; lab.setAttribute('for', id);
           ln.select.items.forEach(function (it) { var op = el('option', null, it[1]); op.value = it[0]; if (it[0] === f.state[ln.select.key]) op.selected = true; sel.appendChild(op); });
           sel.addEventListener('change', function () { if (f.el.classList.contains('is-done')) return; var k = sel.value; if (ln.select.items.some(function (it) { return it[0] === k; })) { f.state[ln.select.key] = k; f.update(); } });
-          r.appendChild(sel);
+          if (cpt) { var sw = el('span', 'kit-selw'); sw.appendChild(sel); r.appendChild(sw); r.classList.add('has-sel'); } else r.appendChild(sel);   // v0.10: a chip that opens the list (the chevron follows the accent)
         } else { var v = el('span', 'kit-rvalue'); r.appendChild(v); vals.push({ node: v, fn: ln.value }); }
         dl.appendChild(r);
       });
-      var tot = null; if (cfg.total) { var tr = f.add(el('div', 'kit-rtotal')); tr.appendChild(el('span', null, cfg.total.label)); tot = el('strong'); tr.appendChild(tot); }
-      if (cfg.discard) f.add(U.reply(cfg.discard[0], cfg.discard[1], { cls: 'kit-discard' }));
+      // v0.10 · compact: a receipt (lines, a dashed rule, the total big) whose total and Confirm stay in view in a footer
+      var ft = cpt ? foot(f, o) : null;
+      var tot = null; if (cfg.total) { var tr = ft ? ft.t.appendChild(el('div', 'kit-rtotal')) : f.add(el('div', 'kit-rtotal')); tr.appendChild(el('span', null, cfg.total.label)); tot = el('strong'); tr.appendChild(tot); }
+      if (cfg.discard) { var dz = U.reply(cfg.discard[0], cfg.discard[1], { cls: 'kit-discard' }); if (ft) ft.appendChild(dz); else f.add(dz); }
       note(o.box, val(cfg.note, p, ctx, state), 'is-muted');
       return o;
     });

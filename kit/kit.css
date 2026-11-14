@@ -271,3 +271,82 @@
 .kit-tbl-once.is-done tbody tr:not(.is-picked) .kit-tbl-b, .kit-tbl-once.is-stale tbody tr .kit-tbl-b { opacity: 1; color: var(--lbw-muted) !important; box-shadow: inset 0 0 0 1px var(--lbw-line) !important; }   /* v0.9.5: muted, not .45 opacity (1.96:1) */   /* v0.8.1.14: still there, faded and disabled: an empty cell read as "no button" (Callan live) */
 .kit-tbl-once.is-done tbody tr:not(.is-picked) { color: var(--lbw-muted); }
 .kit-tbl-once.is-done tbody tr.is-picked, .kit-tbl-once.is-done tbody tr.is-picked th { background: var(--lbw-tint); }
+/* v0.10 · density & forms. Compact (.kit-dense, the default for form, calc, review and slots; "density": "comfy" or :root
+   { --lbw-density: comfy } keeps the v0.9.5 layout): one question at a time, short picks as a segmented control, the total and
+   the CTA in a footer that stays in view, a receipt for review, a date strip for slots. Every target stays 44 px */
+.lbw.kit-dense > .lbw-box { overflow: clip; }   /* clips like hidden but isn't a scroller: the footer sticks to the chat's */
+.kit-dense .lbw-head { margin-bottom: 8px; }
+.kit-dense .lbw-form { gap: var(--lbw-gap-dense, 6px); }
+.kit-dense .kit-q { margin: 0; }
+.kit-dense .kit-ql { margin: 4px 0 6px; }
+.kit-dense .lbw-chips { gap: 6px; }
+.kit-dense .lbw-tog:not(.has-desc):not(.kit-day) { min-height: var(--lbw-control-h, 44px); padding-inline: 12px; }
+.kit-dense .lbw-tog[aria-checked="true"]:not(.has-desc):not(.kit-day), .kit-dense .lbw-tog[aria-pressed="true"]:not(.has-desc) { padding-inline: 6px 12px; }   /* the ✓ takes the padding: no reflow */
+.kit-dense .lbw-chips.is-list > .lbw-tog:not(.has-desc) { min-height: 48px; }
+.kit-dense .lbw-tog.has-desc { padding-block: 8px; }
+/* 2–3 short options: a segmented control on the question's line (it takes a line of its own when they don't fit) */
+.kit-dense .kit-q.is-seg { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+.kit-dense .kit-q.is-seg > .kit-ql { flex: 1 0 auto; margin: 0; }
+.kit-dense .kit-q.is-seg > .lbw-chips { flex: 1 1 auto; flex-wrap: nowrap; gap: 0; border-radius: var(--lbw-radius-control, 12px); box-shadow: inset 0 0 0 1px var(--lbw-pill-ring, var(--lbw-control)); background: var(--lbw-pill-bg, #fff); }
+.kit-dense .kit-q.is-seg .lbw-tog { flex: 1 1 auto; border-radius: var(--lbw-radius-control, 12px); box-shadow: none; background: transparent; white-space: nowrap; }
+.kit-dense .kit-q.is-seg .lbw-tog[aria-checked="true"] { background: var(--lbw-tint); box-shadow: inset 0 0 0 2px var(--lbw-accent-text, var(--lbw-accent)); }
+.kit-dense .kit-form.has-list .lbw-chips:not(.is-list) > .lbw-tog { border-radius: var(--lbw-radius-control, 12px); }
+/* the form, one question at a time: answered steps fold to a line that opens them again; later ones wait */
+.kit-step.is-sum > .kit-step-q, .kit-step.is-wait, .kit-step.is-skip, .kit-step:not(.is-sum) > .kit-sum { display: none; }
+.kit-sum { display: flex; align-items: center; gap: 4px 10px; width: 100%; min-height: 44px; padding: 4px 0; border: 0; border-bottom: 1px solid var(--lbw-line); background: none; text-align: start; font: 400 13px/18px var(--lbw-font); color: var(--lbw-ink); cursor: pointer; }
+.kit-sum-q { flex: 0 1 auto; max-width: 42%; color: var(--lbw-muted); overflow-wrap: anywhere; }
+.kit-sum-a { flex: 1 1 0; min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
+.kit-sum-a::before { content: "✓ "; color: var(--lbw-accent-text, var(--lbw-accent)); }
+.kit-sum-e { flex: none; font-weight: 600; color: var(--lbw-accent-text, var(--lbw-accent)); text-decoration: underline; text-underline-offset: 2px; }
+.kit-sum:disabled { cursor: default; } .kit-sum:disabled .kit-sum-e { display: none; }
+.kit-stepn { margin-left: auto; }
+@media (hover: hover) { .kit-sum:not(:disabled):hover .kit-sum-e { text-decoration-thickness: 2px; } }
+@media (prefers-reduced-motion: no-preference) { .lbw.is-anim .kit-step.is-open { animation: kit-step-in 200ms var(--lbw-ease, cubic-bezier(.2,.8,.2,1)); } }
+@keyframes kit-step-in { from { opacity: 0; transform: translateY(4px); } }
+/* calc: tighter rows; the total lines move to the footer */
+.kit-dense .kit-out { margin-top: 2px; } .kit-dense .kit-out:empty { display: none; }
+.kit-dense .kit-out .lbw-rows > div { padding: 3px 0; }
+.kit-stepgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 16px; }
+.kit-stepgrid > .lbw-step { display: grid; grid-template-columns: 44px minmax(24px, 1fr) 44px; align-items: center; gap: 2px 0; }
+.kit-stepgrid > .lbw-step > .lbw-step-l { grid-column: 1 / -1; font-size: 13px; line-height: 18px; font-weight: 600; }   /* the questions read alike: a pick's title is 13/600 too */
+.kit-stepgrid > .lbw-step:last-child:nth-child(odd) { grid-column: 1 / -1; display: flex; } .kit-stepgrid .lbw-step-l .lbw-muted { font-weight: 400; }
+/* the footer: total + CTA, sticky at the bottom of the chat while the card is taller than the window */
+.kit-foot { position: sticky; bottom: 0; z-index: 1; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin: 2px -16px 0; padding: 8px 16px; background: var(--lbw-foot-bg, var(--lbw-card)); border-top: 1px solid var(--lbw-line); }
+.lbw-box > .lbw-form:last-child > .kit-foot { margin-bottom: -16px; padding-bottom: 16px; }
+.kit-foot-t { flex: 1 1 auto; min-width: 0; display: grid; gap: 2px; } .kit-foot-t:empty { display: none; }
+.kit-foot .kit-total, .kit-foot .kit-rtotal { display: flex; flex-direction: column; align-items: flex-start; gap: 0; margin: 0; padding: 0; border: 0; background: none; font-size: 12px; line-height: 16px; color: var(--lbw-muted); }
+.kit-foot .kit-total strong, .kit-foot .kit-rtotal strong { font: 700 24px/28px var(--lbw-display); color: var(--lbw-ink); font-variant-numeric: tabular-nums; }
+.kit-foot .kit-total.is-due strong { font-size: 14px; line-height: 20px; text-align: start; }
+.kit-foot > .lbw-cta { flex: 1 1 150px; width: auto; min-height: 44px; margin: 0 !important; }
+.kit-foot > .lbw-cta.is-sent { flex: 0 1 auto; }
+.kit-foot > .lbw-cta:disabled:not(.is-sent), .kit-foot > .lbw-cta[aria-disabled="true"]:not(.is-sent) { background: var(--lbw-soft); color: var(--lbw-muted) !important; box-shadow: none; font-weight: 400; }
+.kit-foot > .lbw-cta:disabled:not(.is-sent)::before, .kit-foot > .lbw-cta[aria-disabled="true"]:not(.is-sent)::before { content: "↑ "; white-space: pre; }
+.kit-foot > .kit-discard { flex: 1 1 100%; margin: -4px 0 -8px !important; }
+/* review as a receipt: quiet lines, a dashed rule, the total big in the footer; a select is a chip in the accent */
+.kit-dense .kit-rlines { margin-top: 0; padding-bottom: 6px; border-bottom: 1px dashed var(--lbw-ring); }
+.kit-dense .kit-rline { min-height: 30px; padding: 3px 0; border-bottom: 0; font-size: 13px; line-height: 18px; }
+.kit-dense .kit-rline.has-sel { min-height: 48px; }
+.kit-dense .kit-rvalue { color: var(--lbw-ink); }
+.kit-selw { position: relative; display: inline-flex; flex: 0 1 auto; min-width: 0; max-width: 100%; margin-inline-start: auto; color: var(--lbw-accent-text, var(--lbw-accent)); }
+.kit-selw::after { content: ""; position: absolute; right: 14px; top: 50%; width: 6px; height: 6px; margin-top: -5px; border: solid currentColor; border-width: 0 2px 2px 0; transform: rotate(45deg); pointer-events: none; }
+.kit-selw > .kit-sel { width: 100%; margin: 0; border: 0; border-radius: var(--lbw-radius-pill); background: var(--lbw-tint); box-shadow: inset 0 0 0 1px var(--lbw-pill-ring, var(--lbw-control)); padding: 6px 34px 6px 14px; color: inherit; cursor: pointer; }
+.kit-selw > .kit-sel:disabled { background: transparent; box-shadow: none; color: var(--lbw-ink); cursor: default; padding-inline: 0; }
+.kit-selw:has(> .kit-sel:disabled)::after { display: none; }
+/* slots: a date strip (weekday, a big day, the month) and the times as a wrap grid */
+.kit-dates > .lbw-chips { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(54px, 1fr); gap: 6px; overflow-x: auto; scrollbar-width: none; padding: 2px; margin: -2px; }
+.kit-dates > .lbw-chips::-webkit-scrollbar { display: none; }
+.lbw-tog.kit-day { display: grid; justify-items: center; align-content: center; gap: 1px; min-height: 64px; padding: 6px 4px; border-radius: var(--lbw-radius-control, 12px); color: var(--lbw-ink); }
+.lbw-tog.kit-day::before { content: none; }
+.kit-dw { font: 600 12px/14px var(--lbw-font); letter-spacing: .02em; text-transform: uppercase; color: var(--lbw-accent-text, var(--lbw-accent)); }
+.kit-dn { font: 700 20px/24px var(--lbw-display); font-variant-numeric: tabular-nums; }
+.kit-dm { font: 400 12px/14px var(--lbw-font); color: var(--lbw-muted); }
+.kit-day[aria-checked="true"] .kit-dw::before { content: "✓ "; }
+.kit-dense .kit-slotlist { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 6px; margin-top: 8px; }
+.kit-dense .kit-slot { border-radius: var(--lbw-radius-control, 12px); }
+.kit-dense .kit-slot.is-busy { text-decoration: line-through; text-decoration-color: var(--lbw-ring); }
+/* rating: keys you press. A scale is one row from a 472 px card (36 px wide, 44 tall), 6 + 5 under it, 4 + 4 + 3 under 320 */
+.kit-rate.is-scale .lbw-pill.kit-rate-b { border-radius: var(--lbw-radius-control, 12px); box-shadow: inset 0 0 0 1px var(--lbw-pill-ring, var(--lbw-control)), inset 0 -2px 0 var(--lbw-line); font-variant-numeric: tabular-nums; }
+.kit-rate.is-scale .lbw-pill.kit-rate-b { min-width: 0; }
+@container lbw (min-width: 472px) { .kit-rate.is-scale { grid-template-columns: repeat(var(--kit-n, 11), minmax(0, 1fr)); } }
+@media (hover: hover) { .kit-rate:not(.is-done) .lbw-pill.kit-rate-b:hover { background: var(--lbw-tint); } }
+/* /v0.10 · density & forms */

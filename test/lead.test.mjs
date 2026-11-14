@@ -124,7 +124,8 @@ test('slots: times already past today are gone, and a day with nothing free is n
   const cfg = patched('visit', (w) => { w.weekly = { from: 0, ahead: 2, week: { 2: all, 3: [['09:00', '10:00', 'busy']], 4: [['09:00', '10:00', 'busy']], 5: [['09:00', '10:00']] } }; });
   const c = byJson(cfg); assert.deepEqual(c.result.errors, []);          // pinned: Tuesday 10 Nov 2026, 10:30
   const m = c.bot('[[lg:visit]]'); c.LBW.scan(); await wait(20);
-  assert.deepEqual([...m.querySelectorAll('.lbw-tog')].map((b) => b.textContent), ['Tue, Nov 10', 'Fri, Nov 13']);
+  // v0.10: compact draws a date strip (weekday · day · month), named by the whole date
+  assert.deepEqual([...m.querySelectorAll('.lbw-tog')].map((b) => b.getAttribute('aria-label') + ' | ' + [...b.children].map((s) => s.textContent).join(' ')), ['Tuesday, November 10 | Tue 10 Nov', 'Friday, November 13 | Fri 13 Nov']);
   assert.deepEqual([...m.querySelectorAll('button.kit-slot')].map((b) => b.textContent), ['11:00–12:00']);
 });
 

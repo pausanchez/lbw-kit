@@ -243,7 +243,7 @@
       K.table(name, o);
     },
     form: function (cfg, name, w, lang) {
-      var o = pick(w, ['cls', 'lang', 'kicker', 'title', 'cta', 'note', 'preset', 'allowDup', 'collapse']), items = {};
+      var o = pick(w, ['cls', 'lang', 'kicker', 'title', 'cta', 'note', 'preset', 'allowDup', 'collapse', 'density']), items = {};
       var sc = function (s) { return { v: s, items: items, money: String }; };
       o.steps = w.steps.map(function (st) {
         var s = pick(st, ['key', 'title', 'multi', 'none', 'ask', 'optional']);
@@ -321,7 +321,7 @@
       }));
     },
     calc: function (cfg, name, w, lang) {
-      var o = pick(w, ['cls', 'lang', 'cta', 'notes', 'allowDup', 'collapse']), items = {}, steppers = {};
+      var o = pick(w, ['cls', 'lang', 'cta', 'notes', 'allowDup', 'collapse', 'density']), items = {}, steppers = {};
       // a value the tag gives and no control shows (the tour, the plan) still has a label: "labels": { "boat": "Boat & swim" }
       Object.keys(w.state).forEach(function (k) { var lb = w.state[k].labels; if (lb) items[k] = Object.keys(lb).map(function (v) { return [v, lb[v]]; }); });
       var lines = Object.keys(w.compute || {}).map(function (k) { return [k, compile(w.compute[k])]; });
@@ -399,7 +399,7 @@
     },
     consent: function (cfg, name, w, lang) { K.consent(name, pick(w, ['cls', 'lang', 'icon', 'title', 'text', 'yes', 'no', 'link', 'allowDup'])); },
     slots: function (cfg, name, w, lang) {
-      var o = pick(w, ['cls', 'lang', 'kicker', 'title', 'cta', 'note', 'sep', 'h12', 'collapse', 'allowDup', 'ics']), D = LBW.day;
+      var o = pick(w, ['cls', 'lang', 'kicker', 'title', 'cta', 'note', 'sep', 'h12', 'collapse', 'allowDup', 'ics', 'density']), D = LBW.day;
       var norm = function (l) { return l.map(function (x) { return [timeOf(x[0]), timeOf(x[1]), x[2]]; }); };
       o.days = function () {   // from the config only: fixed dates from today on, or the next open days of a weekly diary
         var today = D.today(), now = LBW.time.now(), out = [], wk = w.weekly;
@@ -429,7 +429,7 @@
       K.confirm(name, o);
     },
     review: function (cfg, name, w, lang) {
-      var o = pick(w, ['cls', 'lang', 'kicker', 'title', 'cta', 'note', 'collapse', 'allowDup']), N = numbers(w), items = {}, d = reply(cfg, w.discard);
+      var o = pick(w, ['cls', 'lang', 'kicker', 'title', 'cta', 'note', 'collapse', 'allowDup', 'density']), N = numbers(w), items = {}, d = reply(cfg, w.discard);
       var sc = function (s, nb) { var c = N.scope(s, nb); c.items = items; return c; };
       var V = function (t) { return function (s) { var c = sc(s); if (!c.ok) LBW.drop('setup: ' + name + ': a compute line is not a number'); return c.ok ? tpl(t, c) : ''; }; };   // such a line stays empty
       o.state = N.state;
