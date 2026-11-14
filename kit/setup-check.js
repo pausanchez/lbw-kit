@@ -18,17 +18,17 @@
   var KEYS = {
     cards: 'type cls param items item kicker disclaimer single fallback pointsCls allowDup lang reply links status params money source',
     table: 'type cls param items item kicker fold pick same allowDup lang reply links fallback params money source',
-    form: 'type cls lang kicker title cta note preset steps summary fields allowDup collapse params money',
+    form: 'type cls lang kicker title cta note preset steps summary fields allowDup collapse density params money',
     contact: 'type cls lang kicker title big rows hours note buttons buttonsWithSummary summary compact allowDup params money',
     chips: 'type cls lang max items own carriedBy crowd params money',
     carousel: 'type cls lang allowDup items source filter kicker title titles lead note reply links max params money',
-    calc: 'type cls lang kicker title cta state controls tables compute money result send notes links allowDup collapse params',
+    calc: 'type cls lang kicker title cta state controls tables compute money result send notes links allowDup collapse density params',
     stats: 'type cls lang allowDup items item reply links params money source',
     people: 'type cls lang kicker title note allowDup items filter reply params money source',
     consent: 'type cls lang icon title text yes no link allowDup params money',
-    slots: 'type cls lang kicker title cta note sep h12 collapse allowDup ics days weekly say params money',
+    slots: 'type cls lang kicker title cta note sep h12 collapse density allowDup ics days weekly say params money',
     confirm: 'type cls lang allowDup form status title rows steps note actions params money',
-    review: 'type cls lang kicker title cta note collapse allowDup state tables compute money lines total discard send params',
+    review: 'type cls lang kicker title cta note collapse density allowDup state tables compute money lines total discard send params',
     chart: 'type cls lang kicker title sub note links allowDup kind stack height state tables compute money x series y mark summary params',
     compare: 'type cls lang kicker title titles param items rows min max empty note same primary allowDup params money source',
     season: 'type cls lang kicker ranges words rows note reply links allowDup params money',
@@ -338,6 +338,7 @@
         var known = KEYS[w.type].split(' ').concat('flow');
         if (w.flow != null && w.flow !== true && !(isArr(w.flow) && w.flow.length && w.flow.every(function (k) { return isStr(k) && /^[a-z_][a-z0-9_]*$/.test(k); }))) err('"flow" is true, or the list of keys its flow tag writes, e.g. ["texto", "lang"]');
         Object.keys(w).forEach(function (k) { if (known.indexOf(k) < 0) err('unknown option "' + k + '" for ' + w.type + '. Known: ' + known.join(', ')); });
+        if (w.density != null && w.density !== 'compact' && w.density !== 'comfy') err('"density" is "compact" (one question at a time, a footer with the total) or "comfy" (the v0.9.5 layout)');   // v0.10
         NEED[w.type].forEach(function (k) { if (w[k] == null && !(k === 'items' && w.source != null)) err('missing "' + k + '"'); });
         var pdefs = isObj(w.params) ? w.params : {};
         keyedRows(w);   // v0.9.4.2
