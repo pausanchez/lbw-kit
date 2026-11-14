@@ -10,6 +10,7 @@
 !/test/
 !/dist/
 !/gallery/
+!/.github/
 
 /kit/example-leadgen/
 /kit/tests/
