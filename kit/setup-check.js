@@ -38,6 +38,8 @@
     slide: 'id img badge kicker name sub price save status desc reply link gallery until'.split(' '), compare: 'name values reply link img'.split(' ') };
   var NEED = { cards: [], table: [], form: ['steps', 'summary', 'cta'], contact: ['title'], chips: ['items'], carousel: [], calc: ['state', 'controls', 'result', 'send', 'cta'],
     stats: [], people: ['items'], consent: ['title', 'yes', 'no'], slots: ['cta', 'say'], confirm: ['form', 'title'], review: ['state', 'lines', 'send', 'cta'], chart: ['title', 'x', 'series'], compare: ['items', 'rows'], season: ['ranges'], rating: ['title', 'send'] };
+  KEYS.calendar = 'type cls lang kicker title cta note mode nights notice horizon months rates days closed unlisted priceFrom source send collapse allowDup params money';   // v0.10
+  NEED.calendar = ['cta', 'send'];
   // check every language's copy; a problem that every language has is reported once, the others with their language
   // v0.8.1.10 · the photo sets: a base under "links", sizes as [folder, width] going up, an optional ratio [w, h]
   function photoSets(cfg, top) {
@@ -194,6 +196,7 @@
         var read = ['lang'], keys = [], taken = [], RES = 'id ids lang title name role text value label band max i day from to names'.split(' ');
         if (['cards', 'table', 'stats'].indexOf(w.type) >= 0 && w.item == null) read.push(w.type === 'stats' ? 'id' : w.param || 'id');
         if (w.type === 'compare') read.push(w.param || 'ids'); if (w.type === 'carousel') read.push('ids');
+        if (w.type === 'calendar') read.push('month', 'from', 'to');   // v0.10: the tag's preset
         [w.status, w.filter, w.preset].forEach(function (x) { if (isObj(x) && isStr(x.param || x.by)) read.push(x.param || x.by); });
         if (isObj(w.state)) Object.keys(w.state).forEach(function (k) { var d = w.state[k]; read.push(isObj(d) && isStr(d.param) ? d.param : k); taken.push(k); });
         ['tables', 'compute'].forEach(function (k) { if (isObj(w[k])) taken = taken.concat(Object.keys(w[k])); });
@@ -365,7 +368,7 @@
         // v0.10 · "live": the "Live" chip. On by default for rows from a source; true for a flow tag's params (opt-in)
         if (w.live != null) { if (typeof w.live !== 'boolean') err('"live" is true or false: the "Live" chip beside the title'); else if (w.live && w.source == null && w.params == null) err('"live": true needs "params" (a flow tag\'s values) or a "source": fixed data isn\'t live'); }
         if (w.params != null) { paramsCheck(w); w = sampled(w, pdefs); }
-        if (w.source != null && w.type !== 'carousel') itemSource(w, pdefs);
+        if (w.source != null && w.type !== 'carousel' && w.type !== 'calendar') itemSource(w, pdefs);
         // v0.9.0 · "money" formats {x:money} in every type (a money param): { cur, after, dec, th, cents, space }
         if (w.money != null && ['calc', 'review', 'chart'].indexOf(w.type) < 0) { if (!isObj(w.money)) err('"money" is { "cur": "€", "after": true, "dec": ",", "th": "." }'); else only(w.money, ['cur', 'after', 'dec', 'th', 'cents', 'space'], 'money'); }
         ['links', 'buttons', 'buttonsWithSummary', 'actions'].forEach(function (k) { list(w[k], k, function (a, at) { act(a, err, at, w.type === 'calc' && k === 'links'); }); });
@@ -726,6 +729,65 @@
             if (w.code != null) { if (!isStr(w.code)) err('"code" is text, as "{ref}": a param or a value the ' + kind + ' sent (never invented)'); else C(w.code, 'code'); }
             if (w.ics != null && w.ics !== false) { if (!isObj(w.ics)) err('"ics" is { "title", "where", "label" } or false'); else { only(w.ics, ['title', 'where', 'label', 'file'], 'ics'); ['title', 'where', 'label'].forEach(function (k) { if (w.ics[k] != null) { if (!isStr(w.ics[k])) err('ics.' + k + ' must be text'); else C(w.ics[k], 'ics.' + k); } }); if (w.ics.file != null && !(isStr(w.ics.file) && /^[a-z0-9_-]{1,40}$/i.test(w.ics.file))) err('ics.file is a file name: letters, digits, - and _'); } }
           }
+        }
+        /* v0.10 · calendar */
+        if (w.type === 'calendar') {
+          var rg = w.mode !== 'single', DT = function (x) { return isStr(x) && LBW.day.read(x) != null; }, whole = function (x, a, b) { return Number.isInteger(x) && x >= a && x <= b; };
+          var amount = function (x) { return typeof x === 'number' ? isFinite(x) && x >= 0 && x < 1e8 : /^\d{1,8}([.,]\d{1,2})?$/.test(String(x)); }, priced = false;
+          if (w.mode != null && w.mode !== 'range' && w.mode !== 'single') err('"mode" is "range" (check-in and check-out, the default) or "single" (one day)');
+          if (w.nights != null) {
+            if (!rg) err('"nights" is for a range: a single day has no nights');
+            else if (!isObj(w.nights)) err('"nights" is { "min": 2, "max": 14 }: the shortest and the longest stay');
+            else { only(w.nights, ['min', 'max'], 'nights'); ['min', 'max'].forEach(function (k) { if (w.nights[k] != null && !whole(w.nights[k], 1, 365)) err('nights.' + k + ' is a whole number of nights, 1 to 365'); });
+              if (whole(w.nights.min, 1, 365) && whole(w.nights.max, 1, 365) && w.nights.min > w.nights.max) err('nights: "min" (' + w.nights.min + ') is more than "max" (' + w.nights.max + ')'); }
+          }
+          if (w.notice != null && !whole(w.notice, 0, 365)) err('"notice" is how many days from today can\'t be picked yet: a whole number, 0 (today can) to 365');
+          if (w.horizon != null && !whole(w.horizon, 1, 730)) err('"horizon" is how many days ahead can be picked: a whole number, 1 to 730 (365 by default)');
+          if (w.months != null && w.months !== 1 && w.months !== 2) err('"months" is 1 or 2 (2: a second month beside the first where the card is wide)');
+          if (w.unlisted != null && w.unlisted !== 'free' && w.unlisted !== 'closed') err('"unlisted" is "free" (a day with no data can be picked, the default) or "closed" (only the days the data lists)');
+          if (w.priceFrom != null && typeof w.priceFrom !== 'boolean') err('"priceFrom" is true (the total reads "from 654 €") or left out');
+          list(w.rates, 'rates', function (r, at) {
+            if (!isObj(r)) { err(at + ' is { "from": "1/12/2026", "to": "31/12/2026", "price": 189 }'); return; } only(r, ['from', 'to', 'price'], at);
+            if (!DT(r.from) || !DT(r.to)) err(at + ': "from" and "to" are dates, D/M/YYYY');
+            else if (LBW.day.read(r.to) < LBW.day.read(r.from)) err(at + ': "to" is before "from"');
+            else if (LBW.day.read(r.to) - LBW.day.read(r.from) > 800) err(at + ': a rate covers 800 days at most');
+            if (!amount(r.price)) err(at + '.price is a plain amount per night, as 189 or 189.5 (no currency, no thousands separator)'); else priced = true;
+          });
+          var seenD = {};
+          list(w.days, 'days', function (d, at) {
+            if (!isObj(d)) { err(at + ' is { "date": "21/11/2026", "price": 189, "state": "few", "left": 2 }'); return; } only(d, ['date', 'price', 'state', 'left'], at);
+            if (!DT(d.date)) err(at + '.date is a date, D/M/YYYY'); else { var dn = LBW.day.read(d.date); if (seenD[dn] != null) err(at + ': ' + d.date + ' is already in days[' + seenD[dn] + ']'); else seenD[dn] = at.replace(/^days\[|\]$/g, ''); }
+            if (d.price != null) { if (!amount(d.price)) err(at + '.price is a plain amount, as 189 or 189.5 (no currency, no thousands separator)'); else priced = true; }
+            if (d.state != null && ['free', 'few', 'full', 'closed'].indexOf(d.state) < 0) err(at + '.state is free, few, full or closed');
+            if (d.left != null && !whole(d.left, 0, 9999)) err(at + '.left is how many are left: a whole number, 0 or more');
+            if (d.price == null && d.state == null && d.left == null) err(at + ' says nothing about the day: give "price", "state" or "left"');
+          });
+          if (w.closed != null) {
+            if (!isObj(w.closed)) err('"closed" is { "weekdays": [1], "dates": ["24/12", "1/1/2027"] } (0 = Sunday)');
+            else { only(w.closed, ['weekdays', 'dates'], 'closed');
+              list(w.closed.weekdays, 'closed.weekdays', function (x, at) { if (!whole(x, 0, 6)) err(at + ' is a weekday, 0 (Sunday) to 6'); });
+              list(w.closed.dates, 'closed.dates', function (x, at) { var dmm = /^(\d{1,2})\/(\d{1,2})$/.exec(typeof x === 'string' ? x : ''); if (!(dmm ? +dmm[1] >= 1 && +dmm[1] <= 31 && +dmm[2] >= 1 && +dmm[2] <= 12 : DT(x))) err(at + ' is D/M (every year) or D/M/YYYY'); }); }
+          }
+          var so = w.source;
+          if (so != null) {
+            if (!isObj(so)) err('"source" is { "data": a key of LBW.data, "map": { "date": "{fecha}", "price": "{precio}", "state": "{estado}", "left": "{quedan}" } }');
+            else { only(so, ['data', 'wait', 'upgrade', 'path', 'map', 'max'], 'source'); priced = true;
+              if (so.data == null) err('source.data is missing: the key of the data message that brings the days'); else dataCheck(so, pdefs);
+              if (so.path != null && !(isStr(so.path) && /^[A-Za-z0-9_]+(\.[A-Za-z0-9_]+)*$/.test(so.path))) err('source.path is the dotted key of the list inside the data, as "temporada.dias"');
+              if (so.max != null && !whole(so.max, 1, 2000)) err('source.max is how many rows are read: a whole number from 1 to 2000');
+              if (so.map != null) { if (!isObj(so.map)) err('source.map is { "date": "{fecha}", "price": "{precio}", "state": "{estado}", "left": "{quedan}" }');
+                else { only(so.map, ['date', 'price', 'state', 'left'], 'source.map'); Object.keys(so.map).forEach(function (k) { if (!(isStr(so.map[k]) && /^\{[A-Za-z0-9_]+(\.[A-Za-z0-9_]+)*\}$/.test(so.map[k]))) err('source.map.' + k + ' is one column, as "{' + k + '}"'); }); } }
+            }
+          }
+          if (priced && w.money == null) err('prices need "money", the way to write them: { "cur": "€", "after": true, "dec": ",", "th": "." }');
+          if (w.unlisted === 'closed' && w.rates == null && w.days == null && so == null) err('"unlisted": "closed" with no "rates", "days" or "source": every day would be closed');
+          if (isObj(w.params)) ['nights', 'total', 'price', 'summary', 'month'].forEach(function (k) { if (own(w.params, k)) err('params.' + k + ': "' + k + '" is a name the calendar already fills; call it something else'); });
+          var CK = rg ? ['from', 'to', 'day', 'nights', 'total', 'summary'] : ['from', 'day', 'price', 'summary'], CM = rg ? ['total'] : ['price'], CD = rg ? ['from', 'to', 'day'] : ['from', 'day'];
+          var CT = function (t, where) { text(t, where, CK, [], CM, CD); if (typeof t === 'string') t.replace(HOLE, function (m, b) { var x = SLOT.exec(b); if (x && CM.indexOf(x[1]) >= 0 && !/:money\b/.test(x[2])) err(where + ': "' + m + '" is an amount in cents: write {' + x[1] + ':money}'); return m; }); };
+          if (!isObj(w.send) || !isStr(w.send.text)) err('"send" is { "text": "Quiero reservar del {from:dmy} al {to:dmy}", "fields": { "llegada": "{from:dmy}" } }');
+          else { only(w.send, ['text', 'fields'], 'send'); CT(w.send.text, 'send.text');
+            if (w.send.fields == null) err('send.fields is required: dates that aren\'t saved can\'t be used by the flow');
+            else { fieldsCheck(w.send.fields, 'send.fields', err, CK); if (isObj(w.send.fields)) Object.keys(w.send.fields).forEach(function (k) { var fv = w.send.fields[k]; if (typeof fv === 'string' && (fv.match(/\{([A-Za-z_]\w*)/g) || []).every(function (h) { return CK.indexOf(h.slice(1)) >= 0; })) CT(fv, 'send.fields.' + k); }); } }
         }
       } catch (e) { err('could not be checked (' + e.message + ')'); }
     });

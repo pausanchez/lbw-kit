@@ -183,6 +183,19 @@
       "send": { "text": "Valoro la respuesta: {label}", "fields": { "gx_util": "{value}" } }
     },
 
+    "noches": {
+      "type": "calendar", "kicker": "Cabaña de la vía verde", "title": "Elige tus noches", "cta": "Reservar estas noches",
+      "note": "Precios y plazas ficticios para la galería.",
+      "money": { "cur": "€", "after": true, "dec": ",", "th": ".", "cents": false }, "priceFrom": true,
+      "nights": { "min": 2, "max": 14 },
+      "rates": [{ "from": "1/11/2026", "to": "31/3/2027", "price": 189 }, { "from": "4/12/2026", "to": "8/12/2026", "price": 229 }],
+      "days": [{ "date": "21/11/2026", "price": 276, "state": "few", "left": 1 }, { "date": "28/11/2026", "state": "few", "left": 2 },
+               { "date": "5/12/2026", "state": "full" }, { "date": "6/12/2026", "state": "full" }],
+      "closed": { "dates": ["24/12", "25/12", "31/12", "1/1"] },
+      "send": { "text": "Quiero reservar la cabaña del {from:dmy} al {to:dmy}: {nights} noches, {total:money}",
+                "fields": { "gx_llegada": "{from:dmy}", "gx_salida": "{to:dmy}", "gx_noches": "{nights}", "gx_importe": "{total:money}" } }
+    },
+
     "dispo": {
       "type": "cards", "kicker": "Rutas guiadas · disponibilidad", "live": true,
       "money": { "cur": "€", "after": true, "dec": ",", "th": "." },

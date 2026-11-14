@@ -219,6 +219,30 @@
   var NUMF = Object.create(null);
   function numFmt(l) { return NUMF[l] || (NUMF[l] = new Intl.NumberFormat(l, { maximumFractionDigits: 2 })); }
 
+  /* v0.10 · calendar */
+  // a calendar's days by day number: { p: cents, s: free | few | full | closed, left }. Rows from the config or a data message,
+  // read strictly: a date that isn't one, a price that isn't a plain amount (189, 189.5, "189,50"), an unknown state or a
+  // count that isn't a whole number skips the row (logged); "left" alone gives the state: 0 full, 1–3 few, more free
+  var CALS = { free: 1, few: 1, full: 1, closed: 1 };
+  function cents(x) {
+    if (typeof x === 'number') return isFinite(x) && x >= 0 && x < 1e8 ? Math.round(x * 100) : null;
+    var m = /^(\d{1,8})(?:[.,](\d{1,2}))?$/.exec(String(x == null ? '' : x).trim()); return m ? +m[1] * 100 + (m[2] ? +(m[2] + '0').slice(0, 2) : 0) : null;
+  }
+  function calRow(r) {
+    if (!isObj(r)) return null; var n = LBW.day.read(r.date), d = {}, st = String(r.state == null ? '' : r.state).trim().toLowerCase(); if (n == null) return null;
+    if (r.price != null && r.price !== '') { d.p = cents(r.price); if (d.p == null) return null; }
+    if (r.left != null && r.left !== '') { if (!/^\d{1,4}$/.test(String(r.left).trim())) return null; d.left = +r.left; }
+    if (st) { if (!own(CALS, st)) return null; d.s = st; } else if (d.left != null) d.s = d.left === 0 ? 'full' : d.left <= 3 ? 'few' : 'free';
+    return { n: n, d: d };
+  }
+  function calMap(rates, rows, name) {
+    var m = Object.create(null);
+    (rates || []).forEach(function (r) { var a = isObj(r) ? LBW.day.read(r.from) : null, b = isObj(r) ? LBW.day.read(r.to) : null, c = isObj(r) ? cents(r.price) : null;
+      if (a == null || b == null || c == null || b < a || b - a > 800) { LBW.drop(name + ': rate skipped'); return; } for (var n = a; n <= b; n++) m[n] = { p: c }; });
+    (rows || []).forEach(function (r, i) { var x = calRow(r); if (!x) { LBW.drop(name + ': day skipped (row ' + i + ')'); return; } m[x.n] = merge(m[x.n], x.d); });
+    return m;
+  }
+
   // ── one maker per type ───────────────────────────────────────────────────────────────────────────
   var MAKE = {
     cards: function (cfg, name, w, lang) {
@@ -396,6 +420,33 @@
         return [tpl(w.send.text, sc), fieldsOf(w.send.fields, sc) || {}];
       };
       K.rating(name, o);
+    },
+    /* v0.10 · calendar */
+    // "rates": [{ from, to, price }] (a price for each day of a range; a later one wins), "days": [{ date, price, state, left }]
+    // (one day; over the rates), "closed": { weekdays: [0–6], dates: ["24/12", "1/1/2027"] }, "unlisted": "closed" when the data
+    // lists only the days that can be booked. Or "source": { "data" } (a data message's rows, mapped like a table's), with
+    // rates/days as the saved copy. "send" over {from} {to} {day} {nights} {total} {price} {summary}; prices in units (189.5)
+    calendar: function (cfg, name, w, lang) {
+      var o = pick(w, ['cls', 'lang', 'kicker', 'title', 'cta', 'note', 'mode', 'notice', 'horizon', 'months', 'money', 'priceFrom', 'collapse', 'allowDup']), D = LBW.day, src = w.source;
+      if (isObj(w.nights)) { o.min = w.nights.min; o.max = w.nights.max; }
+      if (isObj(w.closed)) { var wk = w.closed.weekdays || [], on = D.on(w.closed.dates || []); o.closed = function (n) { return wk.indexOf(D.parts(n).w) >= 0 || on(n); }; }
+      var saved = w.rates || w.days ? { days: calMap(w.rates, w.days, name), unlisted: w.unlisted } : null;
+      var live = function (data) { return { days: calMap(null, mapRows(cfg, name, merge(src, { map: merge({ date: '{date}', price: '{price}', state: '{state}', left: '{left}' }, src.map) }), data, lang, { table: true }), name), unlisted: w.unlisted }; };
+      o.days = function () {
+        if (!isObj(src) || src.data == null) return saved || { days: {}, unlisted: w.unlisted };
+        var key = src.data, cur = LBW.data.get(key), up = src.upgrade == null ? 20000 : src.upgrade;
+        if (cur !== undefined) { try { return live(cur); } catch (e) { LBW.drop(name + ': data "' + key + '": ' + e.message + ' (the saved copy)'); return saved; } }
+        return { later: LBW.data.wait(key, saved ? src.wait : Math.max(src.wait == null ? 1500 : src.wait, up)).then(live), fallback: saved ? function () { return saved; } : null,
+          upgrade: up > 0 && saved ? function (el) { return LBW.data.wait(key, up).then(function (d) {
+            if (!el.isConnected) return null;
+            if (H.usedByVisitor(el)) { LBW.drop(name + ': data "' + key + '" came late; the saved copy stays (already used)'); return null; }
+            try { return live(d); } catch (e) { return null; } }); } : null };
+      };
+      o.send = function (sel, ctx) {
+        var sc = { v: sel, items: {}, money: function (n) { return H.money(n, merge(w.money, n % 100 ? { nb: false, cents: true } : { nb: false })); }, lang: w.lang || ctx.lang };
+        return [tpl(w.send.text, sc), fieldsOf(w.send.fields, sc) || {}];
+      };
+      K.calendar(name, o);
     },
     consent: function (cfg, name, w, lang) { K.consent(name, pick(w, ['cls', 'lang', 'icon', 'title', 'text', 'yes', 'no', 'link', 'allowDup'])); },
     slots: function (cfg, name, w, lang) {
@@ -728,7 +779,7 @@
     if (isObj(w.params)) { var vals = params(name, w.params, p); if (!vals) return null; w = withParams(w, w.params, vals, lang);
       // "data": { "param": "src" } · the key is the value of a "one" param ([[p:tarifas src=tarifas_es]])
       if (isObj(w.source) && isObj(w.source.data)) { var dk = vals[w.source.data.param]; if (!isStr(dk)) return null; w = merge(w, { source: merge(w.source, { data: dk }) }); } }
-    if (isObj(w.source) && w.source.data != null && w.type !== 'carousel') return fromData(c, name, w, lang, p, ctx);
+    if (isObj(w.source) && w.source.data != null && w.type !== 'carousel' && w.type !== 'calendar') return fromData(c, name, w, lang, p, ctx);
     var e = build(c, name, w, lang)(p, ctx); if (e && w.live === true && !isObj(w.source)) H.live(e, lang);   // v0.10: a flow tag's live values, opt-in (an agent may write params from memory)
     return e;
   }
