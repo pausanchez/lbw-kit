@@ -224,3 +224,38 @@
 .lbw-motion .lbw-new .lbw-check path { stroke-dasharray: 1; animation: lbw-draw var(--lbw-dur-slow) var(--lbw-ease) 160ms both; }
 .lbw-motion .lbw-receipt.lbw-new:not(.kit-sentline) { animation: lbw-fade var(--lbw-dur) var(--lbw-ease) both; }
 .lbw.is-finished > .lbw-box::before { background: var(--lbw-done, var(--kit-ok-c, #1F7A45)); }   /* a theme's top line turns calm (no line unless the theme draws one) */
+
+/* ── screen mode (runtime/screen.js, "screen": { "on": true }): the chat as one screen at a time ─────────────────────────
+   Inert unless screen mode marks the chat's window (data-lbw-screen). Earlier rows are hidden while the window is in
+   'collapse' mode and stay in the DOM ("View conversation" shows them). The header and the bar are our own slots beside the
+   message column; the bar is a pointer shortcut (aria-hidden) for the screen's primary action. Container queries only. */
+[data-lbw-screen="collapse"] [data-lbw-past] { display: none !important; }
+[data-lbw-slot] { flex: none; box-sizing: border-box; font: 400 14px/20px var(--lbw-font); color: var(--lbw-ink); background: var(--lbw-card); container: lbwscr / inline-size; }
+[data-lbw-slot][hidden] { display: none !important; }
+.lbw-scr-head { padding: 6px 16px 10px; border-bottom: 1px solid var(--lbw-line); }
+.lbw-scr-top { display: flex; align-items: center; gap: 8px; min-height: 32px; }
+.lbw-scr-title { flex: 1 1 auto; min-width: 0; margin: 0; font: 600 15px/20px var(--lbw-display, var(--lbw-font)); overflow-wrap: anywhere; }
+.lbw-scr-hist { flex: none; min-height: 44px; margin: -6px -10px -6px auto; padding: 0 10px; border: 0; background: none; color: var(--lbw-accent-text, var(--lbw-accent)); font: 600 13px/18px var(--lbw-font); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.lbw-scr-hist[aria-expanded="true"] { color: var(--lbw-ink); }
+.lbw-scr-chev { display: inline-block; text-decoration: none; }
+.lbw-scr-hist:focus-visible { outline: 2px solid var(--lbw-focus, var(--lbw-ink)); outline-offset: -2px; }
+.lbw-scr-steps { display: flex; gap: 6px; margin: 4px 0 0; padding: 0; list-style: none; }
+.lbw-scr-steps li { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 5px; font: 400 12px/16px var(--lbw-font); color: var(--lbw-muted); }
+.lbw-scr-steps li::before, .lbw-scr-track { content: ""; height: 4px; border-radius: 2px; background: rgba(13,13,13,.14); }
+.lbw-scr-steps .is-cur { color: var(--lbw-ink); font-weight: 600; }
+.lbw-scr-l { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lbw-scr-ck { color: var(--lbw-accent-text, var(--lbw-accent)); }
+.lbw-scr-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.lbw-scr-prog p { margin: 2px 0 6px; font: 600 12px/16px var(--lbw-font); color: var(--lbw-muted); }
+.lbw-scr-track { overflow: hidden; }
+@supports (color: color-mix(in srgb, red, blue)) { .lbw-scr-steps li::before, .lbw-scr-track { background: color-mix(in srgb, var(--lbw-ink) 14%, transparent); } }
+.lbw-scr-steps .is-done::before, .lbw-scr-steps .is-cur::before, .lbw-scr-track > i { display: block; height: 100%; background: var(--lbw-accent); }
+.lbw-scr-steps .is-done::before, .lbw-scr-steps .is-cur::before { height: 4px; }
+@container lbwscr (max-width: 420px) { .lbw-scr-steps.is-many li:not(.is-cur) .lbw-scr-l { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); } }
+.lbw-scr-bar { display: flex; align-items: center; gap: 12px; padding: 8px 16px; border-top: 1px solid var(--lbw-line); box-shadow: 0 -4px 8px -4px rgba(0,0,0,.1); }
+.lbw-scr-sum { flex: 1 1 auto; min-width: 0; font-weight: 700; overflow-wrap: anywhere; }
+.lbw-scr-sum:empty { display: none; }
+.lbw-scr-go { flex: 1 1 auto; }
+.lbw-scr-sum:not(:empty) + .lbw-scr-go { flex: 0 1 auto; }
+@keyframes lbw-scr-in { from { opacity: 0; transform: translateY(14px); } }
+.lbw-motion [data-lbw-screen] [data-lbw-in] { animation: lbw-scr-in var(--lbw-dur-slow, 360ms) var(--lbw-ease, ease) both; }

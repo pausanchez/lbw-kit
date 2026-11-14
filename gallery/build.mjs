@@ -3,6 +3,7 @@
 // The library and its CSS are inlined, so the page works offline and as an Artifact.
 import { readFileSync, writeFileSync } from 'node:fs';
 import { groups, types, tags, examples } from './docs.mjs';
+import { screenPage, screenSection } from './screen.mjs';
 
 const root = new URL('../', import.meta.url);
 const read = (p) => readFileSync(new URL(p, root), 'utf8');
@@ -241,6 +242,11 @@ code.ex-src { display: block; padding: 4px 8px; font-size: 12px; line-height: 1.
 .tones { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; }
 .tones span { font: 500 12px var(--f-mono); border-radius: 999px; padding: 3px 10px; border: 1px solid var(--line); }
 .foot { color: var(--muted); font-size: 13px; margin-top: 40px; }
+/* the screen-mode entry: its own page in a phone-sized frame (screen mode lays out a whole chat window) */
+.feature { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 22px; scroll-margin-top: 80px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.stage.is-frame { flex: 0 1 392px; width: min(392px, 100%); }
+.phone { display: block; width: 100%; height: 720px; border: 1px solid var(--chat-line); border-radius: 22px; background: var(--chat-bg); }
+.frame-note { margin: 0; font-size: 13px; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 html { scroll-behavior: smooth; }
 
@@ -271,9 +277,10 @@ ${libCss}
   </div>
 
   <div class="layout">
-    <nav class="index" aria-label="Tipos">${nav}<div class="nav-group"><p class="nav-h">Referencia</p><a href="#piezas"><span>Piezas comunes</span></a></div></nav>
+    <nav class="index" aria-label="Tipos">${nav}<div class="nav-group"><p class="nav-h">Modo pantalla</p><a href="#pantalla"><span>Una pantalla cada vez</span><code>screen</code></a></div><div class="nav-group"><p class="nav-h">Referencia</p><a href="#piezas"><span>Piezas comunes</span></a></div></nav>
     <main>
 ${body}
+${screenSection(config)}
       <div class="group" id="piezas">
         <div class="group-head"><h2>Piezas comunes</h2><p>Lo que comparten todos los tipos. La referencia completa está en <code>docs/20-library-and-json.md</code>.</p></div>
         <div class="ref">
@@ -402,10 +409,14 @@ LBW.data.put('salidas', SALIDAS);
 `;
 
 writeFileSync(new URL('gallery/index.html', root), html);
+// the screen-mode demo: a page of its own (screen mode lays out the whole chat window), framed by the entry above
+const screenHtml = screenPage({ config, lib: lib, libCss, version });
+writeFileSync(new URL('gallery/screen.html', root), screenHtml);
 // --page: a standalone copy for GitHub Pages (the Artifact wrapper adds the doctype, charset and viewport; a plain host doesn't)
 if (process.argv.includes('--page')) {
   const { mkdirSync } = await import('node:fs');
   mkdirSync(new URL('site/', root), { recursive: true });
+  writeFileSync(new URL('site/screen.html', root), screenHtml);
   writeFileSync(new URL('site/index.html', root), '<!doctype html>\n<html lang="es">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n' + html + '\n<p style="max-width:960px;margin:32px auto;padding:0 16px;font:13px/1.5 system-ui,sans-serif;color:var(--muted)">Proyecto personal, no es un producto oficial de Landbot. Código: <a href="https://github.com/pausanchez/lbw-kit">github.com/pausanchez/lbw-kit</a>. Datos ficticios.</p>\n</html>\n');   // the head closes itself at the first element of the body
 }
 console.log('wrote gallery/index.html', (html.length / 1024).toFixed(0) + ' KB', count + ' types', types.length + ' entries');

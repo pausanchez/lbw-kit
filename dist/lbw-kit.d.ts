@@ -396,6 +396,32 @@ export interface Kit {
 /** @experimental A kit maker: registers a widget from an options object. */
 export type KitMaker = (cfg: any, ...rest: any[]) => any;
 
+/** Screen mode (runtime/screen.js): the current screen, or `null` while there is none or screen mode is off. */
+export interface ScreenState {
+  /** The current step's id (from the tag's `step=`, else the widget's `"step"`, else the last one), or `null`. */
+  step: string | null;
+  /** Its place in `screen.header.steps` (0-based), or -1. */
+  index: number;
+  /** How many steps there are. */
+  of: number;
+  /** The tag name of the widget that is the screen. */
+  widget: string | null;
+  /** `true` while the earlier messages are shown ("View conversation"). */
+  open: boolean;
+  /** How many earlier messages are folded. */
+  past: number;
+}
+
+/** Screen mode: the chat as an app, one screen at a time. `LBW.kit.setup` starts it from the config's `"screen"`. */
+export interface ScreenApi {
+  /** Turns it on by hand (no kit config): `true` when on. A wrong config, or a chat whose DOM isn't the expected one, stays a normal chat. */
+  start(config: NonNullable<LbwConfig['screen']>, opts?: { lang?: string; widgets?: Record<string, { screen?: boolean; step?: string }> }): boolean;
+  /** The current screen. */
+  state(): ScreenState | null;
+  /** Shows (`true`) or folds again (`false`) the earlier messages; returns the new state, or `false` when off. */
+  history(open: boolean): boolean;
+}
+
 export interface Api {
   /** The library's version, the same as package.json. */
   readonly version: string;
@@ -442,6 +468,8 @@ export interface Api {
   motion(): boolean;
   /** Says one short line in the chat's polite live region (v0.9.5). */
   announce(text: string, lang: string, key?: string): unknown;
+  /** Screen mode (runtime/screen.js): inert until a config's `"screen": { "on": true }` or `start()`. */
+  screen: ScreenApi;
   /** The kit. Present only when `kit/kit.js` is loaded. */
   kit: Kit;
   /** @experimental In the source's `LBW`, not in the docs: logs to `window.__lbwDropped`. */

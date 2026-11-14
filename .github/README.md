@@ -19,7 +19,7 @@ Pin the version in the URL (never `@latest`) and keep `integrity` and `crossorig
 Custom JS:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/pausanchez/lbw-kit@v0.12.0/dist/lbw-kit.min.js" integrity="sha384-VlGJUZlHC63YVn8M1g7paAH+WlfwpPrd+yGC50bPxyD+NJoQow3erzxNLxN06VK0" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/gh/pausanchez/lbw-kit@v0.12.0/dist/lbw-kit.min.js" integrity="sha384-rE5myCyHMrQ433ZDpGd+GAOo/erE9xU5Iw3wb3VzkIWnO3HkKmVhuu7mO7wrWi3N" crossorigin="anonymous"></script>
 <script>LBW.landbot&&LBW.landbot(this);LBW.kit.setup({ …your config… })</script>
 ```
 

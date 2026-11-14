@@ -1137,11 +1137,12 @@
       if (made.length) host.classList.add('has-lbw');
       if (made.length) reveal(host, wasAtEnd);
     }
-    // one-shot groups nobody used go quiet once the visitor has written after them
+    // one-shot groups nobody used go quiet once the visitor has written after them. Screen mode (runtime/screen.js) marks the
+    // current screen's widget .is-screen: a question typed on a screen doesn't end it, the screen does (the next one)
     var all = H.messages(), lastU = -1;
     [].forEach.call(all, function (m, i) { if (H.isUser(m)) lastU = i; });
     [].forEach.call(all, function (m, i) { if (i < lastU) [].forEach.call(m.querySelectorAll('.lbw-unsent'), function (x) { x.remove(); }); });   // v0.9.5: the visitor moved on
-    [].forEach.call(all, function (m, i) { if (i < lastU) [].forEach.call(m.querySelectorAll('.lbw-once:not(.is-done)'), function (g) { g.classList.add('is-stale'); done(g); var w = g.closest('.lbw'); if (w && !w.querySelector('.is-sent')) w.classList.add('is-spent'); }); });   // v0.8.1.9: is-spent: nothing was sent from this card
+    [].forEach.call(all, function (m, i) { if (i < lastU && !m.querySelector('.lbw.is-screen')) [].forEach.call(m.querySelectorAll('.lbw-once:not(.is-done)'), function (g) { g.classList.add('is-stale'); done(g); var w = g.closest('.lbw'); if (w && !w.querySelector('.is-sent')) w.classList.add('is-spent'); }); });   // v0.8.1.9: is-spent: nothing was sent from this card
   }
   function start() {
     if (started) return; started = true;

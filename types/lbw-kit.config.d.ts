@@ -382,6 +382,10 @@ export interface LbwCardsWidget {
   /** The "Live" chip beside the title (true by default for rows from a source). */
   live?: boolean | null;
   flow?: LbwFlow;
+  /** Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one). */
+  screen?: boolean | null;
+  /** Screen mode: the step this widget is, an id of "screen.header.steps" (a tag's step= wins). */
+  step?: string | null;
 }
 
 /** A table by id (or one "item"): 2–5 columns and 1–30 rows; "pick" makes each row a button. */
@@ -445,6 +449,10 @@ export interface LbwTableWidget {
   /** The "Live" chip beside the title (true by default for rows from a source). */
   live?: boolean | null;
   flow?: LbwFlow;
+  /** Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one). */
+  screen?: boolean | null;
+  /** Screen mode: the step this widget is, an id of "screen.header.steps" (a tag's step= wins). */
+  step?: string | null;
 }
 
 /** Questions one step at a time; sends a summary and saves fields. */
@@ -483,6 +491,10 @@ export interface LbwFormWidget {
   params?: LbwParams;
   money?: LbwMoney;
   flow?: LbwFlow;
+  /** Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one). */
+  screen?: boolean | null;
+  /** Screen mode: the step this widget is, an id of "screen.header.steps" (a tag's step= wins). */
+  step?: string | null;
 }
 
 /** How to reach you: a title, rows, opening hours and buttons. */
@@ -521,6 +533,10 @@ export interface LbwContactWidget {
   params?: LbwParams;
   money?: LbwMoney;
   flow?: LbwFlow;
+  /** Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one). */
+  screen?: boolean | null;
+  /** Screen mode: the step this widget is, an id of "screen.header.steps" (a tag's step= wins). */
+  step?: string | null;
 }
 
 /** Quick replies: [label, sentence] or { label, say, desc, fields }. */
@@ -549,6 +565,10 @@ export interface LbwChipsWidget {
   params?: LbwParams;
   money?: LbwMoney;
   flow?: LbwFlow;
+  /** Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one). */
+  screen?: boolean | null;
+  /** Screen mode: the step this widget is, an id of "screen.header.steps" (a tag's step= wins). */
+  step?: string | null;
 }
 
 /** Slides, saved or read live from a CSV, JSON or LBW.data; a filter the tag drives. */
@@ -618,6 +638,10 @@ export interface LbwCarouselWidget {
   /** "media" (photos lead, no box) or "box". */
   style?: "media" | "box" | null | LbwByLang;
   flow?: LbwFlow;
+  /** Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one). */
+  screen?: boolean | null;
+  /** Screen mode: the step this widget is, an id of "screen.header.steps" (a tag's step= wins). */
+  step?: string | null;
 }
 
 /** A calculator: state the visitor changes, formulas, a result and a sentence to send. */
@@ -670,6 +694,10 @@ export interface LbwCalcWidget {
   density?: "compact" | "comfy" | null | LbwByLang;
   params?: LbwParams;
   flow?: LbwFlow;
+  /** Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one). */
+  screen?: boolean | null;
+  /** Screen mode: the step this widget is, an id of "screen.header.steps" (a tag's step= wins). */
+  step?: string | null;
 }
 
 /** Cards of 2–4 figures, each with where and when they were read. */
@@ -712,6 +740,10 @@ export interface LbwStatsWidget {
   /** The "Live" chip beside the title (true by default for rows from a source). */
   live?: boolean | null;
   flow?: LbwFlow;
+  /** Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one). */
+  screen?: boolean | null;
+  /** Screen mode: the step this widget is, an id of "screen.header.steps" (a tag's step= wins). */
+  step?: string | null;
 }
 
 /** People with a name and a role (four at most per tag). */
@@ -762,6 +794,10 @@ export interface LbwPeopleWidget {
   /** The "Live" chip beside the title (true by default for rows from a source). */
   live?: boolean | null;
   flow?: LbwFlow;
+  /** Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one). */
+  screen?: boolean | null;
+  /** Screen mode: the step this widget is, an id of "screen.header.steps" (a tag's step= wins). */
+  step?: string | null;
 }
 
 /** A yes/no consent with its fields. */
@@ -787,6 +823,10 @@ export interface LbwConsentWidget {
   params?: LbwParams;
   money?: LbwMoney;
   flow?: LbwFlow;
+  /** Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one). */
+  screen?: boolean | null;
+  /** Screen mode: the step this widget is, an id of "screen.header.steps" (a tag's step= wins). */
+  step?: string | null;
 }
 
 /** Time slots on fixed days or a weekly plan; sends the day and time. */
@@ -831,6 +871,10 @@ export interface LbwSlotsWidget {
   params?: LbwParams;
   money?: LbwMoney;
   flow?: LbwFlow;
+  /** Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one). */
+  screen?: boolean | null;
+  /** Screen mode: the step this widget is, an id of "screen.header.steps" (a tag's step= wins). */
+  step?: string | null;
 }
 
 /** What a form, slots or calendar widget sent, confirmed (a card or a ticket). */
@@ -875,6 +919,10 @@ export interface LbwConfirmWidget {
   /** false hides the countdown. */
   countdown?: boolean | null;
   flow?: LbwFlow;
+  /** Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one). */
+  screen?: boolean | null;
+  /** Screen mode: the step this widget is, an id of "screen.header.steps" (a tag's step= wins). */
+  step?: string | null;
 }
 
 /** An order to review: lines, a total, send or discard. */
@@ -927,6 +975,10 @@ export interface LbwReviewWidget {
   } | null;
   params?: LbwParams;
   flow?: LbwFlow;
+  /** Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one). */
+  screen?: boolean | null;
+  /** Screen mode: the step this widget is, an id of "screen.header.steps" (a tag's step= wins). */
+  step?: string | null;
 }
 
 /** A line, area or bar chart of one or two series (two to four stacked). */
@@ -985,6 +1037,10 @@ export interface LbwChartWidget {
   summary?: LbwText;
   params?: LbwParams;
   flow?: LbwFlow;
+  /** Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one). */
+  screen?: boolean | null;
+  /** Screen mode: the step this widget is, an id of "screen.header.steps" (a tag's step= wins). */
+  step?: string | null;
 }
 
 /** Two or three items side by side, by row. */
@@ -1055,6 +1111,10 @@ export interface LbwCompareWidget {
     label?: LbwText;
   };
   flow?: LbwFlow;
+  /** Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one). */
+  screen?: boolean | null;
+  /** Screen mode: the step this widget is, an id of "screen.header.steps" (a tag's step= wins). */
+  step?: string | null;
 }
 
 /** Open or closed today, from the season's date ranges (needs "timeZone"). */
@@ -1100,6 +1160,10 @@ export interface LbwSeasonWidget {
   params?: LbwParams;
   money?: LbwMoney;
   flow?: LbwFlow;
+  /** Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one). */
+  screen?: boolean | null;
+  /** Screen mode: the step this widget is, an id of "screen.header.steps" (a tag's step= wins). */
+  step?: string | null;
 }
 
 /** 1–5 places on a schematic or on your own image, with hours and directions. */
@@ -1190,6 +1254,10 @@ export interface LbwMapWidget {
   params?: LbwParams;
   money?: LbwMoney;
   flow?: LbwFlow;
+  /** Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one). */
+  screen?: boolean | null;
+  /** Screen mode: the step this widget is, an id of "screen.header.steps" (a tag's step= wins). */
+  step?: string | null;
 }
 
 /** A step timeline: the current step comes from the tag. */
@@ -1259,6 +1327,10 @@ export interface LbwTrackerWidget {
   params?: LbwParams;
   money?: LbwMoney;
   flow?: LbwFlow;
+  /** Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one). */
+  screen?: boolean | null;
+  /** Screen mode: the step this widget is, an id of "screen.header.steps" (a tag's step= wins). */
+  step?: string | null;
 }
 
 /** Thumbs, stars or a scale: one tap sends and saves. */
@@ -1300,6 +1372,10 @@ export interface LbwRatingWidget {
   params?: LbwParams;
   money?: LbwMoney;
   flow?: LbwFlow;
+  /** Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one). */
+  screen?: boolean | null;
+  /** Screen mode: the step this widget is, an id of "screen.header.steps" (a tag's step= wins). */
+  step?: string | null;
 }
 
 /** A month grid of days, free, few, full or closed, with a price per night. */
@@ -1396,6 +1472,10 @@ export interface LbwCalendarWidget {
   params?: LbwParams;
   money?: LbwMoney;
   flow?: LbwFlow;
+  /** Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one). */
+  screen?: boolean | null;
+  /** Screen mode: the step this widget is, an id of "screen.header.steps" (a tag's step= wins). */
+  step?: string | null;
 }
 
 /** A widget: its "type" says which of the twenty it is. */
@@ -1462,6 +1542,24 @@ export interface LbwConfig {
       /** [width, height], such as [4, 3]. */
       ratio?: [number, number] | LbwByLang | null;
     };
+  } | null;
+  /** Screen mode: the chat as an app, one screen at a time. The newest widget is the screen, the messages before its turn fold behind "View conversation", a header shows the steps and a bar mirrors the primary action. */
+  screen?: {
+    /** true: screen mode is on. */
+    on: boolean | null;
+    /** The app header: a title and the steps. */
+    header?: {
+      /** The header's title, one line. */
+      title?: LbwText;
+      /** 2–8 steps, [id, label]: the id is a lower-case word (a tag's step=id or step=2, or a widget's "step"). */
+      steps?: Array<[string, LbwText]> | LbwByLang | null;
+      /** true: a bar and "Step 2 of 4" instead of the steps by name. */
+      progress?: boolean | null;
+    } | null;
+    /** false: no bottom bar (the primary action mirrored while it is out of view). */
+    bar?: boolean | null;
+    /** "collapse" (earlier messages fold behind "View conversation", the default) or "keep" (they stay). */
+    history?: "collapse" | "keep" | null | LbwByLang;
   } | null;
   /** Named actions: { name: action }. */
   actions?: {

@@ -55,6 +55,8 @@ The tag that draws it: `[[lg:trust]]`
 | `source` |  | object | Rows from LBW.data: { "data": a key, "map": { part: "{column}" } }. |
 | `live` |  | boolean | The "Live" chip beside the title (true by default for rows from a source). |
 | `flow` |  | true or list of keys | true, or the list of keys its flow tag writes, e.g. ["texto", "lang"]. |
+| `screen` |  | boolean | Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one). |
+| `step` |  | string | Screen mode: the step this widget is, an id of "screen.header.steps" (a tag's step= wins). |
 
 Every text may also be written by language (`{ "en": …, "es": … }`), and a key may be `null` to leave it out. A key not in this table is an error.
 
