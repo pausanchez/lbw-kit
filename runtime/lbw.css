@@ -88,9 +88,9 @@
 .lbw-split > .lbw-box { padding: 0; }
 .lbw-split .lbw-media { aspect-ratio: 16 / 10; width: 100%; }
 .lbw-body { padding: 16px; min-width: 0; }
-/* async widgets (LBW.later): a static skeleton, no animation (a hidden tab freezes animations) */
+/* async widgets (LBW.later): a bare .lbw-skel of your own keeps these static bars; LBW.ui.loading draws a shaped one (v0.10, below) */
 .lbw.is-loading .lbw-box { min-height: 160px; }
-.lbw-skel { min-height: 128px; background: linear-gradient(var(--lbw-soft), var(--lbw-soft)) 0 0 / 55% 14px no-repeat, linear-gradient(var(--lbw-soft), var(--lbw-soft)) 0 28px / 35% 22px no-repeat, linear-gradient(var(--lbw-soft), var(--lbw-soft)) 0 70px / 100% 52px no-repeat; }
+.lbw-skel:empty { min-height: 128px; background: linear-gradient(var(--lbw-soft), var(--lbw-soft)) 0 0 / 55% 14px no-repeat, linear-gradient(var(--lbw-soft), var(--lbw-soft)) 0 28px / 35% 22px no-repeat, linear-gradient(var(--lbw-soft), var(--lbw-soft)) 0 70px / 100% 52px no-repeat; }
 /* the widths: phone column 340 px → one card, 1.25 slides; tablet/desktop column 672 px → split cards, 2.3 slides */
 @container lbw (min-width: 460px) {
   .lbw-slide { width: calc((100% - 10px) / 2.3); }
@@ -128,3 +128,89 @@
    that button to one letter. It takes a line of its own, and its row may wrap while it is there */
 .lbw-unsent { flex: 1 0 100%; min-width: 0; }
 .lbw :has(> .lbw-unsent) { flex-wrap: wrap; }
+
+/* v0.10 · motion & feedback ──────────────────────────────────────────────────────────────────────────────────────────
+   Every animation here runs only under html.lbw-motion, which lbw.js sets while the tab is visible and the visitor hasn't
+   asked for reduced motion. Base styles are the final state: without the class everything is drawn finished, at once.
+   Only transform and opacity move (a skeleton's growth to its card and a folding row are measured, capped script animations).
+   Tokens (set any on :root): */
+:root {
+  --lbw-dur: 220ms;             /* an entrance, a cross-fade, a fold */
+  --lbw-dur-fast: 150ms;        /* press feedback, colour changes (the only motion kept under reduced motion, as transitions) */
+  --lbw-dur-slow: 360ms;        /* the receipt's check drawing itself */
+  --lbw-step: 50ms;             /* the stagger between a card's parts: three steps at most */
+  --lbw-ease: cubic-bezier(.2, .8, .2, 1);
+  --lbw-ease-pop: cubic-bezier(.3, 1.5, .5, 1);
+  --lbw-rise: 6px;              /* how far a widget rises as it comes in */
+  /* --lbw-done: the receipt's check (unset: the kit's ok tone, which follows --kit-ok and the ink; else a calm green); --lbw-alert: a failed send (unset: the kit's danger tone);
+     --lbw-shimmer: the skeleton's light (unset: the card colour at 70 %) */
+}
+@keyframes lbw-rise { from { opacity: 0; transform: translateY(var(--lbw-rise)); } }
+@keyframes lbw-fade { from { opacity: 0; } }
+@keyframes lbw-out { to { opacity: 0; } }
+@keyframes lbw-slide-in { from { opacity: 0; transform: translateX(12px); } }
+@keyframes lbw-shimmer { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+@keyframes lbw-spin { to { transform: rotate(1turn); } }
+@keyframes lbw-pop { from { opacity: 0; transform: scale(.4); } }
+@keyframes lbw-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+
+/* 1 · entrance: the newest message's widgets rise in; inside, the body and then the actions follow (≤ 3 steps) */
+.lbw-motion .lbw-enter > .lbw { animation: lbw-rise var(--lbw-dur) var(--lbw-ease) both; }
+.lbw-motion .lbw-enter > .lbw + .lbw { animation-delay: var(--lbw-step); }
+.lbw-motion .lbw-enter > .lbw:not(.is-loading) > .lbw-box > :nth-child(n+2):not(.lbw-skel) { animation: lbw-fade var(--lbw-dur) var(--lbw-ease) var(--lbw-step) both; }
+.lbw-motion .lbw-enter > .lbw > .lbw-actions, .lbw-motion .lbw-enter > .lbw > .lbw-box > :nth-child(n+4):not(.lbw-skel) { animation: lbw-fade var(--lbw-dur) var(--lbw-ease) calc(var(--lbw-step) * 2) both; }
+.lbw-motion .lbw-enter .lbw-strip > :nth-child(-n+3) { animation: lbw-slide-in var(--lbw-dur) var(--lbw-ease) var(--lbw-step) both; }
+.lbw-motion .lbw-enter .lbw-strip > :nth-child(n+2) { animation-delay: calc(var(--lbw-step) * 2); }
+
+/* 2 · skeletons shaped like the widget (LBW.ui.loading(lang, cls, 'card' | 'carousel' | 'table')), with a gated shimmer */
+.lbw-skel:not(:empty) { position: relative; display: flex; flex-direction: column; gap: 10px; overflow: hidden; }
+.lbw-sk { display: block; height: 14px; border-radius: 6px; background: var(--lbw-soft); }
+.lbw-sk.is-k { width: 28%; height: 10px; }
+.lbw-sk.is-t { width: 62%; height: 20px; margin-bottom: 4px; }
+.lbw-sk.is-r { width: 100%; height: 36px; border-radius: var(--lbw-radius-in); }
+.lbw-sk.is-s { width: 78%; }
+.lbw-sk-strip { display: flex; gap: 10px; margin-right: -16px; overflow: hidden; }
+.lbw-sk-tile { flex: none; width: 86%; display: flex; flex-direction: column; gap: 8px; padding-bottom: 12px; border: 1px solid var(--lbw-line); border-radius: var(--lbw-radius-in); overflow: hidden; }
+.lbw-sk-tile > .lbw-sk { margin-inline: 12px; }
+.lbw-sk-tile > .lbw-sk.is-ph { margin: 0 0 4px; height: auto; aspect-ratio: 4 / 3; border-radius: 0; }
+.lbw-sk-tile > .lbw-sk.is-l { width: 60%; } .lbw-sk-tile > .lbw-sk.is-s { width: 38%; }
+.lbw-sk-tile > .lbw-sk.is-btn { height: 36px; margin-top: 6px; border-radius: var(--lbw-radius-pill); }
+.lbw-sk-row { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 12px; padding: 4px 0; }
+.lbw-sk-row.is-head .lbw-sk { height: 10px; opacity: .7; }
+.lbw.is-loading:has(.lbw-skel.is-carousel), .lbw.is-loading:has(.lbw-skel.is-table) { max-width: none; }
+@container lbw (min-width: 460px) { .lbw-sk-tile { width: calc((100% - 30px) / 2.3); } }
+@container lbw (min-width: 820px) { .lbw-sk-tile { width: calc((100% - 40px) / 3.3); } }
+.lbw-motion .lbw-skel:not(:empty)::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 20%, var(--lbw-shimmer, rgba(255,255,255,.7)) 50%, transparent 80%); transform: translateX(-100%); animation: lbw-shimmer 1.4s ease-in-out infinite; pointer-events: none; }
+@supports (color: color-mix(in srgb, red, blue)) { .lbw-skel { --lbw-shimmer-auto: color-mix(in srgb, var(--lbw-card) 70%, transparent); } .lbw-motion .lbw-skel:not(:empty)::after { background: linear-gradient(100deg, transparent 20%, var(--lbw-shimmer, var(--lbw-shimmer-auto)) 50%, transparent 80%); } }
+/* the swap: the skeleton fades out on top while the card's parts fade in */
+.lbw-skel.is-leaving { position: absolute; inset: 16px 16px auto; z-index: 1; pointer-events: none; opacity: 0; }
+.lbw-motion .lbw-skel.is-leaving { animation: lbw-out var(--lbw-dur) var(--lbw-ease) both; opacity: 1; }
+.lbw-motion .lbw-swap > .lbw-box > :not(.lbw-skel), .lbw-motion .lbw-swap > .lbw-actions { animation: lbw-fade var(--lbw-dur) var(--lbw-ease) 60ms both; }
+
+/* 3 · press → queued → sent. The pressed pill is marked at once (tint, ring); while its message waits for the chat (queued,
+   sending) a small ring turns where the ✓ goes, then the ✓ pops in. Both take the same 1.15em: the row doesn't reflow */
+.lbw-pill.is-sent::before { display: inline-block; width: .85em; margin-right: .3em; text-align: left; }
+.lbw-pill.is-sent[data-lbw-job="queued"]::before, .lbw-pill.is-sent[data-lbw-job="sending"]::before { content: ""; height: .85em; box-sizing: border-box; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; vertical-align: -.1em; opacity: .8; }
+.lbw-motion .lbw-pill.is-sent[data-lbw-job="queued"]::before, .lbw-motion .lbw-pill.is-sent[data-lbw-job="sending"]::before { animation: lbw-spin 700ms linear infinite; }
+.lbw-motion .lbw-pill.lbw-pop::before { animation: lbw-pop 260ms var(--lbw-ease-pop) both; }
+/* sent: the other answers fold away (lbw.js: is-folding fades them, then is-folded hides them visually; they stay in the
+   group, disabled, for a screen reader) */
+.lbw-motion .lbw-once .lbw-pill.is-folding { opacity: 0; transform: scale(.94); transition: opacity var(--lbw-dur-fast) ease, transform var(--lbw-dur-fast) ease; }
+.lbw-once .lbw-pill.is-folded { position: absolute !important; width: 1px !important; min-width: 0 !important; height: 1px !important; min-height: 0 !important; padding: 0 !important; margin: -1px !important; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+/* failed: its own state. The pill keeps its label with an alert ring; the "Not sent · Retry" line comes in under it */
+.lbw-pill.is-unsent { box-shadow: inset 0 0 0 1.5px var(--lbw-alert, var(--kit-danger-c, #B42318)); }
+.lbw-pill.is-primary.is-unsent { box-shadow: 0 0 0 2px var(--lbw-card), 0 0 0 3.5px var(--lbw-alert, var(--kit-danger-c, #B42318)); }   /* a filled pill: the ring outside it */
+.lbw-unsent::before { content: "!"; flex: none; display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--lbw-alert, var(--kit-danger-c, #B42318)); color: var(--lbw-card); font: 700 12px/1 var(--lbw-font); }
+.lbw-unsent > span { color: var(--lbw-ink); }
+.lbw-motion .lbw-unsent { animation: lbw-rise var(--lbw-dur) var(--lbw-ease) both; }
+
+/* 4 · done: a receipt with a check that draws itself ("Sent · 21:04") on a card whose job is finished */
+.lbw-receipt:not(.kit-sentline) { display: flex; align-items: center; gap: 8px; margin-top: 12px; font: 600 13px/18px var(--lbw-font); color: var(--lbw-ink); }
+.lbw-check { flex: none; display: inline-flex; width: 20px; height: 20px; color: var(--lbw-done, var(--kit-ok-c, #1F7A45)); align-self: center; }
+.lbw-check svg { display: block; width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.lbw-check circle { stroke-width: 1.4; opacity: .45; }
+.lbw-at { font-weight: 400; color: var(--lbw-muted); }
+.lbw-motion .lbw-new .lbw-check circle { stroke-dasharray: 1; animation: lbw-draw var(--lbw-dur-slow) var(--lbw-ease) both; }
+.lbw-motion .lbw-new .lbw-check path { stroke-dasharray: 1; animation: lbw-draw var(--lbw-dur-slow) var(--lbw-ease) 160ms both; }
+.lbw-motion .lbw-receipt.lbw-new:not(.kit-sentline) { animation: lbw-fade var(--lbw-dur) var(--lbw-ease) both; }
+.lbw.is-finished > .lbw-box::before { background: var(--lbw-done, var(--kit-ok-c, #1F7A45)); }   /* a theme's top line turns calm (no line unless the theme draws one) */

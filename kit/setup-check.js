@@ -14,7 +14,7 @@
   var ICONS = 'check x info alert phone mail chat calendar clock pin external star user shield bell doc thumb'.split(' '), TONES = 'neutral ok info warn danger'.split(' ');
   K.setup._.icons = ICONS; K.setup._.tones = TONES;
   // ── checking a config: every problem as a sentence, nothing drawn, never a throw ─────────────────
-  var TOP = '$schema version prefix langs defaultLang timeZone maxPerMessage links labels quietMs maxWaitMs reveal photos actions replies widgets'.split(' ');
+  var TOP = '$schema version prefix langs defaultLang timeZone maxPerMessage links labels quietMs maxWaitMs reveal motion photos actions replies widgets'.split(' ');
   var KEYS = {
     cards: 'type cls param items item kicker disclaimer single fallback pointsCls allowDup lang reply links status params money source',
     table: 'type cls param items item kicker fold pick same allowDup lang reply links fallback params money source',
@@ -96,6 +96,7 @@
     var links = isArr(cfg.links) ? cfg.links.filter(isStr) : [];
     if (cfg.links != null && !isArr(cfg.links)) top('"links" must be a list');
     if (cfg.reveal != null && cfg.reveal !== true && cfg.reveal !== false) top('"reveal" is true or false');
+    if (cfg.motion != null && cfg.motion !== true && cfg.motion !== false) top('"motion" is true or false');   // v0.10: false, no animations in this bot
     // v0.9.5 (security review) · an entry is an origin with a host, then an optional path, ending in "/". "https://" alone
     // let every site through. A host with an open redirector is listed by a path, never by its origin alone
     var REDIR = /^https?:\/\/((www\.)?google\.[a-z.]+|(www\.|l\.|lm\.|m\.)?facebook\.com|(www\.)?youtube\.com|t\.co|bit\.ly|(www\.)?linkedin\.com|l\.instagram\.com)\/$/i;

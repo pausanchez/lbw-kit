@@ -271,3 +271,25 @@
 .kit-tbl-once.is-done tbody tr:not(.is-picked) .kit-tbl-b, .kit-tbl-once.is-stale tbody tr .kit-tbl-b { opacity: 1; color: var(--lbw-muted) !important; box-shadow: inset 0 0 0 1px var(--lbw-line) !important; }   /* v0.9.5: muted, not .45 opacity (1.96:1) */   /* v0.8.1.14: still there, faded and disabled: an empty cell read as "no button" (Callan live) */
 .kit-tbl-once.is-done tbody tr:not(.is-picked) { color: var(--lbw-muted); }
 .kit-tbl-once.is-done tbody tr.is-picked, .kit-tbl-once.is-done tbody tr.is-picked th { background: var(--lbw-tint); }
+
+/* v0.10 · motion & feedback ─────────────────────────────────────────────────────────────────────────────────────────
+   The folded form's line ("Sent · …") is the card's receipt: while the message waits for the chat a small ring turns
+   before it; once out, lbw.js puts a self-drawing check and the time in it ("Sent · 21:04"). Animations only under html.lbw-motion */
+.kit-sentline { align-items: center; }
+.lbw[data-lbw-job="queued"] .kit-sentline::before, .lbw[data-lbw-job="sending"] .kit-sentline::before { content: ""; flex: none; width: 14px; height: 14px; margin: 0 3px; box-sizing: border-box; border: 2px solid var(--lbw-muted); border-right-color: transparent; border-radius: 50%; }
+.lbw-motion .lbw[data-lbw-job="queued"] .kit-sentline::before, .lbw-motion .lbw[data-lbw-job="sending"] .kit-sentline::before { animation: lbw-spin 700ms linear infinite; }
+.lbw-motion .lbw-box:has(> .lbw-press) > .kit-sentline { animation: lbw-fade var(--lbw-dur) var(--lbw-ease) both; }
+/* a rating: the chosen stars sweep in as it is pressed (40 ms apart) */
+.lbw-motion .kit-rate.lbw-press .kit-rate-b.is-on .kit-ico { animation: lbw-pop 280ms var(--lbw-ease-pop) both; }
+.lbw-motion .kit-rate.lbw-press .kit-rate-b.is-on:nth-child(2) .kit-ico { animation-delay: 40ms; }
+.lbw-motion .kit-rate.lbw-press .kit-rate-b.is-on:nth-child(3) .kit-ico { animation-delay: 80ms; }
+.lbw-motion .kit-rate.lbw-press .kit-rate-b.is-on:nth-child(4) .kit-ico { animation-delay: 120ms; }
+.lbw-motion .kit-rate.lbw-press .kit-rate-b.is-on:nth-child(n+5) .kit-ico { animation-delay: 160ms; }
+/* a described option (a list of chips) carries its ✓ before its label: the same spinner there while it waits */
+.lbw-pill.has-desc.is-sent[data-lbw-job="queued"] .kit-opt-l::before, .lbw-pill.has-desc.is-sent[data-lbw-job="sending"] .kit-opt-l::before { content: ""; top: .2em; width: .75em; height: .75em; box-sizing: border-box; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; }
+.lbw-motion .lbw-pill.has-desc.is-sent[data-lbw-job="queued"] .kit-opt-l::before, .lbw-motion .lbw-pill.has-desc.is-sent[data-lbw-job="sending"] .kit-opt-l::before { animation: lbw-spin 700ms linear infinite; }
+.lbw-motion .lbw-pill.has-desc.lbw-pop .kit-opt-l::before { animation: lbw-pop 260ms var(--lbw-ease-pop) both; }
+/* chips: the other answers used to vanish on the press (display: none, above). They stay, quiet, while the message waits, and
+   fold away once it is sent (lbw.js), so the row changes once, smoothly, at the moment that counts */
+.kit-chips .lbw-once.is-done:not(.is-folded):has(> .lbw-pill.is-sent[data-lbw-job]) > .lbw-pill:not(.is-sent):not(.is-folded) { display: inline-flex; }
+.kit-chips .lbw-once.is-done:not(.is-folded):has(> .lbw-pill.is-sent[data-lbw-job]) > .lbw-pill.has-desc:not(.is-sent):not(.is-folded) { display: grid; }

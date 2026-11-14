@@ -162,7 +162,7 @@
   function pump() {
     if (!queue.length) return;
     if (quiet() || Date.now() - queue[0].t0 > cfg.maxWaitMs) {
-      var q = queue.shift(); q.state = 'sending';
+      var q = queue.shift(); job(q, 'sending');
       if (!q.tries++) { if (q.fields) log('__lbwStored', q.fields); log('__lbwSent', q.text); emit('say', { text: q.text, fields: q.fields || null }); }
       try { post(q.text, q.fields, function (ok) { settled(q, ok); }); } catch (e) { drop('send failed: ' + q.text + ' (' + e.message + ')'); settled(q, false); }
       if (!queue.length) return;
@@ -171,8 +171,8 @@
   }
   function settled(q, ok) {
     if (q.state !== 'sending') return;   // a way that answers twice
-    if (ok) { q.state = 'sent'; if (q.ui) clearUnsent(q.ui); return; }
-    q.state = 'failed'; unsent.push(q); emit('unsent', { text: q.text, fields: q.fields || null });
+    if (ok) { job(q, 'sent'); if (q.ui) { clearUnsent(q.ui); finish(q.ui); } return; }
+    job(q, 'failed'); unsent.push(q); emit('unsent', { text: q.text, fields: q.fields || null });
     if (q.ui) unmark(q);
   }
   function enqueue(text, fields, ui) {
@@ -188,8 +188,8 @@
   function retry(q) {
     if (!q || q.state !== 'failed') return false;
     forget(q);
-    if (q.ui && stale(q.ui)) { q.state = 'cancelled'; clearUnsent(q.ui); return false; }
-    q.state = 'queued'; q.t0 = lock = Date.now();
+    if (q.ui && stale(q.ui)) { job(q, 'cancelled'); clearUnsent(q.ui); return false; }
+    job(q, 'queued'); q.t0 = lock = Date.now();
     if (q.ui) mark(q.ui);
     queue.push(q); go(q);
     return true;
@@ -198,7 +198,7 @@
   // the control that sent: marked at once (as before), unmarked when its job fails, marked again when it is retried
   function mark(ui) {
     var c = ui.ctl, g = ui.g; clearUnsent(ui);
-    c.classList.add('is-sent');
+    c.classList.add('is-sent'); if (g) brief(g, 'lbw-press', 700);   // v0.10: a group may answer the press (a rating's stars sweep)
     if (g) { if (!g.classList.contains('is-done')) ui.was = [].filter.call(g.querySelectorAll('button'), function (x) { return x.disabled; }); done(g); }
     if (ui.after) ui.after(c);
   }
@@ -206,8 +206,8 @@
     de: ['Nicht gesendet.', 'Erneut senden'], it: ['Non inviato.', 'Riprova'], pt: ['Não enviado.', 'Tentar de novo'] };
   function unmark(q) {
     var ui = q.ui, c = ui.ctl, g = ui.g;
-    c.classList.remove('is-sent');
-    if (stale(ui)) { forget(q); q.state = 'cancelled'; return; }   // the visitor already moved on: no retry offered
+    c.classList.remove('is-sent'); unfold(g);
+    if (stale(ui)) { forget(q); job(q, 'cancelled'); return; }   // the visitor already moved on: no retry offered
     if (g) { g.classList.remove('is-done'); [].forEach.call(g.querySelectorAll('button'), function (x) { x.disabled = (ui.was || []).indexOf(x) >= 0; if (x.getAttribute('aria-disabled') === 'true' && !x.disabled) x.removeAttribute('aria-disabled'); }); }   // done() leaves the pressed one aria-disabled (a11y)
     c.classList.add('is-unsent');
     // the card's language: cfg.labels[lang].unsent / .retry override the built-in words
@@ -224,9 +224,82 @@
   // click in its group cancels the failed one and sends what was clicked now
   function sendFrom(ctl, g, text, fields, after) {
     var holder = g || ctl, old = holder.__lbwJob;
-    if (old && old.state === 'failed') { if (old.ui.ctl === ctl && old.text === text) return retry(old); forget(old); old.state = 'cancelled'; clearUnsent(old.ui); }
+    if (old && old.state === 'failed') { if (old.ui.ctl === ctl && old.text === text) return retry(old); forget(old); job(old, 'cancelled'); clearUnsent(old.ui); }
     var ui = { ctl: ctl, g: g, after: after }, q = enqueue(text, fields, ui); if (!q) return false;
-    holder.__lbwJob = q; mark(ui); go(q); return true;   // marked before it can fail (a send may settle at once)
+    holder.__lbwJob = q; job(q, 'queued'); mark(ui); go(q); return true;   // marked before it can fail (a send may settle at once)
+  }
+  // ── v0.10 · motion & feedback ─────────────────────────────────────────────────────────────────────────────
+  // The gate: <html> carries `lbw-motion` only while the tab is visible and the visitor hasn't asked for reduced motion
+  // (LBW.init({ motion: false }) turns it off for a bot). Every animation in lbw.css / kit.css lives under that class, and
+  // each element's base style IS its final state: a hidden tab (where frames stop) drops the class and shows the end at
+  // once, never a fade frozen half way (the v0.4 bug). One-off effects ride on short-lived classes (lbw-enter, lbw-swap,
+  // lbw-new, lbw-pop) that are taken off when the tab hides, so coming back doesn't replay them. LBW.motion() → the gate,
+  // for widgets that animate from script (a number that counts).
+  var RM = null; try { RM = root.matchMedia ? root.matchMedia('(prefers-reduced-motion: reduce)') : null; } catch (e) {}
+  var ONCE = ['lbw-enter', 'lbw-swap', 'lbw-new', 'lbw-pop', 'lbw-press'];
+  function moving() { return cfg.motion !== false && document.visibilityState !== 'hidden' && !(RM && RM.matches); }
+  function gate() {
+    var on = moving(), h = document.documentElement; if (!h) return on;
+    if (on !== h.classList.contains('lbw-motion')) h.classList.toggle('lbw-motion', on);
+    if (!on) ONCE.forEach(function (k) { [].slice.call(document.getElementsByClassName(k)).forEach(function (x) { x.classList.remove(k); }); });
+    return on;
+  }
+  function brief(x, k, ms) { if (!x || !moving()) return false; x.classList.add(k); setTimeout(function () { x.classList.remove(k); }, ms || 900); return true; }
+  // a send's state on its control and its widget: data-lbw-job = queued | sending | sent | failed (cancelled: none). The
+  // CSS draws it: a small spinner in the pressed pill while it waits for the chat (queued, sending), "✓" when it is out
+  function job(q, st) {
+    q.state = st; var c = q.ui && q.ui.ctl; if (!c) return;
+    var w = c.closest && c.closest('.lbw');
+    [c, w].forEach(function (x) { if (!x) return; if (st === 'cancelled') x.removeAttribute('data-lbw-job'); else x.setAttribute('data-lbw-job', st); });
+  }
+  // sent: the pressed pill's ✓ pops, the other answers of a choice row fold away (they stay in the group, disabled and
+  // visually hidden: a screen reader still finds the whole question, the keyboard keeps its place on the sent one), and a
+  // card whose job is done gets its receipt
+  var FOLD = '.lbw-chips, .kit-actions, .kit-consent-b, .lbw-fold';
+  function others(g, c) { return [].filter.call(g.children, function (x) { return x !== c && x.tagName === 'BUTTON' && x.classList.contains('lbw-pill') && !x.classList.contains('is-sent'); }); }
+  function finish(ui) {
+    var c = ui.ctl, g = ui.g; if (!c.isConnected) return;
+    brief(c, 'lbw-pop', 500);
+    if (g && g.matches && g.matches(FOLD) && !g.matches('.lbw-nofold')) foldAway(g, c);
+    var w = c.closest('.lbw'); if (w && ((g && g.matches && g.matches('.lbw-form, .kit-rate, .kit-consent-b, .lbw-final')) || w.querySelector('.kit-sentline'))) receipt(w, g || c);
+  }
+  function rect(x) { try { return x.getBoundingClientRect(); } catch (e) { return null; } }
+  function foldAway(g, c) {
+    var xs = others(g, c); if (!xs.length) return;
+    function hide() { xs.forEach(function (x) { x.classList.remove('is-folding'); x.classList.add('is-folded'); }); g.classList.add('is-folded'); }
+    if (!moving() || typeof c.animate !== 'function') return hide();
+    xs.forEach(function (x) { x.classList.add('is-folding'); });   // fade and shrink where they are (opacity, transform: 150 ms)
+    setTimeout(function () {
+      if (!c.classList.contains('is-sent') || !g.isConnected) return;
+      var a = rect(c), h0 = rect(g); hide(); var b = rect(c), h1 = rect(g); if (!a || !b || !moving()) return;
+      var e = 'cubic-bezier(.2,.8,.2,1)';   // --lbw-ease (script animations can't read a var())
+      try {
+        if (a.left !== b.left || a.top !== b.top) c.animate([{ transform: 'translate(' + (a.left - b.left) + 'px,' + (a.top - b.top) + 'px)' }, { transform: 'none' }], { duration: 240, easing: e });
+        var d = h0.height - h1.height; if (d > 0 && d <= 240) g.animate([{ height: h0.height + 'px' }, { height: h1.height + 'px' }], { duration: 240, easing: e });   // measured and capped
+      } catch (x) {}
+    }, 150);
+  }
+  function unfold(g) { if (!g || !g.classList.contains('is-folded') && !g.querySelector('.is-folding')) return; g.classList.remove('is-folded'); [].forEach.call(g.querySelectorAll('.is-folded, .is-folding'), function (x) { x.classList.remove('is-folded', 'is-folding'); }); }
+  // the receipt: a check that draws itself and "Sent · 21:04" (the visitor's clock). A folded form's "Sent · …" line takes
+  // the check and the time; other finished cards (a rating, a consent, an open form, a group marked .lbw-final) get a line
+  var SENT = { en: 'Sent', es: 'Enviado', ca: 'Enviat', fr: 'Envoyé', de: 'Gesendet', it: 'Inviato', pt: 'Enviado' };
+  var SVGNS = 'http://www.w3.org/2000/svg';
+  function check() {
+    var s = el('span', 'lbw-check'), v = document.createElementNS(SVGNS, 'svg');
+    v.setAttribute('viewBox', '0 0 20 20'); v.setAttribute('aria-hidden', 'true'); v.setAttribute('focusable', 'false');
+    [['circle', { cx: 10, cy: 10, r: 8.5 }], ['path', { d: 'M6.2 10.4l2.6 2.6 5-5.2' }]].forEach(function (d) {
+      var n = document.createElementNS(SVGNS, d[0]); for (var k in d[1]) n.setAttribute(k, d[1][k]); n.setAttribute('pathLength', '1'); v.appendChild(n); });
+    s.appendChild(v); return s;
+  }
+  function clock() { var pin = root.__lbwNow != null ? timeRead(root.__lbwNow) : null, d = new Date(); return timeFmt(pin != null ? pin : d.getHours() * 60 + d.getMinutes()); }
+  function receipt(w, at) {
+    if (w.querySelector('.lbw-receipt')) return null;
+    var lang = String(w.getAttribute('lang') || cfg.defaultLang).toLowerCase(), base = lang.split(/[-_]/)[0];
+    var mine = (cfg.labels && (cfg.labels[lang] || cfg.labels[base])) || {}, t = clock(), line = w.querySelector('.kit-sentline'), r;
+    if (line) { r = line; r.insertBefore(check(), r.firstChild); var l = r.querySelector('.kit-sent-l'); if (l) l.appendChild(el('span', 'lbw-at', ' · ' + t)); }
+    else { r = el('div'); r.appendChild(check()); r.appendChild(el('span', null, (mine.sent || SENT[base] || SENT.en) + ' · ' + t)); (at.parentNode || w).appendChild(r); }
+    r.classList.add('lbw-receipt'); w.classList.add('is-finished'); brief(r, 'lbw-new', 1200);
+    return r;
   }
   // ── v0.9.5 · accessibility: one polite live region per chat, and focus that never falls to <body> ──────────
   // LBW.announce(text, lang, key): a short line for screen readers (a new card's title, a total, "Updated"), never a whole
@@ -268,6 +341,13 @@
     var all = document.querySelectorAll('[data-lb-part="message"]');
     if (e.el.classList.contains('is-loading') || (all.length && all[all.length - 1] !== e.message)) return;
     announceCard(e.el);
+  });
+  // v0.10 · a widget rises in (the newest message only: a chat loading its history draws the rest at once). The class is
+  // on the message, so the widget's own HTML doesn't change; the stagger (box, body, actions, slides) is in lbw.css
+  (subs.render = subs.render || []).push(function (e) {
+    var all = document.querySelectorAll('[data-lb-part="message"]');
+    if (all.length && all[all.length - 1] !== e.message) return;
+    if (!e.message.classList.contains('lbw-enter')) brief(e.message, 'lbw-enter', 900);
   });
   // what can hold focus right now (no layout in tests: hidden is judged by attributes and the folded card's rule)
   function canFocus(x, w) {
@@ -631,17 +711,43 @@
   // LBW.later(o, LBW.csv(URL), function (rows) { …fill o.box…; return false to remove the widget (unknown id) },
   //           function () { …optional: a fallback when the data can't be read; without it the widget is removed… });
   // return o;
-  function loading(lang, cls) { var o = card(lang, cls), s = el('div', 'lbw-skel'); o.classList.add('is-loading'); o.setAttribute('aria-busy', 'true'); o.box.appendChild(s); return o; }
+  // v0.10 · loading(lang, cls, shape): the skeleton is shaped like what it stands for: 'card' (kicker, title, two rows),
+  // 'carousel' (slide tiles: photo and lines) or 'table' (rows). Unset, it follows cls (kit-carousel, kit-people → carousel;
+  // kit-table, kit-compare, kit-chart → table). It shimmers only under the motion gate, and says nothing to a screen reader
+  // (aria-hidden; the card is aria-busy). A plain <div class="lbw-skel"> of your own keeps the old static bars
+  function skel(shape) {
+    var s = el('div', 'lbw-skel is-' + shape), b = function (p, c) { return p.appendChild(el('i', 'lbw-sk ' + c)); };
+    s.setAttribute('aria-hidden', 'true'); b(s, 'is-k'); b(s, 'is-t');
+    if (shape === 'carousel') { var st = s.appendChild(el('div', 'lbw-sk-strip')); for (var i = 0; i < 3; i++) { var t = st.appendChild(el('div', 'lbw-sk-tile')); b(t, 'is-ph'); b(t, 'is-l'); b(t, 'is-s'); b(t, 'is-btn'); } }
+    else if (shape === 'table') { for (var j = 0; j < 5; j++) { var r = s.appendChild(el('div', 'lbw-sk-row' + (j ? '' : ' is-head'))); b(r, 'is-c'); b(r, 'is-c'); b(r, 'is-c'); } }
+    else { b(s, 'is-r'); b(s, 'is-r is-s'); }
+    return s;
+  }
+  function loading(lang, cls, shape) {
+    shape = /^(card|carousel|table)$/.test(shape) ? shape : /(^|\s)kit-(carousel|people)\b/.test(cls || '') ? 'carousel' : /(^|\s)kit-(table|compare|chart)\b/.test(cls || '') ? 'table' : 'card';
+    var o = card(lang, cls); o.classList.add('is-loading'); o.setAttribute('aria-busy', 'true'); o.box.appendChild(skel(shape)); return o;
+  }
+  // the skeleton becomes the card as a cross-fade: the skeleton fades out on top while the content fades in, and the box
+  // grows from the skeleton's height to its own (measured, at most 400 px of change; otherwise it just appears)
+  function swapIn(o, ghost, h0) {
+    var bx = o.querySelector('.lbw-box'); if (!ghost || !bx || !moving()) return;
+    ghost.classList.add('is-leaving'); bx.appendChild(ghost); brief(o, 'lbw-swap', 600);
+    setTimeout(function () { ghost.remove(); }, 320);
+    var h1 = rect(bx), d = h1 && h0 ? h0 - rect(o).height : 0;
+    try { if (h1 && h1.height > 0 && h0 > 0 && d && Math.abs(d) <= 400 && typeof bx.animate === 'function') bx.animate([{ height: Math.max(0, h1.height + d) + 'px' }, { height: h1.height + 'px' }], { duration: 260, easing: 'cubic-bezier(.2,.8,.2,1)' }); } catch (e) {}
+  }
   function later(o, promise, fill, fallback) {
-    function settle() { o.classList.remove('is-loading'); o.removeAttribute('aria-busy'); var s = o.querySelector('.lbw-skel'); if (s) s.remove(); }
+    var ghost = null, h0 = 0;
+    function settle() { o.classList.remove('is-loading'); o.removeAttribute('aria-busy'); var s = o.querySelector('.lbw-skel'); if (s) { var r = moving() && o.isConnected && rect(o); h0 = r ? r.height : 0; ghost = h0 > 0 ? s : null; s.remove(); } }
     function gone(why) { drop((o.getAttribute('data-tag') || 'widget') + ' (' + why + ')'); o.remove(); }
     Promise.resolve(promise).then(function (data) {
       var hostMsg = o.closest && o.closest('[data-lb-part="message"]'), near = null; try { var sc1 = hostMsg && scroller(hostMsg); near = sc1 ? atEnd(sc1, 240, null) : null; } catch (e) {}
       settle(); var r; try { r = fill(data); } catch (e) { return gone('error: ' + e.message); }
+      if (r !== false) swapIn(o, ghost, h0);
       if (r !== false && hostMsg) reveal(hostMsg, near);   // a card that grew from its skeleton
       if (r === false) gone('nothing to show'); else announceCard(o);   // v0.9.5: the skeleton became a card: say its title
     }, function (e) {
-      settle(); if (fallback) { try { o.box.textContent = ''; fallback(e); drop((o.getAttribute('data-tag') || 'widget') + ' (data unavailable: fallback)'); announceCard(o); return; } catch (x) {} }
+      settle(); if (fallback) { try { o.box.textContent = ''; fallback(e); swapIn(o, ghost, h0); drop((o.getAttribute('data-tag') || 'widget') + ' (data unavailable: fallback)'); announceCard(o); return; } catch (x) {} }
       gone('data unavailable: ' + (e && e.message));
     });
     return o;
@@ -1072,6 +1178,8 @@
   }
   function start() {
     if (started) return; started = true;
+    gate(); document.addEventListener('visibilitychange', gate);   // v0.10 · the motion gate
+    try { if (RM) { if (RM.addEventListener) RM.addEventListener('change', gate); else if (RM.addListener) RM.addListener(gate); } } catch (e) {}
     new MutationObserver(function (list) {
       // the chat is busy while any message outside our widgets changes (the agent's reply arriving)
       if (list.some(function (r) { var x = r.target.nodeType === 1 ? r.target : r.target.parentElement; return x && x.closest && x.closest('[data-lb-part="message"]') && !x.closest('.lbw'); })) quietSince = Date.now();
@@ -1102,7 +1210,10 @@
       var fl = opts && opts.flow; W[name] = { render: fn, last: !!(opts && opts.last), flow: Array.isArray(fl) ? fl.map(function (k) { return String(k).toLowerCase(); }) : fl ? true : false }; return root.LBW;
     },
     ui: { el: el, allowed: allowed, link: link, tel: tel, btn: btn, img: img, loading: loading, card: card, head: head, row: row, rows: rows, reply: reply, once: once, multi: multi, done: done, form: form, stepper: stepper, ics: ics,
-          announce: announce, announceCard: announceCard, titleOf: titleOf, rescue: rescue },   // v0.9.5
+          announce: announce, announceCard: announceCard, titleOf: titleOf, rescue: rescue,   // v0.9.5
+          check: check, receipt: receipt },   // v0.10: a self-drawing check; receipt(widget, after) → its "Sent · 21:04" line
+    // LBW.motion() → true while animations may run (the tab is visible, no reduced motion, init's motion isn't false) (v0.10)
+    motion: moving,
     // LBW.announce(text, lang, key): one short line in the chat's polite live region (v0.9.5)
     announce: announce,
     day: { num: dayNum, parts: dayParts, read: dayRead, today: dayToday, format: dayFormat, str: dayStr, easter: dayEaster, nth: dayNth, next: dayNext, on: dayOn },
