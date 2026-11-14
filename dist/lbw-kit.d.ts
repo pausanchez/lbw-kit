@@ -422,7 +422,7 @@ export interface ScreenApi {
   start(config: NonNullable<LbwConfig['screen']>, opts?: { lang?: string; widgets?: Record<string, { screen?: boolean; step?: string }> }): boolean;
   /** The current screen. */
   state(): ScreenState | null;
-  /** Shows (`true`) or folds again (`false`) the earlier messages; returns the new state, or `false` when off. */
+  /** Shows (`true`) or folds again (`false`) the earlier messages; returns the new state, or `false` when off. Open: the visitor is taken to the first earlier message (focused); folded: the screen goes back where it was. */
   history(open: boolean): boolean;
 }
 
@@ -474,6 +474,8 @@ export interface Api {
   announce(text: string, lang: string, key?: string): unknown;
   /** Screen mode (runtime/screen.js): inert until a config's `"screen": { "on": true }` or `start()`. */
   screen: ScreenApi;
+  /** v0.13.0.1: ends the reveal of the newest reply (lbw.js holds it in view for 2.5 s) as if the visitor had scrolled. */
+  unhold(): void;
   /** The kit. Present only when `kit/kit.js` is loaded. */
   kit: Kit;
   /** @experimental In the source's `LBW`, not in the docs: logs to `window.__lbwDropped`. */

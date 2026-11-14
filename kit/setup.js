@@ -5,7 +5,7 @@
               actions: { name: action },        buttons named once, used by name in any widget
               replies: { name: [label, say] },  quick replies named once
               widgets: { tagName: { type: one of the kit makers, … } },   (LBW.kit.setup.types lists them)
-              screen: { on: true, header: { title, steps: [[id, label], …], progress }, bar, history } }   screen mode
+              screen: { on: true, header: { title, steps: [[id, label], …], progress }, bar, history, bleed, hideHost } }   screen mode
                         (runtime/screen.js); a widget may add "screen": false (never a screen) and "step": an id of the steps
    action = 'name'  |  { use: 'name', primary: true }  |  { tel, cc, label }  |  { wa, text, label }  |  { link, label }  |  { mail, label }
             |  { reply: [label, say] }      (primary: true fills it)
@@ -429,7 +429,7 @@
     // lists only the days that can be booked. Or "source": { "data" } (a data message's rows, mapped like a table's), with
     // rates/days as the saved copy. "send" over {from} {to} {day} {nights} {total} {price} {summary}; prices in units (189.5)
     calendar: function (cfg, name, w, lang) {
-      var o = pick(w, ['cls', 'lang', 'kicker', 'title', 'cta', 'note', 'mode', 'notice', 'horizon', 'months', 'money', 'priceFrom', 'collapse', 'allowDup']), D = LBW.day, src = w.source;
+      var o = pick(w, ['cls', 'lang', 'kicker', 'title', 'cta', 'note', 'mode', 'notice', 'horizon', 'months', 'money', 'priceFrom', 'collapse', 'allowDup', 'words', 'legend']), D = LBW.day, src = w.source;
       if (isObj(w.nights)) { o.min = w.nights.min; o.max = w.nights.max; }
       if (isObj(w.closed)) { var wk = w.closed.weekdays || [], on = D.on(w.closed.dates || []); o.closed = function (n) { return wk.indexOf(D.parts(n).w) >= 0 || on(n); }; }
       var saved = w.rates || w.days ? { days: calMap(w.rates, w.days, name), unlisted: w.unlisted } : null;

@@ -145,10 +145,14 @@ test('screen: "View conversation" shows the earlier messages and folds them agai
   assert.equal(c.win.getAttribute('data-lbw-screen'), 'open');
   assert.equal(hist.getAttribute('aria-expanded'), 'true');
   assert.equal(c.LBW.screen.state().open, true);
-  assert.equal(c.d.activeElement, hist, 'focus stays on the toggle');
+  // v0.13.0.1: the visitor is taken to the start of the history (it used to open out of sight, focus on the toggle)
+  const first = c.chat.children[0];
+  assert.equal(c.d.activeElement, first, 'focus on the first earlier message');
+  assert.equal(first.getAttribute('tabindex'), '-1');
   assert.deepEqual(c.past(), ['past', 'past', 'on'], 'the marks stay; the mode shows them');
   hist.click();
   assert.equal(c.win.getAttribute('data-lbw-screen'), 'collapse'); assert.equal(hist.getAttribute('aria-expanded'), 'false');
+  assert.equal(c.d.activeElement, hist, 'folded: focus that was in the history goes to the toggle');
   assert.equal(c.LBW.screen.history(true), true); assert.equal(c.win.getAttribute('data-lbw-screen'), 'open');
   assert.equal(c.LBW.screen.history(false), false); assert.equal(c.win.getAttribute('data-lbw-screen'), 'collapse');
   // "history": "keep": nothing folds, and there is no toggle
@@ -282,21 +286,63 @@ test('screen: two widgets in one message are one screen; the bar follows the las
   c.close(); k.close();
 });
 
-test('screen: "View conversation" keeps the screen where it was: the scroller moves by what opened above', () => {
+// jsdom has no layout: rows report their place from a fake scroll position, as a browser would (`h` px each, from y = 100)
+function fakeLayout(c, h = 80, client = 500) {
+  const sc = c.chat; sc.style.overflowY = 'auto'; let top = 0; const writes = [];
+  Object.defineProperty(sc, 'scrollTop', { get: () => top, set: (v) => { top = v; writes.push([v, sc.style.scrollBehavior]); }, configurable: true });
+  Object.defineProperty(sc, 'clientHeight', { get: () => client, configurable: true });
+  Object.defineProperty(sc, 'scrollHeight', { get: () => top + client + 50, configurable: true });   // always "at the end" for lbw.js's reveal
+  sc.getBoundingClientRect = () => ({ top: 0, bottom: client, height: client, left: 0, right: 400, width: 400 });
+  const place = (r) => () => { const kids = [...c.chat.children], before = kids.slice(0, kids.indexOf(r)).filter((x) => !(x.hasAttribute('data-lbw-past') && c.win.getAttribute('data-lbw-screen') === 'collapse')).length, t = 100 + before * h - top;
+    return { top: t, bottom: t + h, height: h, left: 0, right: 400, width: 400 }; };
+  new c.w.MutationObserver(() => [...c.chat.children].forEach((r) => { r.getBoundingClientRect = place(r); })).observe(c.chat, { childList: true });
+  [...c.chat.children].forEach((r) => { r.getBoundingClientRect = place(r); });
+  return { sc, top: () => top, set: (v) => { top = v; }, writes };
+}
+
+test('screen: "View conversation" takes the visitor to the start of the history; folding it puts the screen back where it was', () => {
   const c = setup();
   c.draw('Hola'); c.say('Quiero reservar'); c.draw('[[s:plan]]');
-  // jsdom has no layout: rows report their place from a fake scroll position, as a browser would
-  const sc = c.chat; sc.style.overflowY = 'auto'; let top = 0;
-  Object.defineProperty(sc, 'scrollTop', { get: () => top, set: (v) => { top = v; }, configurable: true });
-  const rowTop = (r) => () => { const before = [...c.chat.children].slice(0, [...c.chat.children].indexOf(r)).filter((x) => !(x.hasAttribute('data-lbw-past') && c.win.getAttribute('data-lbw-screen') === 'collapse')).length; return { top: 100 + before * 80 - top }; };
-  [...c.chat.children].forEach((r) => { r.getBoundingClientRect = rowTop(r); });
-  const screen = c.chat.children[2], y0 = screen.getBoundingClientRect().top;
-  assert.equal(c.w.LBW_HOST.scroller(screen), sc);
+  const L = fakeLayout(c), screen = c.chat.children[2], y0 = screen.getBoundingClientRect().top;
+  assert.equal(c.w.LBW_HOST.scroller(screen), L.sc);
   c.LBW.screen.history(true);
-  assert.equal(screen.getBoundingClientRect().top, y0, 'two rows opened above, the scroller moved 160 px');
-  assert.equal(top, 160);
+  assert.equal(c.chat.children[0].getBoundingClientRect().top, 8, 'the first earlier message at the top of the chat (8 px under its edge)');
+  assert.equal(L.top(), 92);
+  assert.equal(c.d.activeElement, c.chat.children[0]);
+  // the visitor reads, scrolls; folding puts the screen back where it was when they opened it
+  L.set(40);
   c.LBW.screen.history(false);
-  assert.equal(screen.getBoundingClientRect().top, y0); assert.equal(top, 0);
+  assert.equal(screen.getBoundingClientRect().top, y0); assert.equal(L.top(), 0);
+  assert.equal(c.LBW.screen.history(false), false, 'already folded: no move');
+  assert.equal(L.writes.length, 2);
+  c.close();
+});
+
+test('screen: opening the history within 2.5 s of a new screen ends lbw.js\'s pending reveal, which used to drag the screen back', async () => {
+  for (const fixed of [true, false]) {
+    const c = setup();
+    c.draw('Hola'); c.say('Quiero reservar');
+    const L = fakeLayout(c, 300);
+    if (!fixed) c.w.LBW.unhold = () => {};   // the v0.13.0 race: nothing ends the hold
+    c.draw('[[s:plan]]'); await wait(30);   // the reveal is holding the newest reply in view (2.5 s)
+    c.LBW.screen.history(true);
+    assert.equal(L.top(), 92, 'the history\'s start at the top');
+    await wait(450);   // the hold's 350 ms pass
+    if (fixed) assert.equal(L.top(), 92, 'nothing moved it back');
+    else assert.notEqual(L.top(), 92, 'control: without unhold the reveal scrolls to the newest reply again');
+    c.close();
+  }
+});
+
+test('screen: every scroll it makes is instant, whatever the chat\'s scroll-behavior (the v4 column is smooth)', () => {
+  const c = setup();
+  c.draw('Hola'); c.say('Quiero reservar'); c.draw('[[s:plan]]');
+  const L = fakeLayout(c); L.sc.style.scrollBehavior = 'smooth';
+  c.LBW.screen.history(true); c.LBW.screen.history(false);
+  assert.ok(L.writes.length >= 2);
+  assert.ok(L.writes.every(([, b]) => b === 'auto'), JSON.stringify(L.writes));
+  assert.equal(L.sc.style.scrollBehavior, 'smooth', 'put back as it was');
+  const H = c.w.LBW_HOST; H.scrollTo(L.sc, 33.4); assert.equal(L.top(), 33); H.scrollTo(L.sc, -5); assert.equal(L.top(), 0);
   c.close();
 });
 
@@ -389,6 +435,85 @@ test('host: column, rowOf, slot, collapse and layout on the captured v4 window',
   assert.equal(H.column(d.createElement('div')), null);
 });
 
+// ── v0.13.0.1: from the live tests on two real bots ────────────────────────────────────────────────
+// a boot() chat with a v4-like header: its own wrapper (a window child, with the v4 width class), the header in it
+function withHeader(x, title = 'Vireo Air') {
+  const win = x.d.querySelector('[data-lb-part="window"]'), wrap = x.d.createElement('div'), h = x.d.createElement('div');
+  wrap.className = 'px-4 responsive-container'; h.setAttribute('data-lb-part', 'header'); h.innerHTML = `<div><h4> ${title} </h4></div>`;
+  wrap.appendChild(h); win.prepend(wrap);
+}
+test('screen: the header and the bar take the chat\'s own column width (v4 .responsive-container), next to our classes', () => {
+  const dom = new JSDOM(`<!doctype html><html><body>${FIX('user-message')}</body></html>`, { runScripts: 'outside-only', pretendToBeVisual: true });
+  const w = dom.window; w.eval(read('runtime/host-v4.js')); const H = w.LBW_HOST;
+  assert.ok(H.slot('head').classList.contains('responsive-container'), 'on the captured v4 window');
+  assert.ok(H.slot('bar').classList.contains('responsive-container'));
+  // through screen mode: lbw-scr-head / lbw-scr-bar are added, the width class stays
+  const c = setup({ before: (x) => withHeader(x) });
+  c.draw('Hola'); c.say('Quiero'); c.draw('[[s:plan]]');
+  assert.deepEqual([...c.slot('head').classList].sort(), ['lbw-scr-head', 'responsive-container']);
+  assert.deepEqual([...c.slot('bar').classList].sort(), ['lbw-scr-bar', 'responsive-container']);
+  // a chat without that class: no class, full width as before
+  const k = setup(); k.draw('[[s:plan]]'); assert.equal(k.slot('head').className, 'lbw-scr-head');
+  c.close(); k.close();
+});
+
+test('screen: "hideHost" hides Landbot\'s header (its wrapper) while screen mode runs; the screen title carries the brand; reversible', () => {
+  // the adapter on the captured v4 window: the wrapper that holds only the header is marked, never the column
+  const dom = new JSDOM(`<!doctype html><html><body>${FIX('user-message')}</body></html>`, { runScripts: 'outside-only', pretendToBeVisual: true });
+  const w = dom.window, d = w.document; w.eval(read('runtime/host-v4.js')); const H = w.LBW_HOST;
+  assert.deepEqual(json(H.check(null, { header: true })), { ok: true, missing: [], input: false });
+  assert.equal(H.header(true), 'Text');
+  const off = d.querySelector('[data-lbw-off]'), hd = d.querySelector('[data-lb-part="header"]');
+  assert.equal(off.parentElement, H.window()); assert.ok(off.contains(hd)); assert.ok(!off.contains(H.messages()[0]));
+  assert.equal(H.header(false), 'Text'); assert.equal(d.querySelector('[data-lbw-off]'), null);
+  hd.remove();
+  assert.deepEqual(json(H.check(null, { header: true })), { ok: false, missing: ['data-lb-part="header"'], input: false });
+  assert.equal(H.header(true), null); assert.equal(d.querySelector('[data-lbw-off]'), null, 'no hook: nothing hidden');
+  // in screen mode: hidden from the first screen; no header.title → the hidden header's title; quit → shown again
+  const c = setup({ screen: { on: true, hideHost: true, header: { steps: SCREEN().header.steps } }, before: (x) => withHeader(x) });
+  c.draw('Hola'); assert.equal(c.d.querySelector('[data-lbw-off]'), null, 'no screen yet: nothing hidden');
+  c.say('Quiero'); c.draw('[[s:plan]]');
+  const wrap = c.d.querySelector('[data-lbw-off]');
+  assert.ok(wrap && wrap.querySelector('[data-lb-part="header"]'));
+  assert.equal(c.slot('head').querySelector('.lbw-scr-title').textContent, 'Vireo Air');
+  const css = read('runtime/lbw.css'); assert.match(css, /\[data-lbw-screen\] \[data-lbw-off\] \{ display: none !important; \}/);
+  c.w.LBW_HOST.collapse = () => { throw new Error('boom'); }; c.say('x'); c.draw('[[s:dias]]');
+  assert.equal(c.d.querySelector('[data-lbw-off]'), null, 'a normal chat again: the header is back');
+  // a config title wins; off by default; no header hook: nothing hidden, logged, screen mode still on
+  const t = setup({ screen: { ...SCREEN(), hideHost: true }, before: (x) => withHeader(x) }); t.draw('[[s:plan]]');
+  assert.equal(t.slot('head').querySelector('.lbw-scr-title').textContent, 'Tu reserva');
+  const n = setup({ before: (x) => withHeader(x) }); n.draw('[[s:plan]]'); assert.equal(n.d.querySelector('[data-lbw-off]'), null);
+  const m = setup({ screen: { ...SCREEN(), hideHost: true } }); m.draw('[[s:plan]]');
+  assert.equal(m.win.getAttribute('data-lbw-screen'), 'collapse');
+  assert.ok(m.dropped().includes('screen: hideHost: no [data-lb-part="header"] in the chat (its header stays)'), m.dropped().join('\n'));
+  c.close(); t.close(); n.close(); m.close();
+});
+
+test('screen: "bar": "always" docks the ready action even while the original is in view; still a mirror (aria-hidden, no Tab)', async () => {
+  const io = (x) => { x.w.IntersectionObserver = class { constructor(cb) { this.cb = cb; } observe() { setTimeout(() => this.cb([{ isIntersecting: true }]), 0); } disconnect() {} }; };
+  for (const bar of [true, 'always']) {
+    const c = setup({ screen: { ...SCREEN(), bar }, before: io });
+    const w = c.draw('Te ayudo: [[s:plan]]').widgets()[0], b = c.slot('bar');
+    await wait(0); assert.equal(b.hidden, true, bar + ': not ready, no bar');
+    w.querySelector('[role="radio"]').click(); await wait(0);
+    assert.equal(b.hidden, bar !== 'always', bar + ': the original is in view');
+    assert.equal(b.getAttribute('aria-hidden'), 'true'); assert.equal(b.querySelector('button').tabIndex, -1);
+    if (bar === 'always') { let n = 0; w.querySelector('.lbw-cta').addEventListener('click', () => n++); b.querySelector('button').click(); assert.equal(n, 1); }
+    c.close();
+  }
+});
+
+test('check + schema: "hideHost" and "bar": "always" are valid; anything else is said', () => {
+  const c = boot({ kit: true, scripts: SCRIPTS }), check = (sc) => json(c.w.LBW.kit.setup._check({ ...BASE, screen: { ...SCREEN(), ...sc }, widgets: W() })).map((e) => e.message);
+  assert.deepEqual(check({ bar: 'always', hideHost: true }), []); assert.deepEqual(check({ bar: false, hideHost: false }), []);
+  assert.deepEqual(check({ bar: 'sometimes', hideHost: 'yes' }), ['screen.bar is true (the action docked while it is out of view), "always" (docked whenever it is ready) or false (no bottom bar)',
+    'screen.hideHost is true (Landbot\'s own header hides while screen mode runs) or false']);
+  const S = generate().schema;
+  assert.deepEqual(validate(S, { ...BASE, screen: { ...SCREEN(), bar: 'always', hideHost: true }, widgets: W() }), []);
+  assert.ok(validate(S, { ...BASE, screen: { ...SCREEN(), bar: 'sometimes' }, widgets: W() }).some((e) => e.path.startsWith('screen.bar')));
+  c.close();
+});
+
 // ── the checker and the schema ─────────────────────────────────────────────────────────────────────
 test('check: a screen config, sentence by sentence; a screen error is marked so setup() keeps the widgets', () => {
   const c = boot({ kit: true, scripts: SCRIPTS }), check = (cfg) => json(c.w.LBW.kit.setup._check(cfg));
@@ -396,9 +521,9 @@ test('check: a screen config, sentence by sentence; a screen error is marked so 
   const bad = check({ ...BASE, screen: { on: 'yes', bar: 1, history: 'fold', extra: 1, header: { title: 'x', steps: [['Plan', 'P'], ['b', 'B'], ['b', 'C']], progres: true } },
     widgets: { dias: { ...W().dias, step: 'nope', screen: 'no' } } });
   assert.deepEqual(bad.map((e) => e.message), [
-    'screen: unknown key "extra". Known: on, header, bar, history, bleed',
+    'screen: unknown key "extra". Known: on, header, bar, history, bleed, hideHost',
     'screen.on is true (screen mode) or false',
-    'screen.bar is true or false: false, no bottom bar',
+    'screen.bar is true (the action docked while it is out of view), "always" (docked whenever it is ready) or false (no bottom bar)',
     'screen.history is "collapse" (earlier messages fold behind "View conversation") or "keep" (they stay)',
     'screen.header: unknown key "progres". Known: title, steps, progress. Did you mean "progress"?',
     'screen.header.steps[0]: the id "Plan" is a lower-case word (a tag writes it: step=plan)',
@@ -417,7 +542,7 @@ test('check: a screen config, sentence by sentence; a screen error is marked so 
 
 test('schema: "screen" and each widget\'s "screen" and "step" are described, and checked as far as the schema can', () => {
   const S = generate().schema;
-  assert.deepEqual(Object.keys(S.properties.screen.properties), ['on', 'header', 'bar', 'history', 'bleed']);
+  assert.deepEqual(Object.keys(S.properties.screen.properties), ['on', 'header', 'bar', 'history', 'bleed', 'hideHost']);
   for (const t of ['form', 'cards', 'calendar', 'confirm']) assert.ok(S.$defs[t].properties.screen && S.$defs[t].properties.step, t);
   assert.deepEqual(validate(S, { ...BASE, screen: SCREEN(), widgets: W() }), []);
   const errs = validate(S, { prefix: 's', screen: { on: true, history: 'fold', zoom: 1 }, widgets: { a: { type: 'cards', step: 'Nope', screen: 'x', items: {} } } }).map((e) => e.path);

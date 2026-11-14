@@ -9,7 +9,7 @@ export const screenConfig = (config) => ({
     header: { title: 'Reserva la cabaña', steps: [['plan', 'Tu plan'], ['noches', 'Noches'], ['listo', 'Listo']] },
     bar: true,
     history: 'collapse',
-  },   // the page adds "bleed": true with ?bleed=1 (the gallery's frame)
+  },   // the page adds "bleed": true with ?bleed=1 (the gallery's frame), "hideHost": true with ?hidehost=1, "bar": "always" with ?bar=always
   widgets: {
     plan: { ...config.widgets.plan, step: 'plan', kicker: 'Paso 1 · Tu plan', title: '¿Qué escapada buscas?', note: 'Tres toques, sin datos personales.' },
     noches: { ...config.widgets.noches, step: 'noches' },
@@ -37,7 +37,11 @@ export function screenPage({ config, lib, libCss, version }) {
 :root { --chat-bg: #F5F5F7; --chat-line: #E6E6E9; --chat-ink: #0D0D0D; --user-bg: #222228; --user-ink: #FFFFFF; color-scheme: light; }
 html, body { height: 100%; margin: 0; }
 body { background: var(--chat-bg); color: var(--chat-ink); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
-.win { height: 100%; display: flex; flex-direction: column; max-width: 720px; margin: 0 auto; background: var(--chat-bg); overflow: hidden; }
+/* as v4 lays it out: the window spans the page, and its header, message list and text box keep to a 720 px column
+   (.responsive-container, the v4 chat's own rule); ?smooth=1 scrolls the column smoothly, as v4's does */
+.win { height: 100%; display: flex; flex-direction: column; background: var(--chat-bg); overflow: hidden; }
+.responsive-container { width: 100%; max-width: 720px; margin-inline: auto; box-sizing: border-box; }
+.is-smooth .col { scroll-behavior: smooth; }
 .win-top { flex: none; padding: 10px 16px; background: #FFFFFF; border-bottom: 1px solid var(--chat-line); }
 .win-head { display: flex; align-items: center; gap: 10px; }
 .win-head .av { width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; background: #1E1EFF; color: #FFFFFF; font: 700 13px/1 system-ui, sans-serif; }
@@ -65,9 +69,9 @@ ${libCss}
 </head>
 <body>
 <div class="win" data-lb-part="window">
-  <div class="win-top"><div class="win-head" data-lb-part="header"><span class="av" aria-hidden="true">RN</span><div><h1>Roda Norte</h1><p>Asistente · demo del modo pantalla</p></div></div></div>
-  <div class="col" aria-label="Conversación"><div class="list" id="list"></div></div>
-  <div class="foot">
+  <div class="win-top responsive-container"><div class="win-head" data-lb-part="header"><span class="av" aria-hidden="true">RN</span><div><h1>Roda Norte</h1><p>Asistente · demo del modo pantalla</p></div></div></div>
+  <div class="col" aria-label="Conversación"><div class="list responsive-container" id="list"></div></div>
+  <div class="foot responsive-container">
     <form class="box" id="box" data-lb-part="input-field"><input id="say" type="text" autocomplete="off" placeholder="Escribe aquí…" aria-label="Escribe un mensaje"><button type="submit">Enviar</button></form>
     <p class="brand">Datos ficticios · no se reserva nada</p>
   </div>
@@ -120,7 +124,12 @@ ${libCss}
 })();
 </script>
 <script>${script(lib)}</script>
-<script>(function (c) { if (/[?&]bleed=1/.test(location.search)) { c.screen.bleed = true; document.documentElement.classList.add('is-bleed'); } window.__screenSetup = LBW.kit.setup(c); })(${JSON.stringify(cfg).replace(/</g, '\\u003c')});</script>
+<script>(function (c) { var q = location.search, h = document.documentElement;
+  if (/[?&]bleed=1/.test(q)) { c.screen.bleed = true; h.classList.add('is-bleed'); }
+  if (/[?&]hidehost=1/.test(q)) c.screen.hideHost = true;
+  if (/[?&]bar=always/.test(q)) c.screen.bar = 'always';
+  if (/[?&]smooth=1/.test(q)) h.classList.add('is-smooth');
+  window.__screenSetup = LBW.kit.setup(c); })(${JSON.stringify(cfg).replace(/</g, '\\u003c')});</script>
 </body>
 </html>
 `;

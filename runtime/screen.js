@@ -4,6 +4,9 @@
    in the DOM, behind "View conversation"), an app header shows the steps, and the primary action of the screen's last widget
    is mirrored in a bottom bar while it is ready and scrolled out of view. With "bleed": true the screen drops its card and
    bubble chrome and fills the column. Off, this file only defines LBW.screen: no listener, no cost.
+   v0.13.0.1 (live tests on two real bots): "bar": "always" docks the ready action even while the original is in view;
+   "hideHost": true hides Landbot's own header while screen mode runs (the screen header's title carries the brand, Landbot's
+   header title when the config gives none); the header and the bar keep to the chat's column on a wide window.
    - Landbot's DOM only through the host adapter (runtime/host-v4.js: column, rowOf, slot, collapse, layout, scroller, present).
    - The step comes from the config (the widget's "step") or from the tag (step=when, or step=2), checked against the
      config's closed list: anything else is logged and ignored. A step is done (✓) only once the visitor was on it and moved
@@ -11,8 +14,11 @@
    - An agent's free text between screens is a normal bubble under the current screen: only what came before the screen's
      turn is folded, so no reply is ever hidden, and the next widget simply becomes the next screen. The text box is never
      touched, and focus never leaves it.
-   - "View conversation" opens the history above the screen and keeps the screen where it was on the screen (the scroller is
-     moved by the height that came in above): the visitor scrolls up to read, and never loses their place.
+   - "View conversation" (v0.13.0.1) opens the history above the screen and takes the visitor to its start: one instant
+     scroll that puts the first earlier message at the top of the chat, and focus on it. Folding it again puts the screen back
+     exactly where it was before. Those are the only moves: lbw.js's pending scroll to the newest reply is ended first
+     (LBW.unhold: it used to win the race and drop the screen 74–77 px), and no move is smooth (the v4 column is
+     scroll-smooth: the adapter writes it at once).
    - If the host check fails (a renamed hook) or the config is wrong, it stays a normal chat and says why in __lbwDropped. */
 (function (root) {
   var LBW = root.LBW; if (!LBW || LBW.screen) return;
@@ -23,7 +29,7 @@
     de: ['Unterhaltung anzeigen', 'Schritt {n} von {m}', 'erledigt', 'Schritte', 'übersprungen'], it: ['Vedi la conversazione', 'Passo {n} di {m}', 'fatto', 'Passi', 'saltato'],
     pt: ['Ver a conversa', 'Passo {n} de {m}', 'feito', 'Passos', 'ignorado'] };
   var ID = /^[a-z][a-z0-9_]{0,29}$/, TAG = /^`?\[\[\s*[a-z][\w]*\s*:\s*[a-z][\w]*([\s\S]*?)\]\]`?$/i, TITLE_MAX = 60;
-  var C = null, W = {}, dflt = 'en', STEPS = [], on = false, dead = false, seen = false, open = false, cur = null, done = {}, mo = null, io = null;
+  var C = null, W = {}, dflt = 'en', STEPS = [], on = false, dead = false, seen = false, open = false, cur = null, done = {}, mo = null, io = null, brand = '';
 
   function el(tag, cls, text) { return LBW.ui.el(tag, cls, text); }
   function tx(v, lang) { if (v == null) return ''; if (typeof v !== 'object') return String(v); var k = own(v, lang) ? lang : own(v, dflt) ? dflt : Object.keys(v)[0]; return k == null ? '' : String(v[k]); }
@@ -82,6 +88,8 @@
     if (!seen) {
       seen = true; var r = H.check();
       if (!r.ok || !H.column()) return quit('host changed: ' + (r.missing.join(', ') || 'no message column'));
+      // "hideHost": Landbot's header goes while screen mode runs; with no header hook nothing is hidden, and it says so
+      if (C.hideHost === true) { var b = H.header(true); if (b == null) LBW.drop('screen: hideHost: no ' + H.sel.header + ' in the chat (its header stays)'); else brand = Array.from(b).slice(0, TITLE_MAX).join(''); }
     }
     var st = stepOf(e.tag, wc);
     // the screen is the message: a later widget of it joins (the first step named wins), and the bar follows the last one
@@ -145,8 +153,8 @@
   // ── the header: the title, "View conversation" and the steps ─────────────────────────────────────
   function head() {
     var s = H.slot('head'); if (!s || !cur) return;
-    var lang = cur.lang, t = words(lang), h = C.header || {}, title = tx(h.title, lang), top = s.firstChild;
-    s.className = 'lbw-scr-head'; s.setAttribute('lang', lang);
+    var lang = cur.lang, t = words(lang), h = C.header || {}, title = tx(h.title, lang) || brand, top = s.firstChild;
+    s.classList.add('lbw-scr-head'); s.setAttribute('lang', lang);
     if (!top) {
       top = s.appendChild(el('div', 'lbw-scr-top')); top.appendChild(el('p', 'lbw-scr-title'));
       if (C.history !== 'keep') { var b = top.appendChild(LBW.ui.btn('', 'lbw-scr-hist')); b.addEventListener('click', function () { history(!open); }); }
@@ -178,6 +186,8 @@
   }
 
   // ── the bottom bar: the screen's primary action, mirrored ───────────────────────────────────────
+  // "bar": "always" keeps this: the bar is still a mirror, hidden from assistive tech and the tab order. The original is the
+  // one action they reach, so a docked copy never doubles it for them
   // Mirrored, not moved: the original stays where the kit put it (its group, its sent state, its receipt and the focus rescue
   // all need it there), and stays the one keyboard and screen-reader users reach. The bar is a pointer shortcut: aria-hidden,
   // out of the tab order, a press is the original's click. It follows the screen's LAST widget (not a chips row drawn last):
@@ -192,10 +202,11 @@
   function bar() {
     unwatch();
     var s = H.slot('bar'), m = cur.msg; if (!s) return;
-    s.className = 'lbw-scr-bar'; s.setAttribute('aria-hidden', 'true'); s.setAttribute('lang', cur.lang); s.textContent = '';
+    s.classList.add('lbw-scr-bar'); s.setAttribute('aria-hidden', 'true'); s.setAttribute('lang', cur.lang); s.textContent = '';
     if (C.bar === false) { s.hidden = true; return; }
+    // "bar": "always" (v0.13.0.1): the bar is the screen's docked footer whenever the action is ready, in view or not
     var sum = s.appendChild(el('span', 'lbw-scr-sum')), b = s.appendChild(LBW.ui.btn('', 'lbw-pill is-primary lbw-scr-go')), o = null, w = null;
-    var hasIO = typeof root.IntersectionObserver === 'function', away = !hasIO;
+    var always = C.bar === 'always', hasIO = !always && typeof root.IntersectionObserver === 'function', away = !hasIO;
     b.tabIndex = -1;
     b.addEventListener('click', function () { if (o && o.isConnected && !o.disabled) o.click(); });
     if (hasIO) io = new root.IntersectionObserver(function (es) { away = !es[es.length - 1].isIntersecting; sync(); }, { threshold: 0.9 });
@@ -216,13 +227,33 @@
 
   // ── the public API ──────────────────────────────────────────────────────────────────────────────
   // LBW.screen.history(open): shows the earlier messages (true) or folds them again (false); → the state, or false off.
-  // They open above the screen, and the scroller moves by what came in above, so the screen stays where it was in view
+  // Open: the history appears above the screen and the visitor is taken to its start (the first earlier message at the top of
+  // the chat, focused). Folded: the screen is put back where it was when they opened it, and focus that was in the history
+  // goes to the toggle. Each is one instant move, after lbw.js's pending reveal is ended (it moved the screen 74–77 px when
+  // opened within 2.5 s of a new step, live 14 Nov 2026)
+  function topOf(sc) { return sc === D.scrollingElement || sc === D.documentElement || sc === D.body ? 0 : sc.getBoundingClientRect().top; }
+  function later(f) { if (typeof requestAnimationFrame === 'function') requestAnimationFrame(f); }   // after the browser's own scroll anchoring, if any
   function history(v) {
     if (!on || !cur || C.history === 'keep') return false;
-    var a = H.rowOf(cur.turn), sc = a && H.scroller(a), y0 = a ? a.getBoundingClientRect().top : 0;
-    var keep = function () { if (!a || !sc) return; var d = a.getBoundingClientRect().top - y0; if (Math.abs(d) > 0.5) sc.scrollTop += d; };
-    open = !!v; H.layout(mode()); head(); keep();
-    if (typeof requestAnimationFrame === 'function') requestAnimationFrame(keep);   // after the browser's own scroll anchoring, if any
+    v = !!v; if (v === open) return open;
+    if (typeof LBW.unhold === 'function') LBW.unhold();
+    var a = H.rowOf(cur.turn), sc = a && H.scroller(a), ae = D.activeElement, inPast = false;
+    if (v) {
+      cur.y = a ? a.getBoundingClientRect().top : null;
+      open = true; H.layout(mode()); head();
+      var m0 = cur.past ? H.messages()[0] : null, f = m0 && H.rowOf(m0);
+      if (!f) return open;
+      var go = function () { if (!open || !sc) return; var d = f.getBoundingClientRect().top - topOf(sc) - 8; if (Math.abs(d) > 0.5) H.scrollTo(sc, sc.scrollTop + d); };
+      if (!m0.hasAttribute('tabindex')) m0.setAttribute('tabindex', '-1');
+      try { m0.focus({ preventScroll: true }); } catch (e) { try { m0.focus(); } catch (e2) {} }
+      go(); later(go);
+      return open;
+    }
+    var r0 = ae && ae !== D.body && H.rowOf(ae); inPast = !!(r0 && r0.hasAttribute('data-lbw-past'));
+    open = false; H.layout(mode()); head();
+    var y = cur.y, keep = function () { if (open || !a || !sc || y == null) return; var d = a.getBoundingClientRect().top - y; if (Math.abs(d) > 0.5) H.scrollTo(sc, sc.scrollTop + d); };
+    keep(); later(keep);
+    if (inPast) { var hb = H.slot('head') && H.slot('head').querySelector('.lbw-scr-hist'); if (hb) try { hb.focus({ preventScroll: true }); } catch (e) {} }
     return open;
   }
   // LBW.screen.state() → { step, index, of, done, widget, widgets, open, past } for the current screen, or null

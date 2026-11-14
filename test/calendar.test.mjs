@@ -279,3 +279,47 @@ test('calendar (v0.10.0.1): one place left says "queda 1", in the singular', () 
   assert.match(day(m, 21).getAttribute('aria-label'), /queda 1$/); assert.match(day(m, 22).getAttribute('aria-label'), /quedan 3$/);
   c.close();
 });
+
+// ── v0.13.0.1 · the calendar's words, by language, and "legend": false (a flight has no check-in, no nights, no availability) ──
+const VUELO = { type: 'calendar', title: 'When?', cta: 'Next', months: 1, legend: false, horizon: 120,
+  words: { pickIn: { es: 'Elige la ida', en: 'Pick your outbound day' }, pickOut: { es: 'Ahora la vuelta', en: 'Now pick your return' }, arrive: { es: 'Ida el {d}', en: 'Out {d}' },
+    night: { es: '{n} día', en: '{n} day' }, nights: { es: '{n} días', en: '{n} days' }, inDay: { es: 'ida', en: 'outbound' }, outDay: { es: 'vuelta', en: 'return' } },
+  send: { text: 'Del {from:dmy} al {to:dmy}', fields: { ida: '{from:dmy}', vuelta: '{to:dmy}' } } };
+test('calendar: "words" changes the kit\'s words in each language; "legend": false drops the key; the defaults stay', async () => {
+  const c = setup({ ...W, vuelo: VUELO }); assert.equal(c.result.ok, true, JSON.stringify(c.result.errors));
+  for (const [lang, w] of [['es', ['Elige la ida', 'Ahora la vuelta', 'Ida el', '3 días', ', ida', ', vuelta']], ['en', ['Pick your outbound day', 'Now pick your return', 'Out', '3 days', ', outbound', ', return']]]) {
+    const m = draw(c, `[[t:vuelo lang=${lang}]]`), v = m.widgets()[0];
+    await wait(20);
+    assert.equal(cta(m).textContent, w[0]);
+    assert.equal(v.querySelector('.kit-cal-key'), null, 'no legend');
+    day(m, 17).click(); assert.equal(cta(m).textContent, w[1]); assert.ok(v.querySelector('.kit-cal-sum').textContent.startsWith(w[2]), v.querySelector('.kit-cal-sum').textContent);
+    day(m, 20).click(); assert.match(v.querySelector('.kit-cal-sum').textContent, new RegExp(w[3]));
+    assert.ok(day(m, 17).getAttribute('aria-label').endsWith(w[4])); assert.ok(day(m, 20).getAttribute('aria-label').endsWith(w[5]));
+  }
+  // the hotel calendar keeps every default word and its key
+  const h = draw(c, '[[t:noches]]').widgets()[0]; await wait(20);
+  assert.deepEqual([...h.querySelectorAll('.kit-cal-k')].map((k) => k.textContent), ['Precio por noche (€)', 'quedan pocas', 'completo']);
+  assert.equal(h.querySelector('.lbw-cta').textContent, 'Elige la llegada');
+  c.close();
+});
+
+test('check: a calendar\'s "words" and "legend", sentence by sentence; the kit keeps its own word for one it can\'t use', async () => {
+  const c = setup();
+  assert.deepEqual(c.check({ vuelo: VUELO }), []);
+  const bad = c.check({ vuelo: { ...VUELO, legend: 'no', words: { pickIn: 3, nights: 'days', arrive: 'Out', checkin: 'x', min: 'At least {d}' } } });
+  assert.deepEqual(bad.filter((m) => /words|legend/.test(m)).map((m) => m.replace(/^\[\w+\] /, '')).filter((m, i, a) => a.indexOf(m) === i), [
+    'vuelo: "legend" is false (no key under the grid) or left out',
+    'vuelo: words: unknown key "checkin". Known: pickIn, pickOut, pickDay, arrive, night, nights, inDay, outDay, per, few, left, left1, full, closed, min, max, gap',
+    'vuelo: words.pickIn must be text',
+    'vuelo: words.arrive needs "{d}", as "Out {d}"',
+    'vuelo: words.nights needs "{n}", as "{n} days"',
+    'vuelo: words.min needs "{n}", as "At least {n} days"',
+  ]);
+  // with no checker (a bot's bundle), a word without its placeholder is ignored: the kit's own is used
+  const r = boot({ kit: true, scripts: ['kit/setup.js'] }); r.w.__lbwToday = '14/11/2026';
+  r.w.LBW.kit.setup({ ...BASE, widgets: { vuelo: { ...VUELO, words: { nights: 'days', pickIn: 'Pick your outbound day' } } } });
+  const m = draw(r, '[[t:vuelo lang=en]]'); await wait(20);
+  day(m, 17).click(); day(m, 20).click();
+  assert.match(m.querySelector('.kit-cal-sum').textContent, /3 nights/);
+  c.close(); r.close();
+});

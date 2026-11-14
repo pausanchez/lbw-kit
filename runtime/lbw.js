@@ -1,4 +1,4 @@
-/* lbw.js · Landbot AI Widgets runtime · v0.13.0
+/* lbw.js · Landbot AI Widgets runtime · v0.13.0.1
    Turns tags that an AI agent (or a flow message) writes at the end of a bot message, e.g. [[shop:card id=boots lang=en]],
    into interactive widgets inside the Landbot v4 web chat. Distilled from four production experiments.
    You write: your data, your labels and one function per widget. The runtime does the rest:
@@ -1160,7 +1160,7 @@
   }
 
   root.LBW = {
-    version: '0.13.0',
+    version: '0.13.0.1',
     host: H,   // the Landbot v4 adapter (runtime/host-v4.js): LBW.host.check() → { ok, missing, input }
     ready: false,   // v0.9.5: true once init() ran and the first scan is done
     // LBW.init({ prefix, langs, defaultLang, labels: {en:{…}}, links: ['https://shop.example/', 'tel:', 'mailto:', 'https://calendar.google.com/'], maxPerMessage, quietMs, timeZone: 'Europe/Madrid' })
@@ -1185,6 +1185,9 @@
     motion: moving,
     // LBW.announce(text, lang, key): one short line in the chat's polite live region (v0.9.5)
     announce: announce,
+    // v0.13.0.1 · LBW.unhold(): ends the reveal of the newest reply (its 2.5 s hold) as if the visitor had scrolled. Screen
+    // mode's "View conversation" calls it: a pending scroll to the newest reply put the screen 74–77 px off (live, 14 Nov 2026)
+    unhold: function () { if (HOLD && !HOLD.done && HOLD.end) HOLD.end({ type: 'unhold' }); },
     day: { num: dayNum, parts: dayParts, read: dayRead, today: dayToday, format: dayFormat, str: dayStr, easter: dayEaster, nth: dayNth, next: dayNext, on: dayOn },
     time: { now: timeNow, read: timeRead, format: timeFmt, state: timeState, nextOpen: timeNextOpen },
     cal: { google: gcal, ics: icsText },

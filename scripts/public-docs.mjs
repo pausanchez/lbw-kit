@@ -15,7 +15,11 @@ const BLOB = 'https://github.com/pausanchez/lbw-kit/blob/main/';
 // What may not reach a public file: the client names (the folder names under examples/, and tools/private-denylist.txt when
 // there is one: plain lines, "re:" lines skipped here), "reto N", "blind build", and the private folders' paths.
 const names = [];
-try { for (const d of fs.readdirSync(new URL('examples/', root))) if (d !== 'starter') names.push(...d.split('-').filter((w) => w.length > 3 && w !== 'port')); } catch (e) {}
+// A folder that only groups bots ("live-bots") is not a name: the bots' folders inside it are (v0.13.0.1: "live" was refused)
+const split = (d) => d.split('-').filter((w) => w.length > 3 && w !== 'port');
+try { for (const d of fs.readdirSync(new URL('examples/', root), { withFileTypes: true })) { if (d.name === 'starter') continue;
+  if (d.isDirectory() && /-bots$/.test(d.name)) { for (const b of fs.readdirSync(new URL(`examples/${d.name}/`, root), { withFileTypes: true })) if (b.isDirectory()) names.push(...split(b.name)); }
+  else names.push(...split(d.name)); } } catch (e) {}
 try { names.push(...fs.readFileSync(new URL('tools/private-denylist.txt', root), 'utf8').split('\n').filter((l) => !l.trim().startsWith('#')).join('\n').split(/[\n,]/).map((x) => x.trim()).filter((x) => x && !x.startsWith('re:'))); } catch (e) {}
 const esc = (x) => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const FORBIDDEN = new RegExp([...names.map(esc), '\\bretos? ?\\d+', 'blind build', '\\b(?:docs|examples|tools)/'].join('|'), 'i');

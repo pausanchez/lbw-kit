@@ -1,4 +1,4 @@
-/* lbw.css · base look for Landbot AI Widgets (v0.13.0)
+/* lbw.css · base look for Landbot AI Widgets (v0.13.0.1)
    The ChatKit-gallery language measured in four production experiments: white cards, 18px radius, a hairline and a soft shadow; a small
    kicker above an 18px title; pill buttons (primary filled, secondary an inset ring) under the card. Re-skin it by
    overriding the variables below in your Custom CSS; keep the class names, the test harness reads some of them. */
@@ -233,8 +233,12 @@
    fill and the toggle), -head-track (an open step's bar); --lbw-screen-bar-bg, -bar-ink, -bar-line. "bleed": true adds
    --lbw-screen-surface (behind the screen's widgets; transparent: the chat's own background), --lbw-screen-gutter (the
    column's side padding, to reach its edges; 0), --lbw-screen-pad (padding inside a set surface; 0), --lbw-screen-radius (the surface's corners; 0), --lbw-screen-title-ink and
-   --lbw-screen-intro-ink (the screen's text without its bubble; the bubble's own colour). */
+   --lbw-screen-intro-ink (the screen's text without its bubble; the bubble's own colour). v0.13.0.1: --lbw-screen-step-size and
+   -step-weight (the steps' labels; 12px, 400), --lbw-screen-title-size (a bleed screen's heading; 24px). The slots take the
+   chat's own column width from the adapter (host-v4.js), so nothing here sets a width. */
 [data-lbw-screen="collapse"] [data-lbw-past] { display: none !important; }
+[data-lbw-screen] [data-lbw-off] { display: none !important; }   /* "hideHost": the chat's own header, while screen mode runs */
+[data-lbw-screen] [data-lbw-past][tabindex="-1"]:focus, [data-lbw-screen] [data-lbw-past] [tabindex="-1"]:focus { outline: none; }   /* "View conversation" focuses the first earlier message: no ring on a non-control */
 [data-lbw-slot] { flex: none; box-sizing: border-box; font: 400 14px/20px var(--lbw-font); container: lbwscr / inline-size; }
 [data-lbw-slot][hidden] { display: none !important; }
 .lbw-scr-head { --h-ink: var(--lbw-screen-head-ink, var(--lbw-ink)); --h-acc: var(--lbw-screen-head-accent, var(--lbw-accent)); padding: 6px 16px 10px; color: var(--h-ink); background: var(--lbw-screen-head-bg, var(--lbw-card)); border-bottom: 1px solid var(--lbw-screen-head-line, var(--lbw-line)); }
@@ -245,7 +249,7 @@
 .lbw-scr-chev { display: inline-block; text-decoration: none; }
 .lbw-scr-hist:focus-visible { outline: 2px solid var(--lbw-focus, var(--h-ink)); outline-offset: -2px; }
 .lbw-scr-steps { display: flex; gap: 6px; margin: 4px 0 0; padding: 0; list-style: none; }
-.lbw-scr-steps li { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 5px; font: 400 12px/16px var(--lbw-font); color: var(--lbw-screen-head-muted, var(--lbw-muted)); }
+.lbw-scr-steps li { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 5px; font: var(--lbw-screen-step-weight, 400) var(--lbw-screen-step-size, 12px)/1.34 var(--lbw-font); color: var(--lbw-screen-head-muted, var(--lbw-muted)); }
 .lbw-scr-steps li::before, .lbw-scr-track { content: ""; height: 4px; border-radius: 2px; background: var(--lbw-screen-head-track, rgba(13,13,13,.14)); }
 @supports (color: color-mix(in srgb, red, blue)) { .lbw-scr-steps li::before, .lbw-scr-track { background: var(--lbw-screen-head-track, color-mix(in srgb, var(--h-ink) 16%, transparent)); } }
 .lbw-scr-steps .is-cur { color: var(--h-ink); font-weight: 600; }
@@ -270,7 +274,7 @@
    fill the column, and its replies, chips and actions become full-width rows */
 [data-lbw-screen] [data-lbw-aside] { display: none !important; }
 [data-lbw-screen] [data-lbw-chrome] { background: none !important; border: 0 !important; box-shadow: none !important; padding: 0 !important; border-radius: 0 !important; max-width: none !important; width: auto !important; }
-[data-lbw-screen] [data-lbw-chrome="title"] { margin: 4px 0 2px; font: 700 24px/1.2 var(--lbw-display, var(--lbw-font)) !important; letter-spacing: -.01em; color: var(--lbw-screen-title-ink, inherit) !important; text-wrap: balance; }
+[data-lbw-screen] [data-lbw-chrome="title"] { margin: 4px 0 2px; font: 700 var(--lbw-screen-title-size, 24px)/1.2 var(--lbw-display, var(--lbw-font)) !important; letter-spacing: -.01em; color: var(--lbw-screen-title-ink, inherit) !important; text-wrap: balance; }
 [data-lbw-screen] [data-lbw-chrome="intro"] { font: 400 16px/1.45 var(--lbw-font) !important; color: var(--lbw-screen-intro-ink, inherit) !important; }
 [data-lbw-screen] [data-lbw-cur] .lbw { box-sizing: border-box; width: calc(100% + 2 * var(--lbw-screen-gutter, 0px)); max-width: none; margin-inline: calc(-1 * var(--lbw-screen-gutter, 0px)); padding-inline: var(--lbw-screen-gutter, 0px); }
 [data-lbw-screen] [data-lbw-cur] .lbw > .lbw-box { margin-inline: calc(-1 * var(--lbw-screen-gutter, 0px)); padding: var(--lbw-screen-pad, 4px) calc(var(--lbw-screen-gutter, 0px) + var(--lbw-screen-pad, 0px)) calc(var(--lbw-screen-pad, 0px) + 12px); background: var(--lbw-screen-surface, transparent); border: 0; border-radius: var(--lbw-screen-radius, 0); box-shadow: none; overflow: visible; }

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cdn.jsdelivr.net/gh/pausanchez/lbw-kit@v0.13.0/dist/lbw-kit.schema.json",
-  "title": "lbw-kit config v0.13.0",
+  "$id": "https://cdn.jsdelivr.net/gh/pausanchez/lbw-kit@v0.13.0.1/dist/lbw-kit.schema.json",
+  "title": "lbw-kit config v0.13.0.1",
   "description": "A bot's widgets for LBW.kit.setup(config). Generated from the checker (kit/setup-check.js); `npm run check:config` is the full check.",
   "type": "object",
   "properties": {
@@ -165,10 +165,19 @@
           "additionalProperties": false
         },
         "bar": {
-          "description": "false: no bottom bar (the primary action mirrored while it is out of view).",
-          "type": [
-            "boolean",
-            "null"
+          "description": "true (the default): the primary action mirrored in a bottom bar while it is ready and out of view; \"always\": whenever it is ready, as a docked footer; false: no bar.",
+          "anyOf": [
+            {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            {
+              "enum": [
+                "always"
+              ]
+            }
           ]
         },
         "history": {
@@ -188,6 +197,13 @@
         },
         "bleed": {
           "description": "true: the current screen drops its card and bubble, fills the column, its short text reads as a heading and its buttons as full-width rows.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "hideHost": {
+          "description": "true: Landbot's own chat header hides while screen mode runs (the screen header's title carries the brand: header.title, else the hidden header's title).",
           "type": [
             "boolean",
             "null"
@@ -4569,6 +4585,91 @@
         },
         "money": {
           "$ref": "#/$defs/money"
+        },
+        "words": {
+          "description": "The kit's words, changed (each by language, like any text); a word left out keeps the kit's own.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "pickIn": {
+              "$ref": "#/$defs/text",
+              "description": "\"Pick your check-in\": the first tap of a range."
+            },
+            "pickOut": {
+              "$ref": "#/$defs/text",
+              "description": "\"Now pick your check-out\": the second tap."
+            },
+            "pickDay": {
+              "$ref": "#/$defs/text",
+              "description": "\"Pick a day\" (single)."
+            },
+            "arrive": {
+              "$ref": "#/$defs/text",
+              "description": "\"Check-in {d}\": the first day picked, with {d}."
+            },
+            "night": {
+              "$ref": "#/$defs/text",
+              "description": "\"{n} night\", with {n}."
+            },
+            "nights": {
+              "$ref": "#/$defs/text",
+              "description": "\"{n} nights\", with {n}."
+            },
+            "inDay": {
+              "$ref": "#/$defs/text",
+              "description": "\"check-in\": a day's label once it is the first."
+            },
+            "outDay": {
+              "$ref": "#/$defs/text",
+              "description": "\"check-out\": the last."
+            },
+            "per": {
+              "$ref": "#/$defs/text",
+              "description": "\"Price per night\": the key's price line."
+            },
+            "few": {
+              "$ref": "#/$defs/text",
+              "description": "\"few left\": the key, and a day with few."
+            },
+            "left": {
+              "$ref": "#/$defs/text",
+              "description": "\"{n} left\", with {n}."
+            },
+            "left1": {
+              "$ref": "#/$defs/text",
+              "description": "\"{n} left\" for one, with {n}."
+            },
+            "full": {
+              "$ref": "#/$defs/text",
+              "description": "\"full\"."
+            },
+            "closed": {
+              "$ref": "#/$defs/text",
+              "description": "\"closed\"."
+            },
+            "min": {
+              "$ref": "#/$defs/text",
+              "description": "\"At least {n} nights\", with {n}."
+            },
+            "max": {
+              "$ref": "#/$defs/text",
+              "description": "\"At most {n} nights\", with {n}."
+            },
+            "gap": {
+              "$ref": "#/$defs/text",
+              "description": "\"Some nights in between are not available\"."
+            }
+          },
+          "additionalProperties": false
+        },
+        "legend": {
+          "description": "false: no key under the grid (\"few left\", \"full\", the price line).",
+          "type": [
+            "boolean",
+            "null"
+          ]
         },
         "flow": {
           "$ref": "#/$defs/flow"

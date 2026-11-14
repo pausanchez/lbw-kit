@@ -33,9 +33,10 @@ Screen mode: the chat as an app, one screen at a time. The newest widget is the 
 |---|---|---|---|
 | `on` | yes | boolean | true: screen mode is on. |
 | `header` |  | object | The app header: a title and the steps. |
-| `bar` |  | boolean | false: no bottom bar (the primary action mirrored while it is out of view). |
+| `bar` |  | boolean or `"always"` | true (the default): the primary action mirrored in a bottom bar while it is ready and out of view; "always": whenever it is ready, as a docked footer; false: no bar. |
 | `history` |  | `"collapse"`, `"keep"` (or by language) | "collapse" (earlier messages fold behind "View conversation", the default) or "keep" (they stay). |
 | `bleed` |  | boolean | true: the current screen drops its card and bubble, fills the column, its short text reads as a heading and its buttons as full-width rows. |
+| `hideHost` |  | boolean | true: Landbot's own chat header hides while screen mode runs (the screen header's title carries the brand: header.title, else the hidden header's title). |
 
 `screen.header`:
 
@@ -45,6 +46,6 @@ Screen mode: the chat as an app, one screen at a time. The newest widget is the 
 | `steps` |  | list (or by language) | 2–8 steps, [id, label]: the id is a lower-case word (a tag's step=id or step=2, or a widget's "step"). |
 | `progress` |  | boolean | true: a bar and "Step 2 of 4" instead of the steps by name. |
 
-Every type also takes `"screen": false` (never the screen) and `"step"` (its step's id). A tag may name the step itself, `step=when` or `step=2`; any other value is logged and ignored. A step gets its ✓ once the visitor was on it and moved forward; a step jumped over reads as skipped. An agent's text between screens shows as a normal bubble under the current screen. If the chat's DOM is not what the library expects, or the `screen` key is wrong, the bot is a normal chat.
+Every type also takes `"screen": false` (never the screen) and `"step"` (its step's id). A tag may name the step itself, `step=when` or `step=2`; any other value is logged and ignored. A step gets its ✓ once the visitor was on it and moved forward; a step jumped over reads as skipped. An agent's text between screens shows as a normal bubble under the current screen. "View conversation" opens the earlier messages above the screen and takes the visitor to their start (focused); folding them puts the screen back where it was. With `"hideHost": true` Landbot's own header hides while screen mode runs (nothing is hidden when the chat has no header hook; `LBW.host.check(null, { header: true })` reports it). The header and the bar keep to the chat's column on a wide window. If the chat's DOM is not what the library expects, or the `screen` key is wrong, the bot is a normal chat.
 
-Theme tokens (each defaults to the card's): `--lbw-screen-head-bg`, `--lbw-screen-head-ink`, `--lbw-screen-head-muted`, `--lbw-screen-head-line`, `--lbw-screen-head-accent`, `--lbw-screen-head-track`, `--lbw-screen-bar-bg`, `--lbw-screen-bar-ink`, `--lbw-screen-bar-line`; with `bleed`: `--lbw-screen-surface`, `--lbw-screen-gutter`, `--lbw-screen-pad`, `--lbw-screen-radius`, `--lbw-screen-title-ink`, `--lbw-screen-intro-ink`.
+Theme tokens (each defaults to the card's): `--lbw-screen-head-bg`, `--lbw-screen-head-ink`, `--lbw-screen-head-muted`, `--lbw-screen-head-line`, `--lbw-screen-head-accent`, `--lbw-screen-head-track`, `--lbw-screen-bar-bg`, `--lbw-screen-bar-ink`, `--lbw-screen-bar-line`, `--lbw-screen-step-size`, `--lbw-screen-step-weight`; with `bleed`: `--lbw-screen-surface`, `--lbw-screen-gutter`, `--lbw-screen-pad`, `--lbw-screen-radius`, `--lbw-screen-title-ink`, `--lbw-screen-intro-ink`, `--lbw-screen-title-size`.

@@ -14,7 +14,7 @@
 /* @@more ── reading the chat ───────────────────────────────────────────────────────────────────── */
 (function (root) {
   var H = root.LBW_HOST; if (!H || H.messages) return;
-  var S = H.sel, MSG = S.message, TXT = S.text, WIN = S.window = '[data-lb-part="window"]',
+  var S = H.sel, MSG = S.message, TXT = S.text, WIN = S.window = '[data-lb-part="window"]', HDR = S.header = '[data-lb-part="header"]',
       INP = S.input = '[data-lb-part="input-field"]', AUTHOR = 'data-lb-author';
   var BY = { bot: S.bot, user: S.user = '[data-lb-author="user"]' };
   function doc(r) { return r || document; }
@@ -59,9 +59,11 @@
   // check(root?) → { ok, missing: ['data-lb-part="message"', …], input: bool }: the hooks the library needs that the page
   // lacks. The text box is not required (none while the chat shows buttons): `input` only says if there is one now.
   // With no message on the page, author and text can't be judged, so only the message hook is reported
-  function check(r) {
+  // v0.13.0.1 · check(root, { header: true }) also requires the chat's own header (screen mode's "hideHost" hides it)
+  function check(r, o) {
     var d = doc(r), miss = [], w = isWindow(d) ? d : win(d), ms = messages(d);
     if (!w) miss.push('data-lb-part="window"');
+    else if (o && o.header && !w.querySelector(S.header)) miss.push('data-lb-part="header"');
     if (!ms.length) miss.push('data-lb-part="message"');
     else {
       if (![].some.call(ms, isBot)) miss.push('data-lb-author="bot"');
@@ -144,7 +146,11 @@
 (function (root) {
   var H = root.LBW_HOST; if (!H || !H.messages || H.column) return;
   var MSG = H.sel.message, SLOT = 'data-lbw-slot', PAST = 'data-lbw-past', MODE = 'data-lbw-screen', CUR = 'data-lbw-cur', CHROME = 'data-lbw-chrome',
-      ASIDE = 'data-lbw-aside', HEAD = '[data-lb-part="message-header"]';
+      ASIDE = 'data-lbw-aside', HEAD = '[data-lb-part="message-header"]', OFF = 'data-lbw-off',
+      // v0.13.0.1 · the v4 chat's own width rule: .responsive-container { max-width: var(--web-chat-max-width) (720px);
+      // margin-inline: auto } on the header's wrapper, the message list and the buttons (measured live, 14 Nov 2026). Our slots
+      // take it too, so at 1440 px the screen's header and bar sit on the chat's column, not across the window
+      FIT = 'responsive-container';
   // column(root?): the window's child that holds the messages (v4: the scrolling column between the header and the text
   // box), or null with no window or no message in it
   function column(r) {
@@ -166,6 +172,7 @@
     var w = H.window(r), col = column(r), s = null; if (!w || !col) return null;
     [].some.call(w.children, function (x) { if (x.getAttribute(SLOT) === name) { s = x; return true; } return false; });
     if (!s) { s = document.createElement('div'); s.setAttribute(SLOT, name); }
+    if (!s.classList.contains(FIT) && w.querySelector('.' + FIT)) s.classList.add(FIT);
     if (name === 'head' ? s.nextSibling !== col : s.previousSibling !== col) w.insertBefore(s, name === 'head' ? col : col.nextSibling);
     return s;
   }
@@ -204,6 +211,25 @@
     return b - a + 1;
   }
   function doc(r) { return r || document; }
+  // scrollTo(scroller, top): there at once. The v4 column scrolls smoothly (scroll-smooth): a scrollTop written while the
+  // screen re-lays out showed it 376 px off for ~200 ms before it slid back (live, 14 Nov 2026). The inline scroll-behavior
+  // is set to auto for the write and put back as it was
+  function scrollTo(sc, top) {
+    if (!sc) return; var st = sc.style, was = st ? st.scrollBehavior : '';
+    if (st) st.scrollBehavior = 'auto';
+    sc.scrollTop = Math.max(0, Math.round(top));
+    if (st) st.scrollBehavior = was;
+  }
+  // header(hide, root?): the chat's own header ([data-lb-part="header"] and the wrapper that holds only it, a window child)
+  // marked data-lbw-off, which lbw.css hides while the window is in screen mode ("screen": { "hideHost": true }). false takes
+  // the mark away. → the header's title (its heading's text, else its own; '' when none) when found, else null: nothing hidden
+  function header(hide, r) {
+    var w = H.window(r), h = w && w.querySelector(H.sel.header);
+    [].forEach.call(doc(r).querySelectorAll('[' + OFF + ']'), function (x) { x.removeAttribute(OFF); });
+    if (!h) return null;
+    if (hide) { var e = h; while (e.parentElement && e.parentElement !== w && !e.parentElement.querySelector(MSG)) e = e.parentElement; e.setAttribute(OFF, ''); }
+    return (h.querySelector('h1, h2, h3, h4, h5, h6') || h).textContent.replace(/\s+/g, ' ').trim();   // v4: its title is an h4
+  }
   // layout(mode, root?): marks the window 'collapse' (earlier rows hidden), 'open' (shown again) or 'keep' (never hidden);
   // a falsy mode takes every mark and slot away: a normal chat again. false with no window
   function layout(mode, r) {
@@ -211,7 +237,8 @@
     if (mode) { if (w.getAttribute(MODE) !== mode) w.setAttribute(MODE, mode); return true; }
     w.removeAttribute(MODE);
     [].slice.call(w.querySelectorAll('[' + SLOT + ']')).forEach(function (x) { x.remove(); });
-    collapse(null, r); present(null, null, null, r); return true;
+    collapse(null, r); present(null, null, null, r); header(false, r); return true;
   }
   H.column = column; H.rowOf = rowOf; H.slot = slot; H.collapse = collapse; H.layout = layout; H.scroller = scroller; H.present = present;
+  H.scrollTo = scrollTo; H.header = header;
 })(window);

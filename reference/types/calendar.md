@@ -16,6 +16,7 @@ A month grid of days, free, few, full or closed, with a price per night.
 - In a stay, the first tap is the check-in (free or few); the second is the check-out, which may be a full or closed day.
 - A preset in the tag is kept only if the visitor could have picked it; anything else is ignored and logged.
 - `mode` is `range` (the default) or `single`; `nights.min` and `max` limit the stay; `notice` and `horizon` limit how soon and how far.
+- The kit's words are a hotel's ("Pick your check-in", "3 nights", "few left · full"). For anything else, change them in `words`, by language like any text: `"words": { "pickIn": "Pick your outbound day", "pickOut": "Now pick your return", "arrive": "Out {d}", "night": "{n} day", "nights": "{n} days", "inDay": "outbound", "outDay": "return" }` (a word that needs `{n}` or `{d}` must keep it; one left out stays the kit's). `"legend": false` drops the key under the grid ("Price per night", "few left", "full") for data with no availability; each day's own label still says it.
 <!-- /prose -->
 
 ## Minimal example
@@ -84,6 +85,8 @@ The tag that draws it: `[[gx:noches]]`
 | `allowDup` |  |  | true: draw it even when the same widget is already in the message. |
 | `params` |  | object | Typed values the tag carries ({name} in any text): { "plazas": { "type": "int", "min": 0, "max": 99 } }. |
 | `money` |  | object | How {x:money} is written: { "cur": "€", "after": true, "dec": ",", "th": "." }. |
+| `words` |  | object | The kit's words, changed (each by language, like any text); a word left out keeps the kit's own. |
+| `legend` |  | boolean | false: no key under the grid ("few left", "full", the price line). |
 | `flow` |  | true or list of keys | true, or the list of keys its flow tag writes, e.g. ["texto", "lang"]. |
 | `screen` |  | boolean | Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one). |
 | `step` |  | string | Screen mode: the step this widget is, an id of "screen.header.steps" (a tag's step= wins). |

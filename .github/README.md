@@ -19,14 +19,14 @@ Pin the version in the URL (never `@latest`) and keep `integrity` and `crossorig
 Custom JS:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/pausanchez/lbw-kit@v0.13.0/dist/lbw-kit.min.js" integrity="sha384-OesXUDjRbX8GN+KMKzw1z7XoGMdmgDaIL/oTzhP1H4SGBzDCLqPtDMmakOvsjv5b" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/gh/pausanchez/lbw-kit@v0.13.0.1/dist/lbw-kit.min.js" integrity="sha384-rSlXPL88Y+rZHC18Ns5pPugtREsAxHxXWS9juTEXiELVdvpwanVu79WQwMJe/zi7" crossorigin="anonymous"></script>
 <script>LBW.landbot&&LBW.landbot(this);LBW.kit.setup({ …your config… })</script>
 ```
 
 Custom CSS, first line:
 
 ```css
-@import url("https://cdn.jsdelivr.net/gh/pausanchez/lbw-kit@v0.13.0/dist/lbw-kit.min.css");
+@import url("https://cdn.jsdelivr.net/gh/pausanchez/lbw-kit@v0.13.0.1/dist/lbw-kit.min.css");
 ```
 
 `npm run bot` writes both for you, with the fallback script that removes raw tags if the library fails to load.
@@ -96,7 +96,7 @@ Add `"screen": { "on": true, "header": { "title": "Book a flight", "steps": [["w
 
 ## Editor support
 
-- **JSON Schema:** start a config with `"$schema": "https://cdn.jsdelivr.net/gh/pausanchez/lbw-kit@v0.13.0/dist/lbw-kit.schema.json"` for completion and inline errors in your editor. It checks structure and keys; `npm run check:config` also checks what depends on the rest of the config (names, links, formulas).
+- **JSON Schema:** start a config with `"$schema": "https://cdn.jsdelivr.net/gh/pausanchez/lbw-kit@v0.13.0.1/dist/lbw-kit.schema.json"` for completion and inline errors in your editor. It checks structure and keys; `npm run check:config` also checks what depends on the rest of the config (names, links, formulas).
 - **TypeScript:** `dist/lbw-kit.d.ts` types the global `LBW` and `LbwConfig`.
 - **For agents:** `npm run -s check:config -- config.json --json` prints `[{ widget, path, message, fix }]`, with "did you mean" for misspelt keys.
 

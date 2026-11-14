@@ -40,7 +40,7 @@
     slide: 'id img badge kicker name sub price save status desc reply link gallery until'.split(' '), compare: 'name values reply link img'.split(' ') };
   var NEED = { cards: [], table: [], form: ['steps', 'summary', 'cta'], contact: ['title'], chips: ['items'], carousel: [], calc: ['state', 'controls', 'result', 'send', 'cta'],
     stats: [], people: ['items'], consent: ['title', 'yes', 'no'], slots: ['cta', 'say'], confirm: ['form', 'title'], review: ['state', 'lines', 'send', 'cta'], chart: ['title', 'x', 'series'], compare: ['items', 'rows'], season: ['ranges'], rating: ['title', 'send'] };
-  KEYS.calendar = 'type cls lang kicker title cta note mode nights notice horizon months rates days closed unlisted priceFrom source send collapse allowDup params money';   // v0.10
+  KEYS.calendar = 'type cls lang kicker title cta note mode nights notice horizon months rates days closed unlisted priceFrom source send collapse allowDup params money words legend';   // v0.10; words, legend v0.13.0.1
   NEED.calendar = ['cta', 'send'];
   NEED.map = ['places'];   // v0.10
   NEED.tracker = ['title', 'steps'];   // v0.10
@@ -106,13 +106,14 @@
   }
   // screen mode ("screen", runtime/screen.js): → the step ids, or null. A problem here never stops the widgets (setup() makes the
   // bot a normal chat), so each is reported with `screen: true`
-  var SCRK = ['on', 'header', 'bar', 'history', 'bleed'], SCRH = ['title', 'steps', 'progress'];
+  var SCRK = ['on', 'header', 'bar', 'history', 'bleed', 'hideHost'], SCRH = ['title', 'steps', 'progress'];
   function screenCheck(sc, say) {
     if (sc == null) return null;
     if (!isObj(sc)) { say('"screen" is { "on": true, "header": { "title": "…", "steps": [["id", "Label"], …] }, "bar": true, "history": "collapse" }'); return null; }
     Object.keys(sc).forEach(function (k) { if (SCRK.indexOf(k) < 0) say('screen: unknown key "' + k + '". Known: ' + SCRK.join(', ') + near(k, SCRK)); });
     if (sc.on !== true && sc.on !== false) say('screen.on is true (screen mode) or false');
-    if (sc.bar != null && typeof sc.bar !== 'boolean') say('screen.bar is true or false: false, no bottom bar');
+    if (sc.bar != null && typeof sc.bar !== 'boolean' && sc.bar !== 'always') say('screen.bar is true (the action docked while it is out of view), "always" (docked whenever it is ready) or false (no bottom bar)');
+    if (sc.hideHost != null && typeof sc.hideHost !== 'boolean') say('screen.hideHost is true (Landbot\'s own header hides while screen mode runs) or false');
     if (sc.bleed != null && typeof sc.bleed !== 'boolean') say('screen.bleed is true (the screen without its card and bubble, filling the column) or false');
     if (sc.history != null && sc.history !== 'collapse' && sc.history !== 'keep') say('screen.history is "collapse" (earlier messages fold behind "View conversation") or "keep" (they stay)');
     var h = sc.header, ids = []; if (h == null) return ids;
@@ -906,6 +907,14 @@
           if (w.months != null && w.months !== 1 && w.months !== 2) err('"months" is 1 or 2 (2: a second month beside the first where the card is wide)');
           if (w.unlisted != null && w.unlisted !== 'free' && w.unlisted !== 'closed') err('"unlisted" is "free" (a day with no data can be picked, the default) or "closed" (only the days the data lists)');
           if (w.priceFrom != null && typeof w.priceFrom !== 'boolean') err('"priceFrom" is true (the total reads "from 654 €") or left out');
+          // v0.13.0.1 · the kit's words, changed (a flight: "Pick your departure", "{n} days"), and "legend": false
+          if (w.legend != null && w.legend !== false && w.legend !== true) err('"legend" is false (no key under the grid) or left out');
+          if (w.words != null) {
+            var CW = { pickIn: '', pickOut: '', pickDay: '', arrive: '{d}', night: '{n}', nights: '{n}', inDay: '', outDay: '', per: '', few: '', left: '{n}', left1: '{n}', full: '', closed: '', min: '{n}', max: '{n}', gap: '' };
+            if (!isObj(w.words)) err('"words" is { "pickIn": "Pick your departure", "nights": "{n} days", … }: the kit\'s words, changed');
+            else { only(w.words, Object.keys(CW), 'words'); strs(w.words, Object.keys(w.words).filter(function (k) { return own(CW, k); }), 'words');
+              Object.keys(CW).forEach(function (k) { if (CW[k] && isStr(w.words[k]) && w.words[k].indexOf(CW[k]) < 0) err('words.' + k + ' needs "' + CW[k] + '", as "' + (k === 'arrive' ? 'Out {d}' : k === 'night' ? '{n} day' : k === 'nights' ? '{n} days' : k === 'min' ? 'At least {n} days' : k === 'max' ? 'At most {n} days' : '{n} left') + '"'); }); }
+          }
           list(w.rates, 'rates', function (r, at) {
             if (!isObj(r)) { err(at + ' is { "from": "1/12/2026", "to": "31/12/2026", "price": 189 }'); return; } only(r, ['from', 'to', 'price'], at);
             if (!DT(r.from) || !DT(r.to)) err(at + ': "from" and "to" are dates, D/M/YYYY');

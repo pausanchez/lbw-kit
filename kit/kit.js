@@ -1,4 +1,4 @@
-/* AI Widgets kit v0.13.0 · on lbw.js v0.13.0 · the widgets every url-to-demo build rewrote, written once with options. Load it after lbw.js and before the
+/* AI Widgets kit v0.13.0.1 · on lbw.js v0.13.0.1 · the widgets every url-to-demo build rewrote, written once with options. Load it after lbw.js and before the
    client's widgets.js: custom_js = <script>lbw.js</script><script>kit.js</script><script>widgets.js</script>.
 
    Each maker registers a widget under the name you give it, from data you pass. Nothing here holds client facts.
@@ -1376,7 +1376,9 @@
   //         second shows where the card is wide), money: { cur, after, dec, th } (prices are integer cents), priceFrom,
   //         days(p, ctx) → { days: { dayNumber: { s: 'free' | 'few' | 'full' | 'closed', p: cents, left: n } }, unlisted: 'free' | 'closed' }
   //                      | { later: a promise of that, fallback() → that, upgrade(o) → a promise of that or null } | null,
-  //         closed(n) → true for a day a rule closes, send(sel, ctx) → [sentence, fields] }
+  //         closed(n) → true for a day a rule closes, send(sel, ctx) → [sentence, fields],
+  //         words: { pickIn, pickOut, pickDay, arrive ({d}), night, nights ({n}), inDay, outDay, per, few, left, left1 ({n}), full,
+  //                  closed, min, max ({n}), gap } (v0.13.0.1: the kit's words, changed), legend: false (no key under the grid) }
   // sel = { from, to, day, nights, total (cents; null when a night has no price), price (single), summary }, days as LBW.day numbers.
   // The tag may preset month=2026-12, from=21/11/2026, to=24/11/2026: a value that isn't something the visitor could pick is
   // ignored (and logged). The total is the sum of the nights' own prices, never a guess.
@@ -1389,7 +1391,14 @@
     ca: ['Mes anterior', 'Mes següent', 'Tria l’arribada', 'Ara tria la sortida', 'Tria un dia', 'Del {a} al {b}', '{n} nit', '{n} nits', 'des de {p}', 'en queden poques', 'en queden {n}', 'complet', 'tancat', 'Mínim {n} nits', 'Màxim {n} nits', 'Hi ha nits sense disponibilitat entremig', 'arribada', 'sortida', 'Arribada el {d}', 'Preu per nit', 'en queda {n}']
   };
   var CALK = 'prev next pickIn pickOut pickDay range night nights from few left full closed min max gap inDay outDay arrive per left1'.split(' '), CALID = 0;
-  function calWords(lang) { var a = CALW[lang] || CALW.en, o = {}; CALK.forEach(function (k, i) { o[k] = a[i]; }); return o; }
+  // v0.13.0.1 · cfg.words: the visitor-facing words a config may change (a flight has no check-in and no nights), each a
+  // text in the widget's language; one with no placeholder it needs, or not a text, keeps the kit's own
+  var CALX = { pickIn: '', pickOut: '', pickDay: '', arrive: '{d}', night: '{n}', nights: '{n}', inDay: '', outDay: '', per: '', few: '', left: '{n}', left1: '{n}', full: '', closed: '', min: '{n}', max: '{n}', gap: '' };
+  function calWords(lang, mine) {
+    var a = CALW[lang] || CALW.en, o = {}; CALK.forEach(function (k, i) { o[k] = a[i]; });
+    if (mine) Object.keys(CALX).forEach(function (k) { var v = Object.prototype.hasOwnProperty.call(mine, k) ? mine[k] : null; if (typeof v === 'string' && v.trim() && v.indexOf(CALX[k]) >= 0) o[k] = v; });
+    return o;
+  }
   function calendar(name, cfg) {
     var cls = cfg.cls || ('kit-' + name), range = cfg.mode !== 'single', has = Object.prototype.hasOwnProperty;
     checkCfg('calendar', name, cfg, ['days', 'send', 'cta']); budget("calendar('" + name + "')", 'title', cfg.title); register('calendar', name, null, null);
@@ -1397,7 +1406,7 @@
     LBW.widget(name, function (p, ctx) {
       if (!cfg.allowDup && dup(ctx, cls)) return null;
       var src = cfg.days(p, ctx); if (!src) return null;
-      var lang = langOf(cfg, ctx), w = calWords(lang), two = cfg.months !== 1, mk = 'kit-cal ' + cls + (two ? ' is-two' : '');
+      var lang = langOf(cfg, ctx), w = calWords(lang, cfg.words), two = cfg.months !== 1, mk = 'kit-cal ' + cls + (two ? ' is-two' : '');
       if (src.later) {   // a skeleton until the data comes; the saved copy after "wait"; data that lands later still repaints it
         var lo = U.loading(lang, mk);
         return LBW.later(lo, src.later, function (d) { return draw(lo, d); },
@@ -1529,10 +1538,14 @@
         view = pf != null ? ym(pf) : pm ? Math.max(firstM, Math.min(lastM, +pm[1] * 12 + +pm[2] - 1)) : ym(first); foc = pf;
         if (cfg.title) U.head(o.box, cfg.kicker || '', cfg.title);
         o.box.appendChild(f.el); f.add(grid);
-        var key = el('div', 'kit-cal-key'); key.setAttribute('aria-hidden', 'true');
-        if (Object.keys(days).some(function (n) { return days[n] && days[n].p != null; })) key.appendChild(el('span', 'kit-cal-k', w.per + (cfg.money && cfg.money.cur ? ' (' + cfg.money.cur + ')' : '')));
-        ['few', 'full'].forEach(function (s) { key.appendChild(el('span', 'kit-cal-k is-' + s, w[s])); });
-        f.add(key); f.add(sum); render(); note(o.box, val(cfg.note, p, ctx), 'is-muted');
+        // the key under the grid; "legend": false leaves it out (a day's own label still says few, full or closed)
+        if (cfg.legend !== false) {
+          var key = el('div', 'kit-cal-key'); key.setAttribute('aria-hidden', 'true');
+          if (Object.keys(days).some(function (n) { return days[n] && days[n].p != null; })) key.appendChild(el('span', 'kit-cal-k', w.per + (cfg.money && cfg.money.cur ? ' (' + cfg.money.cur + ')' : '')));
+          ['few', 'full'].forEach(function (s) { key.appendChild(el('span', 'kit-cal-k is-' + s, w[s])); });
+          f.add(key);
+        }
+        f.add(sum); render(); note(o.box, val(cfg.note, p, ctx), 'is-muted');
         // late data: the same cells repainted (focus stays where it was), unless the visitor already picked a day
         o.__cal = function (d2) { if (!d2 || !d2.days || f.state.from != null) return false; days = d2.days; unl = d2.unlisted === 'closed' ? 'closed' : 'free'; paint(); return true; };
         return true;
@@ -1750,7 +1763,7 @@
     });
   }
 
-  LBW.kit = { version: '0.13.0', dev: DEV, describe: describe, L: L, last: last, cards: cards, table: table, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent, compare: compare, season: season, rating: rating,
+  LBW.kit = { version: '0.13.0.1', dev: DEV, describe: describe, L: L, last: last, cards: cards, table: table, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent, compare: compare, season: season, rating: rating,
     h: { usedByVisitor: usedByVisitor, wasQuieted: wasQuieted, quietAgain: quietAgain, keepPlace: keepPlace, upgraded: upgraded, radioGroup: radioGroup, note: note, list: list, label: label, dup: dup, choice: choice, multiChoice: multiChoice, copyBox: copyBox, status: status, wa: wa, fill: fill, money: money, total: total, lightbox: lightbox, chart: chart, statusHead: statusHead,
       icon: icon, withIcon: withIcon, icons: Object.keys(ICONS), badge: badge, tones: TONES.slice() } };
   // v0.10 · live & numbers (its own line: other makers' exports stay where they are)
