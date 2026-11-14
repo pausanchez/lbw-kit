@@ -1,4 +1,4 @@
-// test/critique-h10.test.mjs · v0.8.1.7: what the design critique of the H10 demo's mock found in the library.
+// test/critique-081.test.mjs · v0.8.1.7: what the design critique of a demo's mock found in the library.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { boot, json } from './helpers.mjs';

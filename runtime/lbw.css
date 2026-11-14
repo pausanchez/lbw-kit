@@ -1,5 +1,5 @@
 /* lbw.css · base look for Landbot AI Widgets (v0.10.0.1)
-   The ChatKit-gallery language measured in retos 16-19: white cards, 18px radius, a hairline and a soft shadow; a small
+   The ChatKit-gallery language measured in four production experiments: white cards, 18px radius, a hairline and a soft shadow; a small
    kicker above an 18px title; pill buttons (primary filled, secondary an inset ring) under the card. Re-skin it by
    overriding the variables below in your Custom CSS; keep the class names, the test harness reads some of them. */
 :root {
@@ -90,7 +90,7 @@
 .lbw-slide .lbw-img { aspect-ratio: 16 / 10; }
 .lbw-slide-body { display: flex; flex-direction: column; flex: 1; padding: 12px 14px 14px; }
 .lbw-slide .lbw-actions { margin-top: auto; padding-top: 10px; flex-wrap: nowrap; }
-.lbw-slide .lbw-pill { flex: 1; min-width: 0; min-height: 44px; padding: 6px 10px; font-size: 13px; line-height: 1.2; text-align: center; overflow-wrap: anywhere; }   /* v0.9.5: a long label wraps inside the slide (WCAG 1.4.12: an ellipsis cut it under text-spacing overrides; was nowrap + … since v0.8.1.7) */   /* v0.8.1.7: a long label ends in … inside the slide, never past its edge (H10: "On the website ↗" ran 40 px out) */
+.lbw-slide .lbw-pill { flex: 1; min-width: 0; min-height: 44px; padding: 6px 10px; font-size: 13px; line-height: 1.2; text-align: center; overflow-wrap: anywhere; }   /* v0.9.5: a long label wraps inside the slide (WCAG 1.4.12: an ellipsis cut it under text-spacing overrides; was nowrap + … since v0.8.1.7) */   /* v0.8.1.7: a long label ends in … inside the slide, never past its edge ("On the website ↗" ran 40 px out) */
 .lbw-slide .lbw-pill.is-sent { padding-inline: 3px; }   /* v0.8.1.5: a sent slide button doesn't grow by its ✓ */
 .lbw-name { font: 600 14px/20px var(--lbw-font); margin: 2px 0 6px; }
 .lbw-price { font: 700 18px/24px var(--lbw-font); color: var(--lbw-accent-text, var(--lbw-accent)); }

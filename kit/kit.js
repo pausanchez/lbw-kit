@@ -619,7 +619,7 @@
   function slideEl(s) {
     var sl = el('div', 'lbw-slide kit-slide'); sl.setAttribute('role', 'listitem');   /* v0.9.5: an <article> may not be a listitem (axe) */ if (s.id) sl.setAttribute('data-id', s.id);
     // v0.8.1.7 · a slide's photo is drawn ~70 % of a phone's width, ~300 px on a wide column: ask for that, not the 90vw default
-    if (s.img) { var io = s.img.sizes ? s.img : Object.assign({}, s.img, { sizes: '(max-width: 480px) 65vw, 300px' });   /* v0.8.1.8: 65vw keeps a 2× phone on a ~500 px copy (72vw sent it to the ~960 px one: 4× the bytes, H10 live) */ var im = U.img(s.img.src, 'kit-img' + (s.img.cls ? ' ' + s.img.cls : ''), io); if (s.badge) im.appendChild(el('span', 'kit-badge', s.badge)); sl.appendChild(im);
+    if (s.img) { var io = s.img.sizes ? s.img : Object.assign({}, s.img, { sizes: '(max-width: 480px) 65vw, 300px' });   /* v0.8.1.8: 65vw keeps a 2× phone on a ~500 px copy (72vw sent it to the ~960 px one: 4× the bytes, seen live) */ var im = U.img(s.img.src, 'kit-img' + (s.img.cls ? ' ' + s.img.cls : ''), io); if (s.badge) im.appendChild(el('span', 'kit-badge', s.badge)); sl.appendChild(im);
       if (s.gallery && s.gallery.photos && s.gallery.photos.length) zoomable(im, s.gallery, s.name); }   // v0.3: the photo opens LBW.kit.h.lightbox
     var b = el('div', 'lbw-slide-body'); sl.appendChild(b);
     if (s.kicker) b.appendChild(el('div', 'kit-slide-kicker', s.kicker));

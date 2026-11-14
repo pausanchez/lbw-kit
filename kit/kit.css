@@ -216,15 +216,15 @@
 .kit-rate.is-rated .lbw-pill.kit-rate-b.is-on .kit-ico svg { display: block; }
 .kit-rate.is-rated .lbw-pill.kit-rate-b.is-on .kit-ico::before { content: none; }
 .kit-rate-ends { display: flex; justify-content: space-between; gap: 12px; margin-top: 6px; font-size: 12px; line-height: 16px; color: var(--lbw-muted); }
-/* v0.8.1.9 · compare: one reply per column, under the table's columns; a long room name wraps inside its button (a 3-way row broke over two lines, Sangulí and H10) */
+/* v0.8.1.9 · compare: one reply per column, under the table's columns; a long room name wraps inside its button (a 3-way row broke over two lines, in two demos) */
 .lbw-actions > .kit-cmp-acts { display: grid; grid-template-columns: repeat(var(--kit-n, 2), minmax(0, 1fr)); gap: 10px; flex: 1 1 100%; }
 .kit-cmp-acts .lbw-pill { min-width: 0; width: 100%; white-space: normal; overflow-wrap: anywhere; hyphens: auto; line-height: 1.2; text-align: center; padding-inline: 6px; grid-column: var(--kit-col, auto); }
 /* v0.8.1.9 · spent chips leave: a chips row nobody tapped takes no room once the visitor wrote; a used one keeps only its ✓ (critique 0.8.1.3 N8: 96 px of grey ghosts) */
 .lbw.kit-chips.is-spent { display: none; }   /* set by the runtime, so no :has needed */
 .kit-chips .lbw-once.is-done .lbw-pill:not(.is-sent), .kit-chips .lbw-once.is-stale .lbw-pill:not(.is-sent) { display: none; }
 /* v0.8.1.10 · options that say what they mean: one per row, the label then a muted line, start-aligned. The theme's pill
-   corner up to 12 px, not a full pill: a two-line pill reads as a stretched button (a square theme stays square, H10).
-   Critique (H10 plan form, 375 px): label 14 px over a 12 px line; the line stays muted when picked (6.07:1 on the tint);
+   corner up to 12 px, not a full pill: a two-line pill reads as a stretched button (a square theme stays square).
+   Critique (a plan form, 375 px): label 14 px over a 12 px line; the line stays muted when picked (6.07:1 on the tint);
    the ✓ hangs in the padding so label and line stay aligned; plain rows in a list match the described ones' height;
    the plain steps of a form with a list are a grid, not centred pills in uneven rows */
 .lbw-chips.is-list { flex-direction: column; flex-wrap: nowrap; align-items: stretch; }

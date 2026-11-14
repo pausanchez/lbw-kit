@@ -592,9 +592,9 @@
     });
     return r;
   }
-  // v0.8.1.10 · "photos": a CDN's size folders, written once. { "h10": { "base": "https://cdn/gallery/",
+  // v0.8.1.10 · "photos": a CDN's size folders, written once. { "cdn1": { "base": "https://cdn/gallery/",
   // "sizes": [["T2D3/", 495], ["T4D3/", 964], ["", 1440]], "ratio": [4, 3] } }. A slide's "img" (or a gallery photo) is then
-  // "h10:01_room.jpg" or { "photo": "h10:01_room.jpg", "alt": … }: the kit writes src (the smallest), srcset (every size),
+  // "cdn1:01_room.jpg" or { "photo": "cdn1:01_room.jpg", "alt": … }: the kit writes src (the smallest), srcset (every size),
   // width and height (from ratio), and a gallery photo's "big" (the largest). say(widget, message) reports, for the checker.
   var REF = /^([a-z_][a-z0-9_]*):([^\s"'<>]+)$/i;
   function photoRef(x) { var s = isStr(x) ? x : isObj(x) && isStr(x.photo) ? x.photo : null, m = s && !/^https?:/i.test(s) ? REF.exec(s) : null; return m ? { cdn: m[1], file: m[2], o: isObj(x) ? x : {} } : null; }

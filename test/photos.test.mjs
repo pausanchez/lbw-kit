@@ -1,5 +1,5 @@
 // test/photos.test.mjs · v0.8.1.10: a CDN's size folders written once ("photos"), and a slide's photo as "set:file".
-// H10 wrote srcset by hand for 9 rooms and 27 gallery photos (three folders each): 108 URLs where 36 file names say it.
+// A demo wrote srcset by hand for 9 rooms and 27 gallery photos (three folders each): 108 URLs where 36 file names say it.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { boot, json } from './helpers.mjs';
