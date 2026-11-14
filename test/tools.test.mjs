@@ -111,7 +111,9 @@ test('build 0.8.1.9: no shipped JS file carries a raw U+00A0 (inline included)',
     assert.ok(!fs.readFileSync(path.join('dist', f), 'utf8').includes('\u00a0'), f);
 });
 
-test('build-mock --fonts: the skin\'s font import reaches the mock, and a theme font nothing imports is warned about', () => {
+// tools/ lives in the private docs repo; a public clone (CI) has no build-mock.py
+const MOCK = fs.existsSync(new URL('tools/build-mock.py', cwd)) ? false : 'tools/build-mock.py is private-only';
+test('build-mock --fonts: the skin\'s font import reaches the mock, and a theme font nothing imports is warned about', { skip: MOCK }, () => {
   const d = fs.mkdtempSync(path.join(os.tmpdir(), 'mockfont-'));
   fs.writeFileSync(path.join(d, 'theme.css'), ':root { --lbw-font: "Brand Sans", Arial, sans-serif; }');
   fs.writeFileSync(path.join(d, 'skin.css'), '@import url("https://fonts.googleapis.com/css2?family=Brand+Sans:wght@400;600&display=swap");\n[data-lb-part=header]{color:red}');
