@@ -91,7 +91,7 @@ test('lead-gen check: each type says what is wrong', () => {
   assert.match(e('visit', (w) => { w.days = []; }), /give "days" \(fixed dates\) or "weekly"/);
   assert.match(e('visit', (w) => { w.weekly.week['7'] = []; w.weekly.week['1'] = [['10:00', '09:00'], ['9am', '10:00'], [600, 660, 'full']]; w.say.text = '{day:time} {from:date} {when}'; }),
     /weekly\.week\.1\[0\] is \[from, to\][\s\S]*weekly\.week\.1\[1\] is \[from, to\][\s\S]*\[2\] can only be "busy"[\s\S]*days are 0 \(Sunday\) to 6[\s\S]*"day" is not one[\s\S]*"from" is not one[\s\S]*"\{when\}" is not a value/);
-  assert.match(e('done', (w) => { w.form = 'quote'; }), /form "quote" is not a form or a slots widget/);
+  assert.match(e('done', (w) => { w.form = 'quote'; }), /form "quote" is not a form, a slots or a calendar widget/);
   assert.match(e('done', (w) => { w.title = 'See you {kind:label}'; w.rows = [['When', '{from:money}']]; }), /title: "\{kind\}" is not a value here[\s\S]*"from" is not a number/);
   assert.match(e('quote', (w) => { w.lines[1].items = [['basic', 'Basic']]; w.lines[0] = { label: 'Panels' }; w.total = { label: 'Total' }; w.compute.total = 'install + panel * 2'; w.discard = 'nope'; }),
     /lines\[1\]\.items has no entry for "plus"[\s\S]*"panel" is not in state or compute[\s\S]*lines\[0\] needs "value"[\s\S]*total is \{ "label", "value" \}[\s\S]*reply "nope" is not in "replies"/);
