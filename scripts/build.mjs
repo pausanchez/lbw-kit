@@ -3,10 +3,13 @@
 //   inline   dist/inline/custom_js.html, the same code inside <script>…</script>, to paste into Custom JS when a
 //            client's page blocks outside hosts
 // dist/manifest.json records, per file: bytes, gzip bytes, SHA-256 (hex) and the SRI value (sha384).
+// Also in dist/: lbw-kit.schema.json (the config's JSON Schema, generated from the checker by scripts/schema.mjs, which writes
+// types/lbw-kit.config.d.ts too) and a copy of types/*.d.ts.
 import fs from 'node:fs';
 import zlib from 'node:zlib';
 import crypto from 'node:crypto';
 import { transform } from 'esbuild';
+import { generate } from './schema.mjs';
 
 const root = new URL('..', import.meta.url);
 const read = (p) => fs.readFileSync(new URL(p, root), 'utf8');
@@ -41,6 +44,13 @@ const out = {
 };
 // the inline target: what goes into Custom JS when nothing may load from outside
 out['inline/custom_js.html'] = `<script>${out['lbw-kit.min.js'].trim()}</script>\n`;
+
+// the config's JSON Schema and its TypeScript types, from the checker's tables; then the types as they are
+const gen = generate(), cfgTypes = new URL('types/lbw-kit.config.d.ts', root);
+out['lbw-kit.schema.json'] = gen.json;
+fs.mkdirSync(new URL('types/', root), { recursive: true });
+if (!fs.existsSync(cfgTypes) || fs.readFileSync(cfgTypes, 'utf8') !== gen.dts) fs.writeFileSync(cfgTypes, gen.dts);
+for (const f of fs.readdirSync(new URL('types/', root)).filter((f) => f.endsWith('.d.ts')).sort()) out[f] = read('types/' + f);
 
 // inside <script>…</script> a literal "</script" would end the block early
 for (const [name, text] of Object.entries(out)) {

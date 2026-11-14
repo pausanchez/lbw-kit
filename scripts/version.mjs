@@ -3,6 +3,8 @@
 //   node scripts/version.mjs --check  change nothing; exit 1 when a file is out of step
 // It also writes the version and the dist/manifest.json `integrity` into the load lines of .github/README.md and, where the
 // private docs are present, docs/20. The integrity is the BUILT file's: after a version bump run version:sync, build, version:sync.
+// The config's JSON Schema follows too: its "$id" in dist/lbw-kit.schema.json (build writes it again from package.json) and the
+// "$schema" line of every kit/example*/config.json.
 import fs from 'node:fs';
 
 const root = new URL('..', import.meta.url);
@@ -30,8 +32,15 @@ const targets = [
   ['runtime/lbw.css', [[/^(\/\* lbw\.css · base look for Landbot AI Widgets \(v)[\d.]+\)/, `$1${v})`]]],
   ['kit/kit.css', [[/^(\/\* AI Widgets kit v)[\d.]+/, `$1${v}`]]],
   ['kit/README.md', [[/(`runtime\/lbw\.js` v)[\d.]+\d/, `$1${v}`]]],
-  ['.github/README.md', loadLines],
+  ['.github/README.md', [...loadLines, [new RegExp(`("\\$schema\": \"[^\"]*lbw-kit@v)${VER}(/dist/lbw-kit\\.schema\\.json\")`), `$1${v}$2`]]],
   ['docs/20-library-and-json.md', loadLines, 'private'],   // not in the public clone: skipped when absent
+  ['dist/lbw-kit.schema.json', [
+    [new RegExp(`("\\$id": "[^"]*lbw-kit@v)${VER}(/dist/lbw-kit\\.schema\\.json")`), `$1${v}$2`],
+    [new RegExp(`("title": "lbw-kit config v)${VER}(")`), `$1${v}$2`],
+  ]],
+  // every example's "$schema": "https://cdn.jsdelivr.net/gh/…/lbw-kit@vX/dist/lbw-kit.schema.json"
+  ...fs.readdirSync(new URL('kit/', root)).filter((d) => /^example/.test(d) && fs.existsSync(new URL(`kit/${d}/config.json`, root))).sort()
+    .map((d) => [`kit/${d}/config.json`, [[new RegExp(`("\\$schema": "[^"]*lbw-kit@v)${VER}(/dist/lbw-kit\\.schema\\.json")`), `$1${v}$2`]]]),
 ];
 
 let stale = 0;

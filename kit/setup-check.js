@@ -44,6 +44,12 @@
   NEED.calendar = ['cta', 'send'];
   NEED.map = ['places'];   // v0.10
   NEED.tracker = ['title', 'steps'];   // v0.10
+  // the tables, for scripts/schema.mjs (the JSON Schema and the config types are generated from them)
+  K.setup._.keys = { TOP: TOP, KEYS: KEYS, ITEM: ITEM, NEED: NEED };
+  // an unknown key that is a typo of a known one (Levenshtein 2 at most; 1 for a key of 4 letters or fewer): '… Known: a, b. Did you mean "kicker"?'
+  function lev(a, b) { var p = [], i, j, q, c; for (j = 0; j <= b.length; j++) p[j] = j; for (i = 1; i <= a.length; i++) { q = [i]; for (j = 1; j <= b.length; j++) { c = a[i - 1] === b[j - 1] ? 0 : 1; q[j] = Math.min(p[j] + 1, q[j - 1] + 1, p[j - 1] + c); } p = q; } return p[b.length]; }
+  function near(k, known) { var best = null, bd = 3; k = String(k); known.forEach(function (x) { var d = lev(k.toLowerCase(), String(x).toLowerCase()); if (d < bd && d <= (k.length > 4 ? 2 : 1)) { bd = d; best = x; } }); return best == null ? '' : '. Did you mean "' + best + '"?'; }
+  K.setup._.near = near;
   // check every language's copy; a problem that every language has is reported once, the others with their language
   // v0.8.1.10 · the photo sets: a base under "links", sizes as [folder, width] going up, an optional ratio [w, h]
   function photoSets(cfg, top) {
@@ -54,7 +60,7 @@
       var d = P[n], at = 'photos.' + n;
       if (!/^[a-z_][a-z0-9_]*$/i.test(n)) top(at + ': a set\'s name is a plain word (it starts a photo: "' + n + ':file.jpg")');
       if (!isObj(d)) { top(at + ' must be an object with "base" and "sizes"'); return; }
-      Object.keys(d).forEach(function (k) { if (['base', 'sizes', 'ratio'].indexOf(k) < 0) top(at + ': unknown key "' + k + '". Known: base, sizes, ratio'); });
+      Object.keys(d).forEach(function (k) { if (['base', 'sizes', 'ratio'].indexOf(k) < 0) top(at + ': unknown key "' + k + '". Known: base, sizes, ratio' + near(k, ['base', 'sizes', 'ratio'])); });
       if (!isStr(d.base) || !/^https:\/\/[^\s"'<>]+\/$/.test(d.base)) top(at + '.base is an https address ending in "/"');
       else if (!links.some(function (o) { return /^https:/.test(o) && d.base.indexOf(o) === 0; })) top(at + '.base "' + d.base + '" is not under any entry of "links"');
       if (!isArr(d.sizes) || !d.sizes.length) top(at + '.sizes is a list of [folder, width], smallest first: [["T2D3/", 495], ["", 1440]]');
@@ -80,6 +86,9 @@
     var top = function (m) { out.push({ widget: null, message: m }); };
     langs.forEach(function (l) { if (!CODE.test(l)) top('language "' + l + '" must be a lower-case code such as es or ca (a tag\'s lang is read lower-cased; regions such as pt-BR are not supported)'); });
     if (isStr(cfg.defaultLang) && langs.indexOf(cfg.defaultLang) < 0) top('defaultLang "' + cfg.defaultLang + '" is not in "langs"');
+    // v0.11 · setup() reads these raw, before any language is picked: one per language would pass here and break on the page
+    if (cfg.prefix != null && !isStr(cfg.prefix)) top('"prefix" is one plain word for every language, not one per language');
+    if (isObj(cfg.widgets)) Object.keys(cfg.widgets).forEach(function (n) { var w = cfg.widgets[n]; if (isObj(w) && w.type != null && !isStr(w.type)) out.push({ widget: n, message: n + ': "type" is one word for every language, not one per language' }); });
     loc(cfg, { lang: dflt, langs: langs, dflt: dflt }, '', false, rep);
     rep.forEach(function (r) {
       var m = /^widgets\.([^.\[]+)\.?(.*)$/.exec(r[0]), w = m ? m[1] : null;
@@ -97,7 +106,7 @@
   function check1(cfg) {
     var errs = [], top = function (m) { errs.push({ widget: null, message: m }); };
     if (!isObj(cfg)) { top('the config is not an object'); return errs; }
-    Object.keys(cfg).forEach(function (k) { if (TOP.indexOf(k) < 0) top('unknown key "' + k + '". Known: ' + TOP.join(', ')); });
+    Object.keys(cfg).forEach(function (k) { if (TOP.indexOf(k) < 0) top('unknown key "' + k + '". Known: ' + TOP.join(', ') + near(k, TOP)); });
     if (!/^[a-z][a-z0-9_]*$/i.test(cfg.prefix || '')) top('"prefix" is missing or not a plain word');
     var links = isArr(cfg.links) ? cfg.links.filter(isStr) : [];
     if (cfg.links != null && !isArr(cfg.links)) top('"links" must be a list');
@@ -177,7 +186,7 @@
       // options that are shown as text: an object or a list there would print as "[object Object]"
       function strs(o, keys, where) { if (isObj(o)) keys.forEach(function (k) { if (o[k] != null && typeof o[k] !== 'string') err((where ? where + '.' : '') + k + ' must be text'); }); }
       // an item's own keys: a misspelt or misplaced one would be dropped in silence and its button or line never drawn
-      function only(o, known, where) { Object.keys(o).forEach(function (k) { if (known.indexOf(k) < 0) err(where + ': unknown key "' + k + '"' + (k === 'links' || k === 'buttons' ? ' (buttons go on the widget; an item has one "link": [label, url])' : '') + '. Known: ' + known.join(', ')); }); }
+      function only(o, known, where) { Object.keys(o).forEach(function (k) { if (known.indexOf(k) < 0) err(where + ': unknown key "' + k + '"' + (k === 'links' || k === 'buttons' ? ' (buttons go on the widget; an item has one "link": [label, url])' : '') + '. Known: ' + known.join(', ') + near(k, known)); }); }
       function list(l, where, each) { if (l == null) return []; if (!isArr(l)) { err(where + ' must be a list'); return []; } l.forEach(function (x, i) { each(x, where + '[' + i + ']'); }); return l; }
       function pairs(l, where) { list(l, where, function (x, at) { if (!isPair(x)) err(at + ' is [text, text]'); }); }
       // v0.8.1.10 · a form's options: [key, label] or [key, label, desc], the desc one short line
@@ -361,10 +370,10 @@
 
       try {
         if (!/^[a-z][a-z0-9_]*$/.test(name)) err('a widget name is lower-case letters, digits and _');
-        if (!isObj(w) || !isStr(w.type) || !own(KEYS, w.type)) { err('unknown type "' + (isObj(w) ? w.type : w) + '". Known: ' + Object.keys(KEYS).join(', ')); return; }
+        if (!isObj(w) || !isStr(w.type) || !own(KEYS, w.type)) { err('unknown type "' + (isObj(w) ? w.type : w) + '". Known: ' + Object.keys(KEYS).join(', ') + (isObj(w) && isStr(w.type) ? near(w.type, Object.keys(KEYS)) : '')); return; }
         var known = KEYS[w.type].split(' ').concat('flow');
         if (w.flow != null && w.flow !== true && !(isArr(w.flow) && w.flow.length && w.flow.every(function (k) { return isStr(k) && /^[a-z_][a-z0-9_]*$/.test(k); }))) err('"flow" is true, or the list of keys its flow tag writes, e.g. ["texto", "lang"]');
-        Object.keys(w).forEach(function (k) { if (known.indexOf(k) < 0) err('unknown option "' + k + '" for ' + w.type + '. Known: ' + known.join(', ')); });
+        Object.keys(w).forEach(function (k) { if (known.indexOf(k) < 0) err('unknown option "' + k + '" for ' + w.type + '. Known: ' + known.join(', ') + near(k, known)); });
         if (w.density != null && w.density !== 'compact' && w.density !== 'comfy') err('"density" is "compact" (one question at a time, a footer with the total) or "comfy" (the v0.9.5 layout)');   // v0.10
         NEED[w.type].forEach(function (k) { if (w[k] == null && !(k === 'items' && w.source != null)) err('missing "' + k + '"'); });
         var pdefs = isObj(w.params) ? w.params : {};

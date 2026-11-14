@@ -80,7 +80,9 @@ const min = async (text, loader) => (text ? (await transform(text, { loader, min
 // v0.9.5 · every "<" of the config is written \x3C (a string escape Landbot keeps): "</script" or "<!--<script" in a text can't
 // end the block early or put the HTML parser in its double-escaped state
 // v0.9.5 · guarded: with the library blocked, an unguarded `LBW.…` threw "LBW is not defined" on every page view
-const setup = `if(window.LBW&&LBW.kit){LBW.landbot&&LBW.landbot(this);LBW.kit.setup(${JSON.stringify(config).replace(/\u00a0/g, '\\xA0').replace(/</g, '\\x3C')});}`, own = (await min(file(opt.widgets), 'js')).replace(/\u00a0/g, '\\xA0');
+// the editor's "$schema" line stays out of the bot (setup() ignores it; it is only bytes)
+const { $schema: _schema, ...live } = config;
+const setup = `if(window.LBW&&LBW.kit){LBW.landbot&&LBW.landbot(this);LBW.kit.setup(${JSON.stringify(live).replace(/\u00a0/g, '\\xA0').replace(/</g, '\\x3C')});}`, own = (await min(file(opt.widgets), 'js')).replace(/\u00a0/g, '\\xA0');
 const scripts = [setup, own].filter(Boolean);
 // inside <script>…</script> a literal "</script" would end the block early
 for (const s of scripts) if (/<\/script|<!--|<script/i.test(s)) { console.error('the widgets contain "</script", "<script" or "<!--": write the "<" as "\\x3C"'); process.exit(1); }

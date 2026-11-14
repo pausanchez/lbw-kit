@@ -1,0 +1,4274 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cdn.jsdelivr.net/gh/pausanchez/lbw-kit@v0.10.0.1/dist/lbw-kit.schema.json",
+  "title": "lbw-kit config v0.10.0.1",
+  "description": "A bot's widgets for LBW.kit.setup(config). Generated from the checker (kit/setup-check.js); `npm run check:config` is the full check.",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "description": "This schema's URL (ignored by setup())."
+    },
+    "version": {
+      "description": "Your own version of the config (not read)."
+    },
+    "prefix": {
+      "description": "The tags' prefix: [[prefix:widget …]]. A plain word.",
+      "type": "string",
+      "pattern": "^[A-Za-z][A-Za-z0-9_]*$"
+    },
+    "langs": {
+      "description": "The languages, lower-case codes (\"es\", \"ca\"): every text may be { \"es\": …, \"ca\": … }.",
+      "type": [
+        "array",
+        "null"
+      ],
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z]{2,3}$"
+      }
+    },
+    "defaultLang": {
+      "$ref": "#/$defs/text",
+      "description": "The default language (one of \"langs\")."
+    },
+    "timeZone": {
+      "$ref": "#/$defs/text",
+      "description": "The client's time zone, as Europe/Madrid."
+    },
+    "maxPerMessage": {
+      "description": "Widgets drawn per message at most (3)."
+    },
+    "links": {
+      "description": "The allow-list: https origins ending in \"/\", \"tel:\", \"mailto:\".",
+      "anyOf": [
+        {
+          "type": "array"
+        },
+        {
+          "$ref": "#/$defs/byLang"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "labels": {
+      "description": "Your own widgets' words, by language."
+    },
+    "quietMs": {
+      "description": "ms of quiet before a reply is drawn."
+    },
+    "maxWaitMs": {
+      "description": "ms to wait at most."
+    },
+    "reveal": {
+      "description": "false: don't scroll the chat to the start of a tall reply.",
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "motion": {
+      "description": "false: no animations in this bot.",
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "photos": {
+      "description": "Photo sets: { \"name\": { \"base\": \"https://…/\", \"sizes\": [[\"folder/\", 495], …], \"ratio\": [4, 3] } }.",
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "base": {
+            "description": "An https address ending in \"/\", under \"links\".",
+            "type": "string"
+          },
+          "sizes": {
+            "description": "[[folder, width], …], smallest first.",
+            "type": "array",
+            "minItems": 1
+          },
+          "ratio": {
+            "description": "[width, height], such as [4, 3]."
+          }
+        },
+        "required": [
+          "base",
+          "sizes"
+        ],
+        "additionalProperties": false
+      },
+      "propertyNames": {
+        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+      }
+    },
+    "actions": {
+      "description": "Named actions: { name: action }.",
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": {
+        "$ref": "#/$defs/action"
+      }
+    },
+    "replies": {
+      "description": "Named replies: { name: [label, sentence] or [label, sentence, { field: value }] }.",
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "type": "array",
+            "minItems": 2
+          },
+          {
+            "$ref": "#/$defs/byLang"
+          }
+        ]
+      }
+    },
+    "widgets": {
+      "description": "The widgets by tag name (lower-case letters, digits and _).",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9_]*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/widget"
+      }
+    }
+  },
+  "required": [
+    "prefix",
+    "widgets"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "byLang": {
+      "description": "The same value by language: { \"en\": …, \"es\": … }, one per code in \"langs\" (texts or lists only).",
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "pattern": "^[A-Za-z]{2}(-[A-Za-z]{2})?$"
+      },
+      "additionalProperties": {
+        "type": [
+          "string",
+          "array"
+        ]
+      }
+    },
+    "text": {
+      "description": "A text, or the same text by language.",
+      "anyOf": [
+        {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        {
+          "$ref": "#/$defs/byLang"
+        }
+      ]
+    },
+    "tone": {
+      "description": "One of the kit's tones.",
+      "anyOf": [
+        {
+          "enum": [
+            "neutral",
+            "ok",
+            "info",
+            "warn",
+            "danger",
+            null
+          ]
+        },
+        {
+          "$ref": "#/$defs/byLang"
+        }
+      ]
+    },
+    "icon": {
+      "description": "One of the kit's icons.",
+      "anyOf": [
+        {
+          "enum": [
+            "check",
+            "x",
+            "info",
+            "alert",
+            "phone",
+            "mail",
+            "chat",
+            "calendar",
+            "clock",
+            "pin",
+            "external",
+            "star",
+            "user",
+            "shield",
+            "bell",
+            "doc",
+            "thumb",
+            null
+          ]
+        },
+        {
+          "$ref": "#/$defs/byLang"
+        }
+      ]
+    },
+    "toned": {
+      "description": "{ \"text\", \"tone\" }: a status line.",
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "text": {
+          "$ref": "#/$defs/text",
+          "description": "What it says."
+        },
+        "tone": {
+          "$ref": "#/$defs/tone"
+        }
+      },
+      "required": [
+        "text"
+      ],
+      "additionalProperties": false
+    },
+    "reply": {
+      "description": "A reply: a name in \"replies\", or [label, sentence] or [label, sentence, { field: value }] (the visitor sends the sentence; the fields are saved in Landbot)."
+    },
+    "action": {
+      "description": "An action: a name in \"actions\", or an object with one of tel, wa, link, reply, mail and a \"label\".",
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "$ref": "#/$defs/byLang"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "use": {
+              "description": "The name of an action in \"actions\" this one starts from."
+            },
+            "label": {
+              "$ref": "#/$defs/text",
+              "description": "The button's label."
+            },
+            "tel": {
+              "description": "A phone number to call (needs \"tel:\" in \"links\")."
+            },
+            "wa": {
+              "description": "A WhatsApp number (needs \"https://wa.me/\" in \"links\")."
+            },
+            "link": {
+              "description": "A URL under an entry of \"links\" (a calc's links may hold {placeholders})."
+            },
+            "mail": {
+              "description": "One plain e-mail address (needs \"mailto:\" in \"links\")."
+            },
+            "reply": {
+              "description": "[label, sentence] or [label, sentence, { field: value }]: the visitor sends the sentence."
+            },
+            "icon": {
+              "$ref": "#/$defs/icon"
+            },
+            "danger": {
+              "description": "A destructive action (never the primary one).",
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            "primary": {
+              "description": "The card's one main action."
+            },
+            "text": {
+              "$ref": "#/$defs/text",
+              "description": "The text this action carries, where a widget fills it ({text})."
+            }
+          }
+        }
+      ]
+    },
+    "links": {
+      "description": "Buttons: actions (names in \"actions\" or written out).",
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/action"
+          }
+        },
+        {
+          "$ref": "#/$defs/byLang"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "money": {
+      "description": "How {x:money} is written: { \"cur\": \"€\", \"after\": true, \"dec\": \",\", \"th\": \".\" }.",
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "cur": {
+          "$ref": "#/$defs/text",
+          "description": "The currency sign."
+        },
+        "after": {
+          "description": "true: the sign after the amount."
+        },
+        "dec": {
+          "$ref": "#/$defs/text",
+          "description": "The decimal separator."
+        },
+        "th": {
+          "$ref": "#/$defs/text",
+          "description": "The thousands separator."
+        },
+        "cents": {
+          "description": "Show cents."
+        },
+        "space": {
+          "description": "A space between the amount and the sign."
+        }
+      },
+      "additionalProperties": false
+    },
+    "params": {
+      "description": "Typed values the tag carries ({name} in any text): { \"plazas\": { \"type\": \"int\", \"min\": 0, \"max\": 99 } }.",
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": {
+        "$ref": "#/$defs/param"
+      },
+      "propertyNames": {
+        "pattern": "^[a-z_][a-z0-9_]*$"
+      },
+      "minProperties": 1
+    },
+    "param": {
+      "description": "A typed value from the tag.",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "one"
+            },
+            "param": {
+              "description": "The tag key it is read from (the param's name by default).",
+              "pattern": "^[a-z_][a-z0-9_]*$"
+            },
+            "required": {
+              "description": "true: without it the widget draws nothing.",
+              "enum": [
+                true,
+                null
+              ]
+            },
+            "default": {
+              "description": "The value when the tag has none (or an invalid one)."
+            },
+            "values": {
+              "description": "The only values the tag may carry: lower-case words."
+            },
+            "labels": {
+              "description": "{ value: label } for {name:label}."
+            }
+          },
+          "required": [
+            "type",
+            "values"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "list"
+            },
+            "param": {
+              "description": "The tag key it is read from (the param's name by default).",
+              "pattern": "^[a-z_][a-z0-9_]*$"
+            },
+            "required": {
+              "description": "true: without it the widget draws nothing.",
+              "enum": [
+                true,
+                null
+              ]
+            },
+            "default": {
+              "description": "The value when the tag has none (or an invalid one)."
+            },
+            "values": {
+              "description": "The only values the tag may carry: lower-case words."
+            },
+            "labels": {
+              "description": "{ value: label } for {name:label}."
+            },
+            "max": {
+              "description": "How many values the tag may list."
+            }
+          },
+          "required": [
+            "type",
+            "values"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "int"
+            },
+            "param": {
+              "description": "The tag key it is read from (the param's name by default).",
+              "pattern": "^[a-z_][a-z0-9_]*$"
+            },
+            "required": {
+              "description": "true: without it the widget draws nothing.",
+              "enum": [
+                true,
+                null
+              ]
+            },
+            "default": {
+              "description": "The value when the tag has none (or an invalid one)."
+            },
+            "min": {
+              "description": "The lowest value."
+            },
+            "max": {
+              "description": "The highest value."
+            },
+            "forms": {
+              "description": "{ \"zero\", \"one\", \"other\" } for {name:count}; {n} is the number."
+            }
+          },
+          "required": [
+            "type",
+            "min",
+            "max"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "num"
+            },
+            "param": {
+              "description": "The tag key it is read from (the param's name by default).",
+              "pattern": "^[a-z_][a-z0-9_]*$"
+            },
+            "required": {
+              "description": "true: without it the widget draws nothing.",
+              "enum": [
+                true,
+                null
+              ]
+            },
+            "default": {
+              "description": "The value when the tag has none (or an invalid one)."
+            },
+            "min": {
+              "description": "The lowest value."
+            },
+            "max": {
+              "description": "The highest value."
+            }
+          },
+          "required": [
+            "type",
+            "min",
+            "max"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "money"
+            },
+            "param": {
+              "description": "The tag key it is read from (the param's name by default).",
+              "pattern": "^[a-z_][a-z0-9_]*$"
+            },
+            "required": {
+              "description": "true: without it the widget draws nothing.",
+              "enum": [
+                true,
+                null
+              ]
+            },
+            "default": {
+              "description": "The value when the tag has none (or an invalid one)."
+            },
+            "min": {
+              "description": "The lowest amount in cents."
+            },
+            "max": {
+              "description": "The highest amount in cents."
+            },
+            "cents": {
+              "description": "true: the tag carries whole cents (3499)."
+            }
+          },
+          "required": [
+            "type",
+            "max"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "text"
+            },
+            "param": {
+              "description": "The tag key it is read from (the param's name by default).",
+              "pattern": "^[a-z_][a-z0-9_]*$"
+            },
+            "required": {
+              "description": "true: without it the widget draws nothing.",
+              "enum": [
+                true,
+                null
+              ]
+            },
+            "default": {
+              "description": "The value when the tag has none (or an invalid one)."
+            },
+            "max": {
+              "description": "The longest text (80 by default, 300 at most)."
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "day"
+            },
+            "param": {
+              "description": "The tag key it is read from (the param's name by default).",
+              "pattern": "^[a-z_][a-z0-9_]*$"
+            },
+            "required": {
+              "description": "true: without it the widget draws nothing.",
+              "enum": [
+                true,
+                null
+              ]
+            },
+            "default": {
+              "description": "The value when the tag has none (or an invalid one)."
+            },
+            "min": {
+              "description": "\"today\" or D/M/YYYY."
+            },
+            "max": {
+              "description": "\"today\" or D/M/YYYY."
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "time"
+            },
+            "param": {
+              "description": "The tag key it is read from (the param's name by default).",
+              "pattern": "^[a-z_][a-z0-9_]*$"
+            },
+            "required": {
+              "description": "true: without it the widget draws nothing.",
+              "enum": [
+                true,
+                null
+              ]
+            },
+            "default": {
+              "description": "The value when the tag has none (or an invalid one)."
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "photo": {
+      "description": "A photo: { \"src\", \"srcset\", \"width\", \"height\", \"alt\" }, or \"set:file.jpg\" / { \"photo\": \"set:file.jpg\", \"alt\" } with \"photos\". \"src\" must be under \"links\"."
+    },
+    "pair": {
+      "description": "[label, url]: a link under an entry of \"links\"."
+    },
+    "price": {
+      "description": "{ \"now\", \"unit\", \"list\" }: already formatted.",
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "now": {
+          "$ref": "#/$defs/text",
+          "description": "The price now."
+        },
+        "unit": {
+          "$ref": "#/$defs/text",
+          "description": "Per what (\"/ night\")."
+        },
+        "list": {
+          "$ref": "#/$defs/text",
+          "description": "The price before (struck through)."
+        }
+      },
+      "required": [
+        "now"
+      ],
+      "additionalProperties": false
+    },
+    "flow": {
+      "description": "true, or the list of keys its flow tag writes, e.g. [\"texto\", \"lang\"].",
+      "anyOf": [
+        {
+          "enum": [
+            true,
+            null
+          ]
+        },
+        {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z_][a-z0-9_]*$"
+          }
+        },
+        {
+          "$ref": "#/$defs/byLang"
+        }
+      ]
+    },
+    "meter": {
+      "description": "A meter on a row: { \"of\": the capacity, \"low\": the count from which it reads low }."
+    },
+    "item_table": {
+      "description": "An item of a table widget.",
+      "type": "object",
+      "properties": {
+        "kicker": {
+          "$ref": "#/$defs/text",
+          "description": "A small line above the title."
+        },
+        "title": {
+          "$ref": "#/$defs/text",
+          "description": "The table's title."
+        },
+        "cols": {
+          "description": "2–5 columns: [key, label] or [key, label, \"end\"].",
+          "anyOf": [
+            {
+              "type": "array"
+            },
+            {
+              "$ref": "#/$defs/byLang"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "rows": {
+          "description": "1–30 rows, one text per column.",
+          "anyOf": [
+            {
+              "type": "array"
+            },
+            {
+              "$ref": "#/$defs/byLang"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "note": {
+          "$ref": "#/$defs/text",
+          "description": "A note under the table."
+        },
+        "source": {
+          "$ref": "#/$defs/text",
+          "description": "Where and when the numbers were read."
+        },
+        "link": {
+          "$ref": "#/$defs/pair"
+        },
+        "meter": {
+          "description": "{ \"col\": the count column, \"of\": the capacity (a number or a column), \"low\", \"full\" }."
+        }
+      },
+      "required": [
+        "title",
+        "cols"
+      ],
+      "additionalProperties": false
+    },
+    "item_cards": {
+      "description": "An item of a cards widget.",
+      "type": "object",
+      "properties": {
+        "kicker": {
+          "$ref": "#/$defs/text",
+          "description": "A small line above the title."
+        },
+        "title": {
+          "$ref": "#/$defs/text",
+          "description": "The card's title."
+        },
+        "who": {
+          "$ref": "#/$defs/text",
+          "description": "Who it is for or by."
+        },
+        "line": {
+          "$ref": "#/$defs/text",
+          "description": "One line under the title."
+        },
+        "points": {
+          "description": "Bullet points (texts).",
+          "anyOf": [
+            {
+              "type": "array"
+            },
+            {
+              "$ref": "#/$defs/byLang"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "pointsCls": {
+          "$ref": "#/$defs/text",
+          "description": "A CSS class for the points."
+        },
+        "pointsTitle": {
+          "$ref": "#/$defs/text",
+          "description": "A title above the points."
+        },
+        "rows": {
+          "description": "Rows: [label, value], [label, value, key], or a meter row [label, value, { \"of\": 12 }].",
+          "anyOf": [
+            {
+              "type": "array"
+            },
+            {
+              "$ref": "#/$defs/byLang"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "note": {
+          "$ref": "#/$defs/text",
+          "description": "A note at the end."
+        },
+        "noteCls": {
+          "$ref": "#/$defs/text",
+          "description": "A CSS class for the note."
+        },
+        "link": {
+          "$ref": "#/$defs/pair"
+        },
+        "status": {
+          "$ref": "#/$defs/toned"
+        },
+        "badge": {
+          "description": "\"text\" or { \"text\", \"tone\" }: a small label beside the title.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/text"
+            },
+            {
+              "$ref": "#/$defs/toned"
+            }
+          ]
+        },
+        "img": {
+          "$ref": "#/$defs/photo"
+        },
+        "price": {
+          "$ref": "#/$defs/price"
+        }
+      },
+      "required": [
+        "title"
+      ],
+      "additionalProperties": false
+    },
+    "item_stats": {
+      "description": "An item of a stats widget.",
+      "type": "object",
+      "properties": {
+        "kicker": {
+          "$ref": "#/$defs/text",
+          "description": "A small line above the title."
+        },
+        "title": {
+          "$ref": "#/$defs/text",
+          "description": "The title."
+        },
+        "stats": {
+          "description": "2–4 [value, label].",
+          "anyOf": [
+            {
+              "type": "array"
+            },
+            {
+              "$ref": "#/$defs/byLang"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "source": {
+          "$ref": "#/$defs/text",
+          "description": "Where and when the numbers were read."
+        }
+      },
+      "required": [
+        "stats",
+        "source"
+      ],
+      "additionalProperties": false
+    },
+    "item_people": {
+      "description": "An item of a people widget.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/text",
+          "description": "The name."
+        },
+        "role": {
+          "$ref": "#/$defs/text",
+          "description": "The role."
+        },
+        "img": {
+          "$ref": "#/$defs/photo"
+        },
+        "note": {
+          "$ref": "#/$defs/text",
+          "description": "A note."
+        }
+      },
+      "required": [
+        "name",
+        "role"
+      ],
+      "additionalProperties": false
+    },
+    "item_slide": {
+      "description": "An item of a carousel (a slide). It also takes the key the carousel's \"filter.by\" names, so other keys are allowed here.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "The slide's id (the tag's ids=a,b)."
+        },
+        "img": {
+          "$ref": "#/$defs/photo"
+        },
+        "badge": {
+          "$ref": "#/$defs/text",
+          "description": "A small label."
+        },
+        "kicker": {
+          "$ref": "#/$defs/text",
+          "description": "A small line above the name."
+        },
+        "name": {
+          "$ref": "#/$defs/text",
+          "description": "The slide's name."
+        },
+        "sub": {
+          "$ref": "#/$defs/text",
+          "description": "A line under the name."
+        },
+        "price": {
+          "description": "{ \"now\", \"unit\", \"list\" }: already formatted."
+        },
+        "save": {
+          "$ref": "#/$defs/text",
+          "description": "What it saves."
+        },
+        "status": {
+          "description": "{ \"text\", \"tone\" } or { \"text\", \"ok\": true }."
+        },
+        "desc": {
+          "$ref": "#/$defs/text",
+          "description": "A description."
+        },
+        "reply": {
+          "$ref": "#/$defs/reply"
+        },
+        "link": {
+          "$ref": "#/$defs/pair"
+        },
+        "gallery": {
+          "description": "{ \"title\", \"photos\": [ … ] }: a gallery of photos."
+        },
+        "until": {
+          "$ref": "#/$defs/text",
+          "description": "The last day it shows, D/M/YYYY (needs \"timeZone\")."
+        }
+      },
+      "required": [
+        "name"
+      ]
+    },
+    "item_compare": {
+      "description": "An item of a compare widget.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/text",
+          "description": "The column's name."
+        },
+        "values": {
+          "description": "{ row key: text, or true/false for ✓/✕ }."
+        },
+        "reply": {
+          "$ref": "#/$defs/reply"
+        },
+        "link": {
+          "$ref": "#/$defs/pair"
+        },
+        "img": {
+          "$ref": "#/$defs/photo"
+        }
+      },
+      "required": [
+        "name",
+        "values"
+      ],
+      "additionalProperties": false
+    },
+    "item_chips": {
+      "description": "A chip: [label, sentence], or { \"label\", \"say\", \"desc\", \"fields\" }.",
+      "anyOf": [
+        {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2
+        },
+        {
+          "$ref": "#/$defs/byLang"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "label": {
+              "$ref": "#/$defs/text",
+              "description": "The chip's label."
+            },
+            "say": {
+              "$ref": "#/$defs/text",
+              "description": "The sentence it sends."
+            },
+            "desc": {
+              "$ref": "#/$defs/text",
+              "description": "One line under the label (80 characters at most)."
+            },
+            "fields": {
+              "description": "{ field: value }: saved in Landbot with the sentence."
+            }
+          },
+          "required": [
+            "label",
+            "say"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "cards": {
+      "title": "cards",
+      "description": "Cards by id (or one \"item\"): a title, rows, points, a status, a photo and a price, with a reply and links.",
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "cards"
+        },
+        "cls": {
+          "$ref": "#/$defs/text",
+          "description": "Extra CSS class(es) on the card."
+        },
+        "param": {
+          "description": "The tag key that names the item (\"id\" by default): lower-case.",
+          "pattern": "^[a-z_][a-z0-9_]*$"
+        },
+        "items": {
+          "description": "The cards by id.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "$ref": "#/$defs/item_cards"
+          }
+        },
+        "item": {
+          "$ref": "#/$defs/item_cards"
+        },
+        "kicker": {
+          "$ref": "#/$defs/text",
+          "description": "A small line above the title."
+        },
+        "disclaimer": {
+          "$ref": "#/$defs/text",
+          "description": "A disclaimer under the card."
+        },
+        "single": {
+          "description": "true: a card with no id."
+        },
+        "fallback": {
+          "$ref": "#/$defs/text",
+          "description": "The item drawn when the tag names none (a flow's unset id)."
+        },
+        "pointsCls": {
+          "$ref": "#/$defs/text",
+          "description": "A CSS class for the points."
+        },
+        "allowDup": {
+          "description": "true: draw it even when the same widget is already in the message."
+        },
+        "lang": {
+          "$ref": "#/$defs/text",
+          "description": "A fixed language for this widget."
+        },
+        "reply": {
+          "$ref": "#/$defs/reply"
+        },
+        "links": {
+          "$ref": "#/$defs/links"
+        },
+        "status": {
+          "description": "A status the tag names: { \"param\": \"estado\", \"items\": { key: { \"text\", \"tone\", \"reply\", \"links\" } } }.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "param": {
+              "description": "The tag key.",
+              "pattern": "^[a-z_][a-z0-9_]*$"
+            },
+            "items": {
+              "description": "The statuses by key.",
+              "type": [
+                "object",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "param",
+            "items"
+          ],
+          "additionalProperties": false
+        },
+        "params": {
+          "$ref": "#/$defs/params"
+        },
+        "money": {
+          "$ref": "#/$defs/money"
+        },
+        "source": {
+          "description": "Rows from LBW.data: { \"data\": a key, \"map\": { part: \"{column}\" } }.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "data": {
+              "description": "A key of LBW.data, or { \"param\": a \"one\" param whose values are keys }."
+            },
+            "wait": {
+              "description": "How long to wait for the data, ms (0–8000; 1500).",
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "upgrade": {
+              "description": "How long the saved copy may still be replaced by late data, ms (0–60000).",
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "path": {
+              "description": "The dotted key of the list inside the data, as \"data.items\"."
+            },
+            "id": {
+              "description": "The id column."
+            },
+            "map": {
+              "description": "{ part: \"{column}\" }: which column fills which part."
+            },
+            "merge": {
+              "description": "true: the saved item with the same id fills what a row lacks.",
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            "max": {
+              "description": "How many rows are read.",
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1,
+              "maximum": 5000
+            }
+          },
+          "required": [
+            "data",
+            "map"
+          ],
+          "additionalProperties": false
+        },
+        "live": {
+          "description": "The \"Live\" chip beside the title (true by default for rows from a source).",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "flow": {
+          "$ref": "#/$defs/flow"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false
+    },
+    "table": {
+      "title": "table",
+      "description": "A table by id (or one \"item\"): 2–5 columns and 1–30 rows; \"pick\" makes each row a button.",
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "table"
+        },
+        "cls": {
+          "$ref": "#/$defs/text",
+          "description": "Extra CSS class(es) on the card."
+        },
+        "param": {
+          "description": "The tag key that names the item (\"id\" by default): lower-case.",
+          "pattern": "^[a-z_][a-z0-9_]*$"
+        },
+        "items": {
+          "description": "The tables by id.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "$ref": "#/$defs/item_table"
+          }
+        },
+        "item": {
+          "$ref": "#/$defs/item_table"
+        },
+        "kicker": {
+          "$ref": "#/$defs/text",
+          "description": "A small line above the title."
+        },
+        "fold": {
+          "description": "The rows shown before \"See all\" (8).",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 3
+        },
+        "pick": {
+          "description": "Each row a button: { \"say\": \"…{column}…\", \"fields\": { field: \"{column}\" }, \"label\" }.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "say": {
+              "$ref": "#/$defs/text",
+              "description": "The sentence sent."
+            },
+            "fields": {
+              "description": "Saved in Landbot.",
+              "type": [
+                "object",
+                "null"
+              ]
+            },
+            "label": {
+              "$ref": "#/$defs/text",
+              "description": "The button's label."
+            }
+          },
+          "required": [
+            "say",
+            "fields"
+          ],
+          "additionalProperties": false
+        },
+        "same": {
+          "description": "false: keep a column that says the same in every row.",
+          "enum": [
+            false,
+            null
+          ]
+        },
+        "allowDup": {
+          "description": "true: draw it even when the same widget is already in the message."
+        },
+        "lang": {
+          "$ref": "#/$defs/text",
+          "description": "A fixed language for this widget."
+        },
+        "reply": {
+          "$ref": "#/$defs/reply"
+        },
+        "links": {
+          "$ref": "#/$defs/links"
+        },
+        "fallback": {
+          "$ref": "#/$defs/text",
+          "description": "The item drawn when the tag names none (a flow's unset id)."
+        },
+        "params": {
+          "$ref": "#/$defs/params"
+        },
+        "money": {
+          "$ref": "#/$defs/money"
+        },
+        "source": {
+          "description": "Rows from LBW.data: { \"data\": a key, \"map\": { part: \"{column}\" } }.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "data": {
+              "description": "A key of LBW.data, or { \"param\": a \"one\" param whose values are keys }."
+            },
+            "wait": {
+              "description": "How long to wait for the data, ms (0–8000; 1500).",
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "upgrade": {
+              "description": "How long the saved copy may still be replaced by late data, ms (0–60000).",
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "path": {
+              "description": "The dotted key of the list inside the data, as \"data.items\"."
+            },
+            "id": {
+              "description": "The id column."
+            },
+            "map": {
+              "description": "{ part: \"{column}\" }: which column fills which part."
+            },
+            "merge": {
+              "description": "true: the saved item with the same id fills what a row lacks.",
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            "max": {
+              "description": "How many rows are read.",
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1,
+              "maximum": 5000
+            }
+          },
+          "required": [
+            "data",
+            "map"
+          ],
+          "additionalProperties": false
+        },
+        "live": {
+          "description": "The \"Live\" chip beside the title (true by default for rows from a source).",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "flow": {
+          "$ref": "#/$defs/flow"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false
+    },
+    "form": {
+      "title": "form",
+      "description": "Questions one step at a time; sends a summary and saves fields.",
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "form"
+        },
+        "cls": {
+          "$ref": "#/$defs/text",
+          "description": "Extra CSS class(es) on the card."
+        },
+        "lang": {
+          "$ref": "#/$defs/text",
+          "description": "A fixed language for this widget."
+        },
+        "kicker": {
+          "$ref": "#/$defs/text",
+          "description": "A small line above the title."
+        },
+        "title": {
+          "$ref": "#/$defs/text",
+          "description": "The title."
+        },
+        "cta": {
+          "$ref": "#/$defs/text",
+          "description": "The main button's label."
+        },
+        "note": {
+          "$ref": "#/$defs/text",
+          "description": "A note at the end."
+        },
+        "preset": {
+          "description": "{ \"step\", \"param\" }: a step the tag answers.",
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "steps": {
+          "description": "The questions: { \"key\", \"title\", \"items\": [[key, label]] or { \"by\", \"map\", \"else\" } }.",
+          "anyOf": [
+            {
+              "type": "array"
+            },
+            {
+              "$ref": "#/$defs/byLang"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "summary": {
+          "$ref": "#/$defs/text",
+          "description": "A template over the steps."
+        },
+        "fields": {
+          "description": "{ field: template }: saved in Landbot.",
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "allowDup": {
+          "description": "true: draw it even when the same widget is already in the message."
+        },
+        "collapse": {
+          "description": "false: keep it open after it is sent."
+        },
+        "density": {
+          "description": "\"compact\" (one question at a time, a footer with the total) or \"comfy\" (the v0.9.5 layout).",
+          "anyOf": [
+            {
+              "enum": [
+                "compact",
+                "comfy",
+                null
+              ]
+            },
+            {
+              "$ref": "#/$defs/byLang"
+            }
+          ]
+        },
+        "params": {
+          "$ref": "#/$defs/params"
+        },
+        "money": {
+          "$ref": "#/$defs/money"
+        },
+        "flow": {
+          "$ref": "#/$defs/flow"
+        }
+      },
+      "required": [
+        "type",
+        "steps",
+        "summary",
+        "cta"
+      ],
+      "additionalProperties": false
+    },
+    "contact": {
+      "title": "contact",
+      "description": "How to reach you: a title, rows, opening hours and buttons.",
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "contact"
+        },
+        "cls": {
+          "$ref": "#/$defs/text",
+          "description": "Extra CSS class(es) on the card."
+        },
+        "lang": {
+          "$ref": "#/$defs/text",
+          "description": "A fixed language for this widget."
+        },
+        "kicker": {
+          "$ref": "#/$defs/text",
+          "description": "A small line above the title."
+        },
+        "title": {
+          "$ref": "#/$defs/text",
+          "description": "The title."
+        },
+        "big": {
+          "$ref": "#/$defs/text",
+          "description": "A big line (a phone number, an address)."
+        },
+        "rows": {
+          "description": "[label, value].",
+          "anyOf": [
+            {
+              "type": "array"
+            },
+            {
+              "$ref": "#/$defs/byLang"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "hours": {
+          "description": "{ \"week\": { \"1\": [[540, 1080]] }, \"holidays\" } (0 = Sunday; minutes).",
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "note": {
+          "$ref": "#/$defs/text",
+          "description": "A note at the end."
+        },
+        "buttons": {
+          "$ref": "#/$defs/links"
+        },
+        "buttonsWithSummary": {
+          "$ref": "#/$defs/links"
+        },
+        "summary": {
+          "description": "{ \"form\", \"strip\", \"text\", \"actions\" }: what a form sent.",
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "compact": {
+          "description": "{ \"label\", \"buttons\" }.",
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "allowDup": {
+          "description": "true: draw it even when the same widget is already in the message."
+        },
+        "params": {
+          "$ref": "#/$defs/params"
+        },
+        "money": {
+          "$ref": "#/$defs/money"
+        },
+        "flow": {
+          "$ref": "#/$defs/flow"
+        }
+      },
+      "required": [
+        "type",
+        "title"
+      ],
+      "additionalProperties": false
+    },
+    "chips": {
+      "title": "chips",
+      "description": "Quick replies: [label, sentence] or { label, say, desc, fields }.",
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "chips"
+        },
+        "cls": {
+          "$ref": "#/$defs/text",
+          "description": "Extra CSS class(es) on the card."
+        },
+        "lang": {
+          "$ref": "#/$defs/text",
+          "description": "A fixed language for this widget."
+        },
+        "max": {
+          "description": "How many chips at most.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+        "items": {
+          "description": "The chips by key.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "$ref": "#/$defs/item_chips"
+          }
+        },
+        "own": {
+          "description": "Chips left out while their own widget is in the reply.",
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "carriedBy": {
+          "description": "{ chip: [widget names] }: left out when a card carries it.",
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "crowd": {
+          "description": "With that many actions on the cards above, the chips stay out (2; 0 = never).",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "params": {
+          "$ref": "#/$defs/params"
+        },
+        "money": {
+          "$ref": "#/$defs/money"
+        },
+        "flow": {
+          "$ref": "#/$defs/flow"
+        }
+      },
+      "required": [
+        "type",
+        "items"
+      ],
+      "additionalProperties": false
+    },
+    "carousel": {
+      "title": "carousel",
+      "description": "Slides, saved or read live from a CSV, JSON or LBW.data; a filter the tag drives.",
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "carousel"
+        },
+        "cls": {
+          "$ref": "#/$defs/text",
+          "description": "Extra CSS class(es) on the card."
+        },
+        "lang": {
+          "$ref": "#/$defs/text",
+          "description": "A fixed language for this widget."
+        },
+        "allowDup": {
+          "description": "true: draw it even when the same widget is already in the message."
+        },
+        "items": {
+          "description": "The slides.",
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/item_slide"
+              }
+            },
+            {
+              "$ref": "#/$defs/byLang"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "source": {
+          "description": "Slides read live: { \"csv\" | \"json\" | \"data\", \"id\", \"map\": { \"name\": \"{column}\", … } }.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "csv": {
+              "description": "An https URL of a CSV."
+            },
+            "json": {
+              "description": "An https URL of a JSON answer."
+            },
+            "data": {
+              "description": "A key of LBW.data, or { \"param\" }."
+            },
+            "wait": {
+              "description": "ms to wait for the data.",
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "upgrade": {
+              "description": "ms the saved copy may still be replaced.",
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "path": {
+              "description": "The dotted key of the list."
+            },
+            "id": {
+              "description": "The id column."
+            },
+            "map": {
+              "description": "{ part: \"{column}\" }."
+            },
+            "merge": {
+              "description": "true: a saved item fills what a row lacks.",
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            "order": {
+              "description": "\"items\": the saved items' order.",
+              "anyOf": [
+                {
+                  "enum": [
+                    "items",
+                    null
+                  ]
+                },
+                {
+                  "$ref": "#/$defs/byLang"
+                }
+              ]
+            },
+            "max": {
+              "description": "How many rows are read.",
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1,
+              "maximum": 5000
+            },
+            "maxAge": {
+              "description": "ms before it is fetched again (10000 at least).",
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 10000
+            },
+            "prefetch": {
+              "description": "false: don't fetch it when the chat loads."
+            }
+          },
+          "required": [
+            "map"
+          ],
+          "additionalProperties": false
+        },
+        "filter": {
+          "description": "{ \"by\": a key of the items, \"param\": the tag key, \"values\" }.",
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "kicker": {
+          "$ref": "#/$defs/text",
+          "description": "A small line above the title."
+        },
+        "title": {
+          "$ref": "#/$defs/text",
+          "description": "The title."
+        },
+        "titles": {
+          "description": "Titles by filter value.",
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "lead": {
+          "$ref": "#/$defs/text",
+          "description": "A line above the slides."
+        },
+        "note": {
+          "$ref": "#/$defs/text",
+          "description": "A note at the end."
+        },
+        "reply": {
+          "$ref": "#/$defs/reply"
+        },
+        "links": {
+          "$ref": "#/$defs/links"
+        },
+        "max": {
+          "description": "How many slides at most."
+        },
+        "params": {
+          "$ref": "#/$defs/params"
+        },
+        "money": {
+          "$ref": "#/$defs/money"
+        },
+        "live": {
+          "description": "The \"Live\" chip beside the title.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "style": {
+          "description": "\"media\" (photos lead, no box) or \"box\".",
+          "anyOf": [
+            {
+              "enum": [
+                "media",
+                "box",
+                null
+              ]
+            },
+            {
+              "$ref": "#/$defs/byLang"
+            }
+          ]
+        },
+        "flow": {
+          "$ref": "#/$defs/flow"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false
+    },
+    "calc": {
+      "title": "calc",
+      "description": "A calculator: state the visitor changes, formulas, a result and a sentence to send.",
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "calc"
+        },
+        "cls": {
+          "$ref": "#/$defs/text",
+          "description": "Extra CSS class(es) on the card."
+        },
+        "lang": {
+          "$ref": "#/$defs/text",
+          "description": "A fixed language for this widget."
+        },
+        "kicker": {
+          "$ref": "#/$defs/text",
+          "description": "A small line above the title."
+        },
+        "title": {
+          "$ref": "#/$defs/text",
+          "description": "The title."
+        },
+        "cta": {
+          "$ref": "#/$defs/text",
+          "description": "The main button's label."
+        },
+        "state": {
+          "description": "The values: { key: { \"min\", \"max\", \"default\" } or { \"values\", \"default\", \"labels\", \"required\" } }.",
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "controls": {
+          "description": "{ \"stepper\": a state key, \"label\" } or { \"pick\": a state key, \"items\" }.",
+          "anyOf": [
+            {
+              "type": "array"
+            },
+            {
+              "$ref": "#/$defs/byLang"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "tables": {
+          "description": "Lookup tables of numbers: { name: { key: number } }.",
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "compute": {
+          "description": "Formulas, in order: { name: \"formula\" }.",
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "money": {
+          "description": "How {x:money} is written: { \"cur\", \"after\", \"dec\", \"th\", \"cents\", \"space\" }.",
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "result": {
+          "description": "{ \"rows\", \"total\", \"note\" }: templates over the state and compute.",
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "send": {
+          "description": "{ \"text\", \"fields\" }: the sentence sent and the fields saved.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "required": [
+            "text"
+          ]
+        },
+        "notes": {
+          "description": "[text] or [text, class].",
+          "anyOf": [
+            {
+              "type": "array"
+            },
+            {
+              "$ref": "#/$defs/byLang"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "links": {
+          "$ref": "#/$defs/links"
+        },
+        "allowDup": {
+          "description": "true: draw it even when the same widget is already in the message."
+        },
+        "collapse": {
+          "description": "false: keep it open after it is sent."
+        },
+        "density": {
+          "description": "\"compact\" (one question at a time, a footer with the total) or \"comfy\" (the v0.9.5 layout).",
+          "anyOf": [
+            {
+              "enum": [
+                "compact",
+                "comfy",
+                null
+              ]
+            },
+            {
+              "$ref": "#/$defs/byLang"
+            }
+          ]
+        },
+        "params": {
+          "$ref": "#/$defs/params"
+        },
+        "flow": {
+          "$ref": "#/$defs/flow"
+        }
+      },
+      "required": [
+        "type",
+        "state",
+        "controls",
+        "result",
+        "send",
+        "cta"
+      ],
+      "additionalProperties": false
+    },
+    "stats": {
+      "title": "stats",
+      "description": "Cards of 2–4 figures, each with where and when they were read.",
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "stats"
+        },
+        "cls": {
+          "$ref": "#/$defs/text",
+          "description": "Extra CSS class(es) on the card."
+        },
+        "lang": {
+          "$ref": "#/$defs/text",
+          "description": "A fixed language for this widget."
+        },
+        "allowDup": {
+          "description": "true: draw it even when the same widget is already in the message."
+        },
+        "items": {
+          "description": "The cards by id.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "$ref": "#/$defs/item_stats"
+          }
+        },
+        "item": {
+          "$ref": "#/$defs/item_stats"
+        },
+        "reply": {
+          "$ref": "#/$defs/reply"
+        },
+        "links": {
+          "$ref": "#/$defs/links"
+        },
+        "params": {
+          "$ref": "#/$defs/params"
+        },
+        "money": {
+          "$ref": "#/$defs/money"
+        },
+        "source": {
+          "description": "Rows from LBW.data: { \"data\": a key, \"map\": { part: \"{column}\" } }.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "data": {
+              "description": "A key of LBW.data, or { \"param\": a \"one\" param whose values are keys }."
+            },
+            "wait": {
+              "description": "How long to wait for the data, ms (0–8000; 1500).",
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "upgrade": {
+              "description": "How long the saved copy may still be replaced by late data, ms (0–60000).",
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "path": {
+              "description": "The dotted key of the list inside the data, as \"data.items\"."
+            },
+            "id": {
+              "description": "The id column."
+            },
+            "map": {
+              "description": "{ part: \"{column}\" }: which column fills which part."
+            },
+            "merge": {
+              "description": "true: the saved item with the same id fills what a row lacks.",
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            "max": {
+              "description": "How many rows are read.",
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1,
+              "maximum": 5000
+            }
+          },
+          "required": [
+            "data",
+            "map"
+          ],
+          "additionalProperties": false
+        },
+        "live": {
+          "description": "The \"Live\" chip beside the title (true by default for rows from a source).",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "flow": {
+          "$ref": "#/$defs/flow"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false
+    },
+    "people": {
+      "title": "people",
+      "description": "People with a name and a role (four at most per tag).",
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "people"
+        },
+        "cls": {
+          "$ref": "#/$defs/text",
+          "description": "Extra CSS class(es) on the card."
+        },
+        "lang": {
+          "$ref": "#/$defs/text",
+          "description": "A fixed language for this widget."
+        },
+        "kicker": {
+          "$ref": "#/$defs/text",
+          "description": "A small line above the title."
+        },
+        "title": {
+          "$ref": "#/$defs/text",
+          "description": "The title."
+        },
+        "note": {
+          "$ref": "#/$defs/text",
+          "description": "A note at the end."
+        },
+        "allowDup": {
+          "description": "true: draw it even when the same widget is already in the message."
+        },
+        "items": {
+          "description": "The people by id.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "$ref": "#/$defs/item_people"
+          }
+        },
+        "filter": {
+          "description": "{ \"param\": the tag key that lists ids }.",
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "reply": {
+          "$ref": "#/$defs/reply"
+        },
+        "params": {
+          "$ref": "#/$defs/params"
+        },
+        "money": {
+          "$ref": "#/$defs/money"
+        },
+        "source": {
+          "description": "Rows from LBW.data: { \"data\": a key, \"map\": { part: \"{column}\" } }.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "data": {
+              "description": "A key of LBW.data, or { \"param\": a \"one\" param whose values are keys }."
+            },
+            "wait": {
+              "description": "How long to wait for the data, ms (0–8000; 1500).",
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "upgrade": {
+              "description": "How long the saved copy may still be replaced by late data, ms (0–60000).",
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "path": {
+              "description": "The dotted key of the list inside the data, as \"data.items\"."
+            },
+            "id": {
+              "description": "The id column."
+            },
+            "map": {
+              "description": "{ part: \"{column}\" }: which column fills which part."
+            },
+            "merge": {
+              "description": "true: the saved item with the same id fills what a row lacks.",
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            "max": {
+              "description": "How many rows are read.",
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1,
+              "maximum": 5000
+            }
+          },
+          "required": [
+            "data",
+            "map"
+          ],
+          "additionalProperties": false
+        },
+        "live": {
+          "description": "The \"Live\" chip beside the title (true by default for rows from a source).",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "flow": {
+          "$ref": "#/$defs/flow"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "items"
+          ]
+        },
+        {
+          "required": [
+            "source"
+          ]
+        }
+      ]
+    },
+    "consent": {
+      "title": "consent",
+      "description": "A yes/no consent with its fields.",
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "consent"
+        },
+        "cls": {
+          "$ref": "#/$defs/text",
+          "description": "Extra CSS class(es) on the card."
+        },
+        "lang": {
+          "$ref": "#/$defs/text",
+          "description": "A fixed language for this widget."
+        },
+        "icon": {
+          "description": "check, bell or shield.",
+          "anyOf": [
+            {
+              "enum": [
+                "check",
+                "bell",
+                "shield",
+                null
+              ]
+            },
+            {
+              "$ref": "#/$defs/byLang"
+            }
+          ]
+        },
+        "title": {
+          "$ref": "#/$defs/text",
+          "description": "The title."
+        },
+        "text": {
+          "$ref": "#/$defs/text",
+          "description": "The body text."
+        },
+        "yes": {
+          "description": "[label, sentence, { field: value }]."
+        },
+        "no": {
+          "description": "[label, sentence, { field: value }]."
+        },
+        "link": {
+          "$ref": "#/$defs/pair"
+        },
+        "allowDup": {
+          "description": "true: draw it even when the same widget is already in the message."
+        },
+        "params": {
+          "$ref": "#/$defs/params"
+        },
+        "money": {
+          "$ref": "#/$defs/money"
+        },
+        "flow": {
+          "$ref": "#/$defs/flow"
+        }
+      },
+      "required": [
+        "type",
+        "title",
+        "yes",
+        "no"
+      ],
+      "additionalProperties": false
+    },
+    "slots": {
+      "title": "slots",
+      "description": "Time slots on fixed days or a weekly plan; sends the day and time.",
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "slots"
+        },
+        "cls": {
+          "$ref": "#/$defs/text",
+          "description": "Extra CSS class(es) on the card."
+        },
+        "lang": {
+          "$ref": "#/$defs/text",
+          "description": "A fixed language for this widget."
+        },
+        "kicker": {
+          "$ref": "#/$defs/text",
+          "description": "A small line above the title."
+        },
+        "title": {
+          "$ref": "#/$defs/text",
+          "description": "The title."
+        },
+        "cta": {
+          "$ref": "#/$defs/text",
+          "description": "The main button's label."
+        },
+        "note": {
+          "$ref": "#/$defs/text",
+          "description": "A note at the end."
+        },
+        "sep": {
+          "$ref": "#/$defs/text",
+          "description": "The separator between the times."
+        },
+        "h12": {
+          "description": "12-hour times."
+        },
+        "collapse": {
+          "description": "false: keep it open after it is sent."
+        },
+        "density": {
+          "description": "\"compact\" (one question at a time, a footer with the total) or \"comfy\" (the v0.9.5 layout).",
+          "anyOf": [
+            {
+              "enum": [
+                "compact",
+                "comfy",
+                null
+              ]
+            },
+            {
+              "$ref": "#/$defs/byLang"
+            }
+          ]
+        },
+        "allowDup": {
+          "description": "true: draw it even when the same widget is already in the message."
+        },
+        "ics": {
+          "description": "{ \"title\", \"where\", \"label\", \"file\" }: an .ics file.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "required": [
+            "title"
+          ]
+        },
+        "days": {
+          "description": "Fixed dates: [{ \"date\": D/M/YYYY, \"slots\": [[from, to]] }].",
+          "anyOf": [
+            {
+              "type": "array"
+            },
+            {
+              "$ref": "#/$defs/byLang"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "weekly": {
+          "description": "{ \"week\": { \"1\": [[\"09:00\", \"10:00\"]] }, \"ahead\", \"from\", \"skip\" } (0 = Sunday).",
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "say": {
+          "description": "{ \"text\", \"fields\" } over {day} {from} {to}.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "required": [
+            "text"
+          ]
+        },
+        "params": {
+          "$ref": "#/$defs/params"
+        },
+        "money": {
+          "$ref": "#/$defs/money"
+        },
+        "flow": {
+          "$ref": "#/$defs/flow"
+        }
+      },
+      "required": [
+        "type",
+        "cta",
+        "say"
+      ],
+      "additionalProperties": false
+    },
+    "confirm": {
+      "title": "confirm",
+      "description": "What a form, slots or calendar widget sent, confirmed (a card or a ticket).",
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "confirm"
+        },
+        "cls": {
+          "$ref": "#/$defs/text",
+          "description": "Extra CSS class(es) on the card."
+        },
+        "lang": {
+          "$ref": "#/$defs/text",
+          "description": "A fixed language for this widget."
+        },
+        "allowDup": {
+          "description": "true: draw it even when the same widget is already in the message."
+        },
+        "form": {
+          "$ref": "#/$defs/text",
+          "description": "The form, slots or calendar widget whose sending it confirms."
+        },
+        "status": {
+          "$ref": "#/$defs/text",
+          "description": "A status line (a template)."
+        },
+        "title": {
+          "$ref": "#/$defs/text",
+          "description": "The title."
+        },
+        "rows": {
+          "description": "[label, value] templates.",
+          "anyOf": [
+            {
+              "type": "array"
+            },
+            {
+              "$ref": "#/$defs/byLang"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "steps": {
+          "description": "What happens next (templates).",
+          "anyOf": [
+            {
+              "type": "array"
+            },
+            {
+              "$ref": "#/$defs/byLang"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "note": {
+          "$ref": "#/$defs/text",
+          "description": "A note at the end."
+        },
+        "actions": {
+          "$ref": "#/$defs/links"
+        },
+        "params": {
+          "$ref": "#/$defs/params"
+        },
+        "money": {
+          "$ref": "#/$defs/money"
+        },
+        "style": {
+          "description": "\"pass\" (a ticket) or \"card\" (the default).",
+          "anyOf": [
+            {
+              "enum": [
+                "pass",
+                "card",
+                null
+              ]
+            },
+            {
+              "$ref": "#/$defs/byLang"
+            }
+          ]
+        },
+        "code": {
+          "$ref": "#/$defs/text",
+          "description": "A booking code (\"{ref}\")."
+        },
+        "ics": {
+          "description": "{ \"title\", \"where\", \"label\", \"file\" }, or false.",
+          "anyOf": [
+            {
+              "enum": [
+                false,
+                null
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "$ref": "#/$defs/text",
+                  "description": "The event's title."
+                },
+                "where": {
+                  "$ref": "#/$defs/text",
+                  "description": "Where."
+                },
+                "label": {
+                  "$ref": "#/$defs/text",
+                  "description": "The button's label."
+                },
+                "file": {
+                  "description": "A file name."
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "countdown": {
+          "description": "false hides the countdown.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "flow": {
+          "$ref": "#/$defs/flow"
+        }
+      },
+      "required": [
+        "type",
+        "form",
+        "title"
+      ],
+      "additionalProperties": false
+    },
+    "review": {
+      "title": "review",
+      "description": "An order to review: lines, a total, send or discard.",
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "review"
+        },
+        "cls": {
+          "$ref": "#/$defs/text",
+          "description": "Extra CSS class(es) on the card."
+        },
+        "lang": {
+          "$ref": "#/$defs/text",
+          "description": "A fixed language for this widget."
+        },
+        "kicker": {
+          "$ref": "#/$defs/text",
+          "description": "A small line above the title."
+        },
+        "title": {
+          "$ref": "#/$defs/text",
+          "description": "The title."
+        },
+        "cta": {
+          "$ref": "#/$defs/text",
+          "description": "The main button's label."
+        },
+        "note": {
+          "$ref": "#/$defs/text",
+          "description": "A note at the end."
+        },
+        "collapse": {
+          "description": "false: keep it open after it is sent."
+        },
+        "density": {
+          "description": "\"compact\" (one question at a time, a footer with the total) or \"comfy\" (the v0.9.5 layout).",
+          "anyOf": [
+            {
+              "enum": [
+                "compact",
+                "comfy",
+                null
+              ]
+            },
+            {
+              "$ref": "#/$defs/byLang"
+            }
+          ]
+        },
+        "allowDup": {
+          "description": "true: draw it even when the same widget is already in the message."
+        },
+        "state": {
+          "description": "The values the visitor changes: { key: { \"min\", \"max\", \"default\" } or { \"values\", \"default\" } }.",
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "tables": {
+          "description": "Lookup tables of numbers: { name: { key: number } }.",
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "compute": {
+          "description": "Formulas, in order: { name: \"formula\" }.",
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "money": {
+          "description": "How {x:money} is written.",
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "lines": {
+          "description": "{ \"label\", \"value\" } (a template) or { \"label\", \"select\", \"items\" }.",
+          "anyOf": [
+            {
+              "type": "array"
+            },
+            {
+              "$ref": "#/$defs/byLang"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "total": {
+          "description": "{ \"label\", \"value\" }.",
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "discard": {
+          "$ref": "#/$defs/reply"
+        },
+        "send": {
+          "description": "{ \"text\", \"fields\" }: the sentence sent and the fields saved.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "required": [
+            "text"
+          ]
+        },
+        "params": {
+          "$ref": "#/$defs/params"
+        },
+        "flow": {
+          "$ref": "#/$defs/flow"
+        }
+      },
+      "required": [
+        "type",
+        "state",
+        "lines",
+        "send",
+        "cta"
+      ],
+      "additionalProperties": false
+    },
+    "chart": {
+      "title": "chart",
+      "description": "A line, area or bar chart of one or two series (two to four stacked).",
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "chart"
+        },
+        "cls": {
+          "$ref": "#/$defs/text",
+          "description": "Extra CSS class(es) on the card."
+        },
+        "lang": {
+          "$ref": "#/$defs/text",
+          "description": "A fixed language for this widget."
+        },
+        "kicker": {
+          "$ref": "#/$defs/text",
+          "description": "A small line above the title."
+        },
+        "title": {
+          "$ref": "#/$defs/text",
+          "description": "The title."
+        },
+        "sub": {
+          "$ref": "#/$defs/text",
+          "description": "A subtitle."
+        },
+        "note": {
+          "$ref": "#/$defs/text",
+          "description": "A note at the end."
+        },
+        "links": {
+          "$ref": "#/$defs/links"
+        },
+        "allowDup": {
+          "description": "true: draw it even when the same widget is already in the message."
+        },
+        "kind": {
+          "description": "line, area or bar.",
+          "anyOf": [
+            {
+              "enum": [
+                "line",
+                "area",
+                "bar",
+                null
+              ]
+            },
+            {
+              "$ref": "#/$defs/byLang"
+            }
+          ]
+        },
+        "stack": {
+          "description": "true: bars piled per point (2–4 series).",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "height": {
+          "description": "The height, 100 to 400.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 100,
+          "maximum": 400
+        },
+        "state": {
+          "description": "The values the visitor changes: { key: { \"min\", \"max\", \"default\" } or { \"values\", \"default\" } }.",
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "tables": {
+          "description": "Lookup tables of numbers: { name: { key: number } }.",
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "compute": {
+          "description": "Formulas, in order: { name: \"formula\" }.",
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "money": {
+          "description": "How {x:money} is written.",
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "x": {
+          "description": "A list of labels, or { \"from\", \"to\", \"step\", \"label\" }."
+        },
+        "series": {
+          "description": "One or two series (2–4 stacked): { \"label\", \"value\": a formula of i } or { \"label\", \"values\": numbers }.",
+          "anyOf": [
+            {
+              "type": "array"
+            },
+            {
+              "$ref": "#/$defs/byLang"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "y": {
+          "description": "{ \"ticks\", \"suffix\" }.",
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "mark": {
+          "description": "{ \"at\": a point of x (or a formula), \"label\" }.",
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "summary": {
+          "$ref": "#/$defs/text",
+          "description": "A template: the chart in one sentence."
+        },
+        "params": {
+          "$ref": "#/$defs/params"
+        },
+        "flow": {
+          "$ref": "#/$defs/flow"
+        }
+      },
+      "required": [
+        "type",
+        "title",
+        "x",
+        "series"
+      ],
+      "additionalProperties": false
+    },
+    "compare": {
+      "title": "compare",
+      "description": "Two or three items side by side, by row.",
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "compare"
+        },
+        "cls": {
+          "$ref": "#/$defs/text",
+          "description": "Extra CSS class(es) on the card."
+        },
+        "lang": {
+          "$ref": "#/$defs/text",
+          "description": "A fixed language for this widget."
+        },
+        "kicker": {
+          "$ref": "#/$defs/text",
+          "description": "A small line above the title."
+        },
+        "title": {
+          "$ref": "#/$defs/text",
+          "description": "The title."
+        },
+        "titles": {
+          "description": "{ \"2\": text, \"3\": text }: by how many are compared.",
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "param": {
+          "description": "The tag key that names the item (\"id\" by default): lower-case.",
+          "pattern": "^[a-z_][a-z0-9_]*$"
+        },
+        "items": {
+          "description": "The columns by id (two or more).",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "$ref": "#/$defs/item_compare"
+          }
+        },
+        "rows": {
+          "description": "[key, label], [key, label, class] or [key, label, class, unit].",
+          "anyOf": [
+            {
+              "type": "array"
+            },
+            {
+              "$ref": "#/$defs/byLang"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "min": {
+          "description": "How many at least (2 or 3).",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 2,
+          "maximum": 3
+        },
+        "max": {
+          "description": "How many at most (2 or 3).",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 2,
+          "maximum": 3
+        },
+        "empty": {
+          "$ref": "#/$defs/text",
+          "description": "What an empty cell says."
+        },
+        "note": {
+          "$ref": "#/$defs/text",
+          "description": "A note at the end."
+        },
+        "same": {
+          "description": "\"fold\": equal rows go in one line under the table; \"mute\" (the default): drawn quieter.",
+          "anyOf": [
+            {
+              "enum": [
+                "fold",
+                "mute",
+                null
+              ]
+            },
+            {
+              "$ref": "#/$defs/byLang"
+            }
+          ]
+        },
+        "primary": {
+          "description": "The primary action."
+        },
+        "allowDup": {
+          "description": "true: draw it even when the same widget is already in the message."
+        },
+        "params": {
+          "$ref": "#/$defs/params"
+        },
+        "money": {
+          "$ref": "#/$defs/money"
+        },
+        "source": {
+          "description": "Rows from LBW.data: { \"data\": a key, \"map\": { part: \"{column}\" } }.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "data": {
+              "description": "A key of LBW.data, or { \"param\": a \"one\" param whose values are keys }."
+            },
+            "wait": {
+              "description": "How long to wait for the data, ms (0–8000; 1500).",
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "upgrade": {
+              "description": "How long the saved copy may still be replaced by late data, ms (0–60000).",
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "path": {
+              "description": "The dotted key of the list inside the data, as \"data.items\"."
+            },
+            "id": {
+              "description": "The id column."
+            },
+            "map": {
+              "description": "{ part: \"{column}\" }: which column fills which part."
+            },
+            "merge": {
+              "description": "true: the saved item with the same id fills what a row lacks.",
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            "max": {
+              "description": "How many rows are read.",
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1,
+              "maximum": 5000
+            }
+          },
+          "required": [
+            "data",
+            "map"
+          ],
+          "additionalProperties": false
+        },
+        "live": {
+          "description": "The \"Live\" chip beside the title (true by default for rows from a source).",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "best": {
+          "description": "The column you recommend: an id, or { \"id\", \"label\" }.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/text"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "$ref": "#/$defs/text",
+                  "description": "The id."
+                },
+                "label": {
+                  "$ref": "#/$defs/text",
+                  "description": "Its label."
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "flow": {
+          "$ref": "#/$defs/flow"
+        }
+      },
+      "required": [
+        "type",
+        "rows"
+      ],
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "items"
+          ]
+        },
+        {
+          "required": [
+            "source"
+          ]
+        }
+      ]
+    },
+    "season": {
+      "title": "season",
+      "description": "Open or closed today, from the season's date ranges (needs \"timeZone\").",
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "season"
+        },
+        "cls": {
+          "$ref": "#/$defs/text",
+          "description": "Extra CSS class(es) on the card."
+        },
+        "lang": {
+          "$ref": "#/$defs/text",
+          "description": "A fixed language for this widget."
+        },
+        "kicker": {
+          "$ref": "#/$defs/text",
+          "description": "A small line above the title."
+        },
+        "ranges": {
+          "description": "[[first open day, last open day], …] in D/M/YYYY.",
+          "anyOf": [
+            {
+              "type": "array"
+            },
+            {
+              "$ref": "#/$defs/byLang"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "words": {
+          "description": "The kit's words, changed.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "open": {
+              "$ref": "#/$defs/text",
+              "description": "\"open\"."
+            },
+            "closed": {
+              "$ref": "#/$defs/text",
+              "description": "\"closed\"."
+            },
+            "until": {
+              "$ref": "#/$defs/text",
+              "description": "\"until\"."
+            },
+            "opens": {
+              "$ref": "#/$defs/text",
+              "description": "\"opens\"."
+            },
+            "in": {
+              "$ref": "#/$defs/text",
+              "description": "\"in\"."
+            },
+            "closes": {
+              "$ref": "#/$defs/text",
+              "description": "\"closes\"."
+            },
+            "unknown": {
+              "$ref": "#/$defs/text",
+              "description": "\"unknown\"."
+            },
+            "day": {
+              "$ref": "#/$defs/text",
+              "description": "\"day\"."
+            },
+            "days": {
+              "$ref": "#/$defs/text",
+              "description": "\"{n} days\"."
+            }
+          },
+          "additionalProperties": false
+        },
+        "rows": {
+          "description": "[label, value].",
+          "anyOf": [
+            {
+              "type": "array"
+            },
+            {
+              "$ref": "#/$defs/byLang"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "note": {
+          "$ref": "#/$defs/text",
+          "description": "A note at the end."
+        },
+        "reply": {
+          "$ref": "#/$defs/reply"
+        },
+        "links": {
+          "$ref": "#/$defs/links"
+        },
+        "allowDup": {
+          "description": "true: draw it even when the same widget is already in the message."
+        },
+        "params": {
+          "$ref": "#/$defs/params"
+        },
+        "money": {
+          "$ref": "#/$defs/money"
+        },
+        "flow": {
+          "$ref": "#/$defs/flow"
+        }
+      },
+      "required": [
+        "type",
+        "ranges"
+      ],
+      "additionalProperties": false
+    },
+    "map": {
+      "title": "map",
+      "description": "1–5 places on a schematic or on your own image, with hours and directions.",
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "map"
+        },
+        "cls": {
+          "$ref": "#/$defs/text",
+          "description": "Extra CSS class(es) on the card."
+        },
+        "lang": {
+          "$ref": "#/$defs/text",
+          "description": "A fixed language for this widget."
+        },
+        "kicker": {
+          "$ref": "#/$defs/text",
+          "description": "A small line above the title."
+        },
+        "title": {
+          "$ref": "#/$defs/text",
+          "description": "The title."
+        },
+        "note": {
+          "$ref": "#/$defs/text",
+          "description": "A note at the end."
+        },
+        "places": {
+          "description": "1–20 places.",
+          "anyOf": [
+            {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 20,
+              "items": {
+                "description": "A place.",
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "id": {
+                    "description": "Its id: a lower-case word (a-z, 0-9, _ and -), 40 at most; the tag names it.",
+                    "pattern": "^[a-z0-9][a-z0-9_-]{0,39}$"
+                  },
+                  "name": {
+                    "$ref": "#/$defs/text",
+                    "description": "Its name."
+                  },
+                  "kind": {
+                    "$ref": "#/$defs/text",
+                    "description": "What it is (\"Shop\")."
+                  },
+                  "address": {
+                    "$ref": "#/$defs/text",
+                    "description": "Its address."
+                  },
+                  "lat": {
+                    "description": "Latitude, −90 to 90.",
+                    "type": [
+                      "number",
+                      "null"
+                    ],
+                    "minimum": -90,
+                    "maximum": 90
+                  },
+                  "lng": {
+                    "description": "Longitude, −180 to 180.",
+                    "type": [
+                      "number",
+                      "null"
+                    ],
+                    "minimum": -180,
+                    "maximum": 180
+                  },
+                  "at": {
+                    "description": "[x, y] in % of the image."
+                  },
+                  "hours": {
+                    "description": "{ \"week\": { \"1\": [[600, 840]] }, \"holidays\", \"sep\", \"h12\", \"open\", \"closed\" } (0 = Sunday; minutes)."
+                  },
+                  "status": {
+                    "$ref": "#/$defs/toned"
+                  },
+                  "distance": {
+                    "$ref": "#/$defs/text",
+                    "description": "The distance, written out."
+                  },
+                  "link": {
+                    "$ref": "#/$defs/pair"
+                  }
+                },
+                "required": [
+                  "id",
+                  "name"
+                ],
+                "additionalProperties": false
+              }
+            },
+            {
+              "$ref": "#/$defs/byLang"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "image": {
+          "description": "Your own map: { \"src\", \"width\", \"height\", \"alt\", \"bounds\" }, or \"set:map.png\" with \"photos\".",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/text"
+            },
+            {
+              "description": null,
+              "type": [
+                "object",
+                "null"
+              ],
+              "properties": {
+                "src": {
+                  "description": "Under \"links\"."
+                },
+                "srcset": {
+                  "description": "[[url, width], …]."
+                },
+                "width": {
+                  "description": "Pixels."
+                },
+                "height": {
+                  "description": "Pixels."
+                },
+                "alt": {
+                  "$ref": "#/$defs/text",
+                  "description": "What it shows."
+                },
+                "photo": {
+                  "description": "\"set:file.png\"."
+                },
+                "bounds": {
+                  "description": "[[north, west], [south, east]]."
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "lines": {
+          "description": "The schematic's lines (12 at most).",
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "description": "A line.",
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "kind": {
+                    "description": "water, road, rail or park.",
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "water",
+                          "road",
+                          "rail",
+                          "park",
+                          null
+                        ]
+                      },
+                      {
+                        "$ref": "#/$defs/byLang"
+                      }
+                    ]
+                  },
+                  "pts": {
+                    "description": "2–40 points [lat, lng].",
+                    "anyOf": [
+                      {
+                        "type": "array"
+                      },
+                      {
+                        "$ref": "#/$defs/byLang"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "label": {
+                    "$ref": "#/$defs/text",
+                    "description": "Its label."
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            {
+              "$ref": "#/$defs/byLang"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "from": {
+          "description": "Where distances are measured from.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "name": {
+              "$ref": "#/$defs/text",
+              "description": "Its name."
+            },
+            "lat": {
+              "description": "Latitude, −90 to 90.",
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": -90,
+              "maximum": 90
+            },
+            "lng": {
+              "description": "Longitude, −180 to 180.",
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": -180,
+              "maximum": 180
+            }
+          },
+          "additionalProperties": false
+        },
+        "directions": {
+          "description": "A directions link: google, apple, osm, or { \"url\": \"https://…{q}…\", \"label\" }.",
+          "anyOf": [
+            {
+              "enum": [
+                "google",
+                "apple",
+                "osm",
+                null
+              ]
+            },
+            {
+              "$ref": "#/$defs/byLang"
+            },
+            {
+              "description": null,
+              "type": [
+                "object",
+                "null"
+              ],
+              "properties": {
+                "url": {
+                  "$ref": "#/$defs/text",
+                  "description": "With {q}, {lat}, {lng} or {address}."
+                },
+                "label": {
+                  "$ref": "#/$defs/text",
+                  "description": "The link's label."
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "sort": {
+          "description": "\"distance\" (needs \"from\").",
+          "anyOf": [
+            {
+              "enum": [
+                "distance",
+                null
+              ]
+            },
+            {
+              "$ref": "#/$defs/byLang"
+            }
+          ]
+        },
+        "max": {
+          "description": "The places one tag shows, 1 to 5.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 5
+        },
+        "links": {
+          "$ref": "#/$defs/links"
+        },
+        "allowDup": {
+          "description": "true: draw it even when the same widget is already in the message."
+        },
+        "params": {
+          "$ref": "#/$defs/params"
+        },
+        "money": {
+          "$ref": "#/$defs/money"
+        },
+        "flow": {
+          "$ref": "#/$defs/flow"
+        }
+      },
+      "required": [
+        "type",
+        "places"
+      ],
+      "additionalProperties": false
+    },
+    "tracker": {
+      "title": "tracker",
+      "description": "A step timeline: the current step comes from the tag.",
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "tracker"
+        },
+        "cls": {
+          "$ref": "#/$defs/text",
+          "description": "Extra CSS class(es) on the card."
+        },
+        "lang": {
+          "$ref": "#/$defs/text",
+          "description": "A fixed language for this widget."
+        },
+        "kicker": {
+          "$ref": "#/$defs/text",
+          "description": "A small line above the title."
+        },
+        "title": {
+          "$ref": "#/$defs/text",
+          "description": "The title."
+        },
+        "note": {
+          "$ref": "#/$defs/text",
+          "description": "A note at the end."
+        },
+        "param": {
+          "description": "The tag key of the current step (\"estado\").",
+          "pattern": "^[a-z_][a-z0-9_]*$"
+        },
+        "default": {
+          "$ref": "#/$defs/text",
+          "description": "The step or state when the tag has none."
+        },
+        "ref": {
+          "description": "The order code: { \"param\": the tag key, \"label\" }.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "param": {
+              "description": "The tag key.",
+              "pattern": "^[a-z_][a-z0-9_]*$"
+            },
+            "label": {
+              "$ref": "#/$defs/text",
+              "description": "Its label."
+            }
+          },
+          "required": [
+            "param"
+          ],
+          "additionalProperties": false
+        },
+        "eta": {
+          "description": "{ \"day\": a tag key, \"time\": a tag key, \"text\": \"Lista {when}\" }.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "day": {
+              "description": "The tag key of the day.",
+              "pattern": "^[a-z_][a-z0-9_]*$"
+            },
+            "time": {
+              "description": "The tag key of the time.",
+              "pattern": "^[a-z_][a-z0-9_]*$"
+            },
+            "text": {
+              "$ref": "#/$defs/text",
+              "description": "With {when}."
+            }
+          },
+          "additionalProperties": false
+        },
+        "steps": {
+          "description": "2–8 steps in order.",
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "description": "A step.",
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "key": {
+                    "description": "The value the flow writes (estado=lista).",
+                    "pattern": "^[a-z][a-z0-9_]{0,39}$"
+                  },
+                  "label": {
+                    "$ref": "#/$defs/text",
+                    "description": "The step's name, 40 characters at most."
+                  },
+                  "detail": {
+                    "$ref": "#/$defs/text",
+                    "description": "More about the step."
+                  },
+                  "time": {
+                    "$ref": "#/$defs/text",
+                    "description": "When."
+                  },
+                  "tone": {
+                    "$ref": "#/$defs/tone"
+                  },
+                  "actions": {
+                    "$ref": "#/$defs/links"
+                  }
+                },
+                "required": [
+                  "key",
+                  "label"
+                ],
+                "additionalProperties": false
+              }
+            },
+            {
+              "$ref": "#/$defs/byLang"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "states": {
+          "description": "A delay at a step (\"at\") or an end (\"end\": true).",
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "description": "A state.",
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "key": {
+                    "description": "The value the flow writes (estado=lista).",
+                    "pattern": "^[a-z][a-z0-9_]{0,39}$"
+                  },
+                  "text": {
+                    "$ref": "#/$defs/text",
+                    "description": "What its status line says."
+                  },
+                  "tone": {
+                    "$ref": "#/$defs/tone"
+                  },
+                  "at": {
+                    "description": "The step it holds up (a delay)."
+                  },
+                  "end": {
+                    "description": "true: it ends the tracking.",
+                    "enum": [
+                      true,
+                      null
+                    ]
+                  },
+                  "actions": {
+                    "$ref": "#/$defs/links"
+                  }
+                },
+                "required": [
+                  "key",
+                  "text"
+                ],
+                "additionalProperties": false
+              }
+            },
+            {
+              "$ref": "#/$defs/byLang"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "links": {
+          "$ref": "#/$defs/links"
+        },
+        "live": {
+          "description": "The key of a data message that updates it (a lower-case word).",
+          "anyOf": [
+            {
+              "type": [
+                "string",
+                "null"
+              ],
+              "pattern": "^[a-z][a-z0-9_]{0,39}$"
+            },
+            {
+              "$ref": "#/$defs/byLang"
+            }
+          ]
+        },
+        "allowDup": {
+          "description": "true: draw it even when the same widget is already in the message."
+        },
+        "params": {
+          "$ref": "#/$defs/params"
+        },
+        "money": {
+          "$ref": "#/$defs/money"
+        },
+        "flow": {
+          "$ref": "#/$defs/flow"
+        }
+      },
+      "required": [
+        "type",
+        "title",
+        "steps"
+      ],
+      "additionalProperties": false
+    },
+    "rating": {
+      "title": "rating",
+      "description": "Thumbs, stars or a scale: one tap sends and saves.",
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "rating"
+        },
+        "cls": {
+          "$ref": "#/$defs/text",
+          "description": "Extra CSS class(es) on the card."
+        },
+        "lang": {
+          "$ref": "#/$defs/text",
+          "description": "A fixed language for this widget."
+        },
+        "kicker": {
+          "$ref": "#/$defs/text",
+          "description": "A small line above the title."
+        },
+        "title": {
+          "$ref": "#/$defs/text",
+          "description": "The title."
+        },
+        "text": {
+          "$ref": "#/$defs/text",
+          "description": "The body text."
+        },
+        "kind": {
+          "description": "thumbs, stars (the default) or scale.",
+          "anyOf": [
+            {
+              "enum": [
+                "thumbs",
+                "stars",
+                "scale",
+                null
+              ]
+            },
+            {
+              "$ref": "#/$defs/byLang"
+            }
+          ]
+        },
+        "min": {
+          "description": "The lowest value of a scale.",
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "max": {
+          "description": "The highest value (stars 3–10, a scale up to min + 10).",
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "labels": {
+          "description": "[no, yes] for thumbs, [low end, high end] for a scale.",
+          "anyOf": [
+            {
+              "type": "array"
+            },
+            {
+              "$ref": "#/$defs/byLang"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "bands": {
+          "description": "[[top value, name], …] for {band}.",
+          "anyOf": [
+            {
+              "type": "array"
+            },
+            {
+              "$ref": "#/$defs/byLang"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "send": {
+          "description": "{ \"text\": \"…{value}…\", \"fields\": { field: \"{value}\" } }.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "text": {
+              "$ref": "#/$defs/text",
+              "description": "The sentence sent."
+            },
+            "fields": {
+              "description": "Saved in Landbot.",
+              "type": [
+                "object",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "text",
+            "fields"
+          ],
+          "additionalProperties": false
+        },
+        "note": {
+          "$ref": "#/$defs/text",
+          "description": "A note at the end."
+        },
+        "allowDup": {
+          "description": "true: draw it even when the same widget is already in the message."
+        },
+        "params": {
+          "$ref": "#/$defs/params"
+        },
+        "money": {
+          "$ref": "#/$defs/money"
+        },
+        "flow": {
+          "$ref": "#/$defs/flow"
+        }
+      },
+      "required": [
+        "type",
+        "title",
+        "send"
+      ],
+      "additionalProperties": false
+    },
+    "calendar": {
+      "title": "calendar",
+      "description": "A month grid of days, free, few, full or closed, with a price per night.",
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "calendar"
+        },
+        "cls": {
+          "$ref": "#/$defs/text",
+          "description": "Extra CSS class(es) on the card."
+        },
+        "lang": {
+          "$ref": "#/$defs/text",
+          "description": "A fixed language for this widget."
+        },
+        "kicker": {
+          "$ref": "#/$defs/text",
+          "description": "A small line above the title."
+        },
+        "title": {
+          "$ref": "#/$defs/text",
+          "description": "The title."
+        },
+        "cta": {
+          "$ref": "#/$defs/text",
+          "description": "The main button's label."
+        },
+        "note": {
+          "$ref": "#/$defs/text",
+          "description": "A note at the end."
+        },
+        "mode": {
+          "description": "\"range\" (check-in → check-out, the default) or \"single\".",
+          "anyOf": [
+            {
+              "enum": [
+                "range",
+                "single",
+                null
+              ]
+            },
+            {
+              "$ref": "#/$defs/byLang"
+            }
+          ]
+        },
+        "nights": {
+          "description": "{ \"min\", \"max\" }: the shortest and the longest stay.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "min": {
+              "description": "Nights.",
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1,
+              "maximum": 365
+            },
+            "max": {
+              "description": "Nights.",
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1,
+              "maximum": 365
+            }
+          },
+          "additionalProperties": false
+        },
+        "notice": {
+          "description": "Days from today that can't be picked yet (0–365).",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 365
+        },
+        "horizon": {
+          "description": "Days ahead that can be picked (1–730; 365).",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 730
+        },
+        "months": {
+          "description": "1 or 2 (a second month where the card is wide).",
+          "enum": [
+            1,
+            2,
+            null
+          ]
+        },
+        "rates": {
+          "description": "[{ \"from\", \"to\", \"price\" }]: a price per night.",
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "description": "A rate.",
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "from": {
+                    "$ref": "#/$defs/text",
+                    "description": "D/M/YYYY."
+                  },
+                  "to": {
+                    "$ref": "#/$defs/text",
+                    "description": "D/M/YYYY."
+                  },
+                  "price": {
+                    "description": "A plain amount (189 or \"189.5\")."
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            {
+              "$ref": "#/$defs/byLang"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "days": {
+          "description": "[{ \"date\", \"price\", \"state\", \"left\" }].",
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "description": "A day.",
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "date": {
+                    "$ref": "#/$defs/text",
+                    "description": "D/M/YYYY."
+                  },
+                  "price": {
+                    "description": "A plain amount."
+                  },
+                  "state": {
+                    "description": "free, few, full or closed.",
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "free",
+                          "few",
+                          "full",
+                          "closed",
+                          null
+                        ]
+                      },
+                      {
+                        "$ref": "#/$defs/byLang"
+                      }
+                    ]
+                  },
+                  "left": {
+                    "description": "How many are left.",
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 0,
+                    "maximum": 9999
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            {
+              "$ref": "#/$defs/byLang"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "closed": {
+          "description": "{ \"weekdays\": [1], \"dates\": [\"24/12\", \"1/1/2027\"] } (0 = Sunday).",
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "weekdays": {
+              "description": "Weekdays, 0–6.",
+              "anyOf": [
+                {
+                  "type": "array"
+                },
+                {
+                  "$ref": "#/$defs/byLang"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "dates": {
+              "description": "D/M or D/M/YYYY.",
+              "anyOf": [
+                {
+                  "type": "array"
+                },
+                {
+                  "$ref": "#/$defs/byLang"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "unlisted": {
+          "description": "\"free\" (a day with no data can be picked) or \"closed\".",
+          "anyOf": [
+            {
+              "enum": [
+                "free",
+                "closed",
+                null
+              ]
+            },
+            {
+              "$ref": "#/$defs/byLang"
+            }
+          ]
+        },
+        "priceFrom": {
+          "description": "true: the total reads \"from 654 €\".",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "source": {
+          "description": "Days from LBW.data: { \"data\", \"map\": { \"date\", \"price\", \"state\", \"left\" } }.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "data": {
+              "description": "A key of LBW.data, or { \"param\" }."
+            },
+            "wait": {
+              "description": "ms.",
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "upgrade": {
+              "description": "ms.",
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "path": {
+              "description": "The dotted key of the list."
+            },
+            "map": {
+              "description": "{ \"date\": \"{fecha}\", … }.",
+              "type": [
+                "object",
+                "null"
+              ]
+            },
+            "max": {
+              "description": "Rows read.",
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1,
+              "maximum": 2000
+            }
+          },
+          "required": [
+            "data"
+          ],
+          "additionalProperties": false
+        },
+        "send": {
+          "description": "{ \"text\", \"fields\" } over {from} {to} {day} {nights} {total} {price} {summary}.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "text": {
+              "$ref": "#/$defs/text",
+              "description": "The sentence sent."
+            },
+            "fields": {
+              "description": "Saved in Landbot.",
+              "type": [
+                "object",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "text",
+            "fields"
+          ],
+          "additionalProperties": false
+        },
+        "collapse": {
+          "description": "false: keep it open after it is sent."
+        },
+        "allowDup": {
+          "description": "true: draw it even when the same widget is already in the message."
+        },
+        "params": {
+          "$ref": "#/$defs/params"
+        },
+        "money": {
+          "$ref": "#/$defs/money"
+        },
+        "flow": {
+          "$ref": "#/$defs/flow"
+        }
+      },
+      "required": [
+        "type",
+        "cta",
+        "send"
+      ],
+      "additionalProperties": false
+    },
+    "widget": {
+      "description": "A widget: its \"type\" says which of the twenty it is.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/cards"
+        },
+        {
+          "$ref": "#/$defs/table"
+        },
+        {
+          "$ref": "#/$defs/form"
+        },
+        {
+          "$ref": "#/$defs/contact"
+        },
+        {
+          "$ref": "#/$defs/chips"
+        },
+        {
+          "$ref": "#/$defs/carousel"
+        },
+        {
+          "$ref": "#/$defs/calc"
+        },
+        {
+          "$ref": "#/$defs/stats"
+        },
+        {
+          "$ref": "#/$defs/people"
+        },
+        {
+          "$ref": "#/$defs/consent"
+        },
+        {
+          "$ref": "#/$defs/slots"
+        },
+        {
+          "$ref": "#/$defs/confirm"
+        },
+        {
+          "$ref": "#/$defs/review"
+        },
+        {
+          "$ref": "#/$defs/chart"
+        },
+        {
+          "$ref": "#/$defs/compare"
+        },
+        {
+          "$ref": "#/$defs/season"
+        },
+        {
+          "$ref": "#/$defs/map"
+        },
+        {
+          "$ref": "#/$defs/tracker"
+        },
+        {
+          "$ref": "#/$defs/rating"
+        },
+        {
+          "$ref": "#/$defs/calendar"
+        }
+      ]
+    }
+  }
+}

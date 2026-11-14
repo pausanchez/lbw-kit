@@ -63,6 +63,8 @@ The agent then ends a message with `[[np:service id=loft]]`. Check a config with
 
 ## The 20 widget types
 
+Every key of every type, a minimal example and what the checker rejects: [reference/types](https://github.com/pausanchez/lbw-kit/blob/main/reference/types/README.md).
+
 | Type | What it draws |
 |---|---|
 | `cards` | Cards from a table of items: title, line, points, rows, a status, a photo and price, one quick reply, links. |
@@ -85,6 +87,12 @@ The agent then ends a message with `[[np:service id=loft]]`. Check a config with
 | `map` | 1–5 places on a schematic or your own image, with open now, distance and directions. |
 | `season` | Open or closed today from dated ranges, with the next dates. |
 | `chart` | Line or bar chart (one or two series; stacked bars) from formulas or values. |
+
+## Editor support
+
+- **JSON Schema:** start a config with `"$schema": "https://cdn.jsdelivr.net/gh/pausanchez/lbw-kit@v0.10.0.1/dist/lbw-kit.schema.json"` for completion and inline errors in your editor. It checks structure and keys; `npm run check:config` also checks what depends on the rest of the config (names, links, formulas).
+- **TypeScript:** `dist/lbw-kit.d.ts` types the global `LBW` and `LbwConfig`.
+- **For agents:** `npm run -s check:config -- config.json --json` prints `[{ widget, path, message, fix }]`, with "did you mean" for misspelt keys.
 
 ## Build a bot's code
 
