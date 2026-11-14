@@ -171,3 +171,11 @@ test('CSS: every animation is behind html.lbw-motion, motion is tokens, and the 
   assert.match(css, /\.lbw-skel:empty \{ min-height: 128px/);
   assert.doesNotMatch(css.slice(css.indexOf('v0.10 · motion')), /animation[^;]*\b(height|width|top|left|margin)\b/, 'transform and opacity only');
 });
+
+test('"motion": false (v0.10 merge) also stops the kit\'s own moves: LBW.kit.h.moving() follows the runtime\'s gate', () => {
+  const c = boot({ kit: true, scripts: ['kit/setup.js'] });
+  c.w.LBW.kit.setup({ prefix: 't', langs: ['es'], defaultLang: 'es', motion: false, widgets: {} });
+  assert.equal(c.w.LBW.motion(), false);
+  assert.equal(c.w.LBW.kit.h.moving(), false);
+  c.close();
+});

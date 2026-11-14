@@ -1063,7 +1063,8 @@
   // is always the real value first: a tick only redraws it for ≤ 400 ms, and a timer writes the final value even in a tab
   // that stopped painting. The live region still says one line per upgrade or total (upgraded(), calc/review).
   function seen() { try { return document.visibilityState === 'visible'; } catch (e) { return false; } }
-  function moving() { try { return seen() && typeof root.matchMedia === 'function' && !root.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } }
+  // v0.10 merge: the runtime's gate first (it also honours init's "motion": false), then the kit's own check
+  function moving() { try { if (typeof LBW.motion === 'function' && !LBW.motion()) return false; return seen() && typeof root.matchMedia === 'function' && !root.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } }
   // live(o, lang): "● Live" beside the title (decided: on by default for rows from data, opt-in for a flow tag's params)
   function liveMark(o, lang) {
     var hd = o && o.querySelector('.lbw-head'); if (!hd) return null;

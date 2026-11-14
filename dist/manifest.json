@@ -9,28 +9,28 @@
       "integrity": "sha384-lb0kJZ3YESektbuRMYaOn1n+g6p5JyLmLA+vf/EvSSmbU+YJqsYYDKgLmNFpOioo"
     },
     "kit.min.js": {
-      "bytes": 135923,
-      "gzip": 48682,
-      "sha256": "2e1661d7a1451534726b19f7209dfee822f166adc792cedfd531c0aee6bef29b",
-      "integrity": "sha384-5L81v8pKpGOn1ItCVFwwyQon+XLIBsGbYNONvlbJoeAgn9PHSkfD1XlOkoW+PgXE"
+      "bytes": 135967,
+      "gzip": 48698,
+      "sha256": "4f4829ad45b645f9da2537ab71bb6614a4b5359fcae59a5e7b9210a5039a510b",
+      "integrity": "sha384-Rl7zgYL7AZTHFNXSxC3khNJ9uXehW5I/s7znqa65lvQxSS7tdnKv3UX44YcM8dwi"
     },
     "lbw-kit.min.js": {
-      "bytes": 183028,
-      "gzip": 65338,
-      "sha256": "f676eee4a195054be409aa4a87da682a232dc9756c9293cac2554b33613d7b38",
-      "integrity": "sha384-fqSRfnrurXaKeTImLMtgpXaOyk0RLvtjPRd9JfEFfjXyM1uHLy9VhBzHpC+BUgCt"
+      "bytes": 183072,
+      "gzip": 65355,
+      "sha256": "cf55e6c7fb39089df276c8c7b357c4bb66ac6cfd5fd422c55136f8c521b489c8",
+      "integrity": "sha384-SJsLlxk2or2byiqnfumb71b+V0JchGEkipBhO1hr60+LxNY61KHpzfPk69XHGvRB"
     },
     "lbw-kit.dev.min.js": {
-      "bytes": 263879,
-      "gzip": 91532,
-      "sha256": "3c6818c95e730448c3d9764488eba9b2f45bcce7f006d33ae57d150c5a2d266b",
-      "integrity": "sha384-FcBISKkjG6qEfM/UoCOgnFYuoSawE5u+mvmJyxA3dk+6OmsEkxJ+fwb5ai+NH9ND"
+      "bytes": 263923,
+      "gzip": 91546,
+      "sha256": "37da6cadcd33caa383de66ad01e89efd225f6b0d63f72c8448ce0530cdd871ec",
+      "integrity": "sha384-ZUhECoi+RoSRODfKclRwr2bA1TJ5tYFi1GuLqi1sTQgnmQiVIWLaBPytssYarXbC"
     },
     "lbw-kit.all.min.js": {
-      "bytes": 252340,
-      "gzip": 79277,
-      "sha256": "81d1073fbf5ddcc683b16fc575073c8c0e7fc7fb7ae03c57c5d28725bfaf7d51",
-      "integrity": "sha384-Omv5wE67+Al6yPn+MPEYGa/1PfuBpk3zW14ney9juTBsNOMDSomU23znw/7Z3cZf"
+      "bytes": 252384,
+      "gzip": 79297,
+      "sha256": "d99791adcb709ff2f2e465a00c414243ec38b8423d37b3ac7985899e88aac23a",
+      "integrity": "sha384-BTSyKl+fnqmTPX0S9kvOHA8Dfkn3e4OCZHvEUo9WNGXd2suztr5LABCCfN7Px+9F"
     },
     "lbw.min.css": {
       "bytes": 15029,
@@ -69,10 +69,10 @@
       "integrity": "sha384-RKfL7mAc3cpk4VHchir8qWLZBqhDk6guMJnMnMXxB9REiRTheyRZUnxRkh0LSOVk"
     },
     "inline/custom_js.html": {
-      "bytes": 183045,
-      "gzip": 65350,
-      "sha256": "e1f85e820ed9889902915bdb4758f48f68f668e9795d7671d9f7e23090787549",
-      "integrity": "sha384-OZSRLOOdGYfbqV2N7d0+1fef4BDay4PyFqr/+c/zqsaJsDvZVLCxJsE/Iob95AJ5"
+      "bytes": 183089,
+      "gzip": 65366,
+      "sha256": "8da4564195207aff0235443c0e43960a5f833a9c3f37a65807a36658100a077f",
+      "integrity": "sha384-5wLHDyzPbkhDYERqJ5mga0Z5TDZaZ0WKnUOiDCaqhPuRw9I4yq1qRxqPmM5l6fIM"
     }
   },
   "hosted": {
