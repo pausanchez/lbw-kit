@@ -31,32 +31,32 @@
           open: 'Open now · until {t}', closed: 'Closed now · opens {d} at {t}', closedLong: 'Closed now', today: 'today', change: 'Change', tomorrow: 'tomorrow',
           days: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'], localTime: 'Local time: {t}', sent: 'Sent', show: 'Show', hide: 'Hide', busy: 'Busy', pick: 'Pick a time', confirm: 'Confirm', yes: 'Yes', no: 'No',
           close: 'Close', prev: 'Previous photo', next: 'Next photo', photos: 'Photos', enlarge: 'Enlarge on the page', cSame: 'The same in all:', cSame2: 'The same in both:',
-          sOpen: 'Open today', sClosed: 'Closed today', sUntil: 'Open until', sOpens: 'Opens', sIn: 'Opens in', sCloses: 'Season', sDay: '1 day', sDays: '{n} days', sUnknown: 'The next dates aren’t published yet.' , rateOf: '{n} of {max}', tMore: 'See all {n} rows', tLess: 'See fewer', tPick: 'Choose', tPicked: 'Chosen', tTotal: 'Total', updated: 'Updated', photoOf: 'photo {n} of {max}', day: 'Day', live: 'Live', full: 'Full' },
+          sOpen: 'Open today', sClosed: 'Closed today', sUntil: 'Open until', sOpens: 'Opens', sIn: 'Opens in', sCloses: 'Season', sDay: '1 day', sDays: '{n} days', sUnknown: 'The next dates aren’t published yet.' , rateOf: '{n} of {max}', tMore: 'See all {n} rows', tLess: 'See fewer', tPick: 'Choose', tPicked: 'Chosen', tTotal: 'Total', updated: 'Updated', photoOf: 'photo {n} of {max}', day: 'Day', live: 'Live', full: 'Full', addCal: 'Add to calendar', inDays: 'in {n} days', code: 'Booking code', best: 'Best pick' },
     es: { copy: 'Copiar', copied: 'Copiado ✓', select: 'Selecciona el texto y cópialo', summary: 'Tu resumen',
           open: 'Abierto ahora · hasta las {t}', closed: 'Cerrado ahora · abre {d} a las {t}', closedLong: 'Cerrado ahora', today: 'hoy', change: 'Cambiar', tomorrow: 'mañana',
           days: ['el domingo', 'el lunes', 'el martes', 'el miércoles', 'el jueves', 'el viernes', 'el sábado'], localTime: 'Hora local: {t}', sent: 'Enviado', show: 'Ver', hide: 'Ocultar', busy: 'Ocupado', pick: 'Elige una hora', confirm: 'Confirmar', yes: 'Sí', no: 'No',
           close: 'Cerrar', prev: 'Foto anterior', next: 'Foto siguiente', photos: 'Fotos', enlarge: 'Ampliar en la página', cSame: 'Igual en todas:', cSame2: 'Igual en las dos:',
-          sOpen: 'Abierto hoy', sClosed: 'Cerrado hoy', sUntil: 'Abierto hasta', sOpens: 'Abre', sIn: 'Abre en', sCloses: 'Temporada', sDay: '1 día', sDays: '{n} días', sUnknown: 'Las próximas fechas aún no están publicadas.' , rateOf: '{n} de {max}', tMore: 'Ver las {n} filas', tLess: 'Ver menos', tPick: 'Elegir', tPicked: 'Elegido', tTotal: 'Total', updated: 'Actualizado', photoOf: 'foto {n} de {max}', day: 'Día', live: 'En directo', full: 'Completo' },
+          sOpen: 'Abierto hoy', sClosed: 'Cerrado hoy', sUntil: 'Abierto hasta', sOpens: 'Abre', sIn: 'Abre en', sCloses: 'Temporada', sDay: '1 día', sDays: '{n} días', sUnknown: 'Las próximas fechas aún no están publicadas.' , rateOf: '{n} de {max}', tMore: 'Ver las {n} filas', tLess: 'Ver menos', tPick: 'Elegir', tPicked: 'Elegido', tTotal: 'Total', updated: 'Actualizado', photoOf: 'foto {n} de {max}', day: 'Día', live: 'En directo', full: 'Completo', addCal: 'Añadir al calendario', inDays: 'en {n} días', code: 'Código de reserva', best: 'Mejor opción' },
     it: { copy: 'Copia', copied: 'Copiato ✓', select: 'Seleziona il testo e copialo', summary: 'Il tuo riepilogo',
           open: 'Aperto ora · fino alle {t}', closed: 'Chiuso ora · apre {d} alle {t}', closedLong: 'Chiuso ora', today: 'oggi', change: 'Cambia', tomorrow: 'domani',
           days: ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato'], localTime: 'Ora locale: {t}', sent: 'Inviato', show: 'Mostra', hide: 'Nascondi', busy: 'Occupato', pick: 'Scegli un orario', confirm: 'Conferma', yes: 'Sì', no: 'No',
           close: 'Chiudi', prev: 'Foto precedente', next: 'Foto successiva', photos: 'Foto', enlarge: 'Ingrandisci nella pagina', cSame: 'Uguale in tutte:', cSame2: 'Uguale in entrambe:',
-          sOpen: 'Aperto oggi', sClosed: 'Chiuso oggi', sUntil: 'Aperto fino a', sOpens: 'Apre', sIn: 'Apre tra', sCloses: 'Stagione', sDay: '1 giorno', sDays: '{n} giorni', sUnknown: 'Le prossime date non sono ancora pubblicate.' , rateOf: '{n} su {max}', tMore: 'Vedi tutte le {n} righe', tLess: 'Vedi meno', tPick: 'Scegli', tPicked: 'Scelto', tTotal: 'Totale', updated: 'Aggiornato', photoOf: 'foto {n} di {max}', day: 'Giorno', live: 'In diretta', full: 'Completo' },
+          sOpen: 'Aperto oggi', sClosed: 'Chiuso oggi', sUntil: 'Aperto fino a', sOpens: 'Apre', sIn: 'Apre tra', sCloses: 'Stagione', sDay: '1 giorno', sDays: '{n} giorni', sUnknown: 'Le prossime date non sono ancora pubblicate.' , rateOf: '{n} su {max}', tMore: 'Vedi tutte le {n} righe', tLess: 'Vedi meno', tPick: 'Scegli', tPicked: 'Scelto', tTotal: 'Totale', updated: 'Aggiornato', photoOf: 'foto {n} di {max}', day: 'Giorno', live: 'In diretta', full: 'Completo', addCal: 'Aggiungi al calendario', inDays: 'tra {n} giorni', code: 'Codice di prenotazione', best: 'Scelta migliore' },
     de: { copy: 'Kopieren', copied: 'Kopiert ✓', select: 'Text markieren und kopieren', summary: 'Deine Zusammenfassung',
           open: 'Jetzt geöffnet · bis {t} Uhr', closed: 'Jetzt geschlossen · öffnet {d} um {t} Uhr', closedLong: 'Jetzt geschlossen', today: 'heute', change: 'Ändern', tomorrow: 'morgen',
           days: ['am Sonntag', 'am Montag', 'am Dienstag', 'am Mittwoch', 'am Donnerstag', 'am Freitag', 'am Samstag'], localTime: 'Ortszeit: {t}', sent: 'Gesendet', show: 'Anzeigen', hide: 'Ausblenden', busy: 'Belegt', pick: 'Uhrzeit wählen', confirm: 'Bestätigen', yes: 'Ja', no: 'Nein',
           close: 'Schließen', prev: 'Vorheriges Foto', next: 'Nächstes Foto', photos: 'Fotos', enlarge: 'Auf der Seite vergrößern', cSame: 'Bei allen gleich:', cSame2: 'Bei beiden gleich:',
-          sOpen: 'Heute geöffnet', sClosed: 'Heute geschlossen', sUntil: 'Geöffnet bis', sOpens: 'Öffnet', sIn: 'Öffnet in', sCloses: 'Saison', sDay: '1 Tag', sDays: '{n} Tagen', sUnknown: 'Die nächsten Termine sind noch nicht veröffentlicht.' , rateOf: '{n} von {max}', tMore: 'Alle {n} Zeilen anzeigen', tLess: 'Weniger anzeigen', tPick: 'Wählen', tPicked: 'Gewählt', tTotal: 'Gesamt', updated: 'Aktualisiert', photoOf: 'Foto {n} von {max}', day: 'Tag', live: 'Live', full: 'Ausgebucht' },
+          sOpen: 'Heute geöffnet', sClosed: 'Heute geschlossen', sUntil: 'Geöffnet bis', sOpens: 'Öffnet', sIn: 'Öffnet in', sCloses: 'Saison', sDay: '1 Tag', sDays: '{n} Tagen', sUnknown: 'Die nächsten Termine sind noch nicht veröffentlicht.' , rateOf: '{n} von {max}', tMore: 'Alle {n} Zeilen anzeigen', tLess: 'Weniger anzeigen', tPick: 'Wählen', tPicked: 'Gewählt', tTotal: 'Gesamt', updated: 'Aktualisiert', photoOf: 'Foto {n} von {max}', day: 'Tag', live: 'Live', full: 'Ausgebucht', addCal: 'Zum Kalender hinzufügen', inDays: 'in {n} Tagen', code: 'Buchungscode', best: 'Beste Wahl' },
     fr: { copy: 'Copier', copied: 'Copié ✓', select: 'Sélectionnez le texte et copiez-le', summary: 'Votre résumé',
           open: 'Ouvert · jusqu’à {t}', closed: 'Fermé · ouvre {d} à {t}', closedLong: 'Fermé', today: 'aujourd’hui', change: 'Modifier', tomorrow: 'demain',
           days: ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'], localTime: 'Heure locale : {t}', sent: 'Envoyé', show: 'Voir', hide: 'Masquer', busy: 'Occupé', pick: 'Choisissez une heure', confirm: 'Confirmer', yes: 'Oui', no: 'Non',
           close: 'Fermer', prev: 'Photo précédente', next: 'Photo suivante', photos: 'Photos', enlarge: 'Agrandir sur la page', cSame: 'Identique pour toutes :', cSame2: 'Identique pour les deux :',
-          sOpen: 'Ouvert aujourd’hui', sClosed: 'Fermé aujourd’hui', sUntil: 'Ouvert jusqu’au', sOpens: 'Ouverture', sIn: 'Ouvre dans', sCloses: 'Saison', sDay: '1 jour', sDays: '{n} jours', sUnknown: 'Les prochaines dates ne sont pas encore publiées.' , rateOf: '{n} sur {max}', tMore: 'Voir les {n} lignes', tLess: 'Voir moins', tPick: 'Choisir', tPicked: 'Choisi', tTotal: 'Total', updated: 'Mis à jour', photoOf: 'photo {n} sur {max}', day: 'Jour', live: 'En direct', full: 'Complet' },
+          sOpen: 'Ouvert aujourd’hui', sClosed: 'Fermé aujourd’hui', sUntil: 'Ouvert jusqu’au', sOpens: 'Ouverture', sIn: 'Ouvre dans', sCloses: 'Saison', sDay: '1 jour', sDays: '{n} jours', sUnknown: 'Les prochaines dates ne sont pas encore publiées.' , rateOf: '{n} sur {max}', tMore: 'Voir les {n} lignes', tLess: 'Voir moins', tPick: 'Choisir', tPicked: 'Choisi', tTotal: 'Total', updated: 'Mis à jour', photoOf: 'photo {n} sur {max}', day: 'Jour', live: 'En direct', full: 'Complet', addCal: 'Ajouter au calendrier', inDays: 'dans {n} jours', code: 'Code de réservation', best: 'Meilleur choix' },
     ca: { copy: 'Copia', copied: 'Copiat ✓', select: 'Selecciona el text i copia’l', summary: 'El teu resum',
           open: 'Obert ara · fins a les {t}', closed: 'Tancat ara · obre {d} a les {t}', closedLong: 'Tancat ara', today: 'avui', change: 'Canvia', tomorrow: 'demà',
           days: ['diumenge', 'dilluns', 'dimarts', 'dimecres', 'dijous', 'divendres', 'dissabte'], localTime: 'Hora local: {t}', sent: 'Enviat', show: 'Mostra', hide: 'Amaga', busy: 'Ocupat', pick: 'Tria una hora', confirm: 'Confirma', yes: 'Sí', no: 'No',
           close: 'Tanca', prev: 'Foto anterior', next: 'Foto següent', photos: 'Fotos', enlarge: 'Amplia a la pàgina', cSame: 'Igual a totes:', cSame2: 'Igual a les dues:',
-          sOpen: 'Obert avui', sClosed: 'Tancat avui', sUntil: 'Obert fins al', sOpens: 'Obre', sIn: 'Obre d’aquí a', sCloses: 'Temporada', sDay: '1 dia', sDays: '{n} dies', sUnknown: 'Les properes dates encara no estan publicades.' , rateOf: '{n} de {max}', tMore: 'Veure les {n} files', tLess: 'Veure’n menys', tPick: 'Tria', tPicked: 'Triat', tTotal: 'Total', updated: 'Actualitzat', photoOf: 'foto {n} de {max}', day: 'Dia', live: 'En directe', full: 'Complet' }
+          sOpen: 'Obert avui', sClosed: 'Tancat avui', sUntil: 'Obert fins al', sOpens: 'Obre', sIn: 'Obre d’aquí a', sCloses: 'Temporada', sDay: '1 dia', sDays: '{n} dies', sUnknown: 'Les properes dates encara no estan publicades.' , rateOf: '{n} de {max}', tMore: 'Veure les {n} files', tLess: 'Veure’n menys', tPick: 'Tria', tPicked: 'Triat', tTotal: 'Total', updated: 'Actualitzat', photoOf: 'foto {n} de {max}', day: 'Dia', live: 'En directe', full: 'Complet', addCal: 'Afegeix al calendari', inDays: 'd’aquí a {n} dies', code: 'Codi de reserva', best: 'Millor opció' }
   };
   function words(lang) { return L[lang] || L.en; }
   function fill(s, o) { return String(s).replace(/\{(\w+)\}/g, function (m, k) { return o[k] == null ? '' : o[k]; }); }
@@ -79,16 +79,16 @@
     form: 'cls lang kicker title cta note preset steps summary fields sent allowDup collapse density',
     contact: 'cls lang kicker title big rows topic hours note buttons summary compact allowDup',
     chips: 'cls lang max items own carriedBy',
-    carousel: 'cls lang select slide allowDup live',
+    carousel: 'cls lang select slide allowDup live style',
     calc: 'cls lang kicker title state cta controls result ready send notes links sent allowDup collapse density',
     slots: 'cls lang kicker title days cta say ics note sep h12 allowDup collapse sent density',
-    confirm: 'cls lang form status title rows steps note actions allowDup',
+    confirm: 'cls lang form status title rows steps note actions allowDup style code ics countdown sep h12',
     review: 'cls lang kicker title state lines total cta discard send ready note allowDup collapse sent density',
     chart: 'cls lang kicker title sub data note links allowDup',
     stats: 'cls lang items single reply links allowDup',
     people: 'cls lang kicker title items select reply note allowDup',
     consent: 'cls lang icon title text yes no link allowDup',
-    compare: 'cls lang kicker title param items rows min max empty note allowDup same primary',
+    compare: 'cls lang kicker title param items rows min max empty note allowDup same primary best',
     season: 'cls lang kicker ranges words rows note reply links allowDup',   // v0.8.1.4: missing since 0.8.1, so dev mode threw and the season card drew nothing
     rating: 'cls lang kicker title text kind min max labels say note allowDup'
   };
@@ -263,12 +263,43 @@
   // a WhatsApp link with prefilled text ('…' is encoded: lbw refuses a ' anywhere in a URL)
   function wa(labelText, phone, text, cls) { return U.link(labelText, 'https://wa.me/' + String(phone).replace(/\D/g, '') + (text ? '?text=' + encodeURIComponent(text).replace(/'/g, '%27') : ''), cls); }
   function buttons(list) { return (list || []).filter(Boolean); }
+  // ── v0.10 · cards & pass: shared pieces ──
+  // a price: { now, unit, list } → "159 € /noche ~~180 €~~" (formatted by your data: the kit never does arithmetic on it)
+  function priceEl(pr) {
+    if (!pr || !pr.now) return null; var n = el('div', 'kit-price'); n.appendChild(el('strong', null, pr.now));
+    if (pr.unit) n.appendChild(el('span', 'kit-unit', pr.unit)); if (pr.list) n.appendChild(el('s', 'kit-list', pr.list)); return n;
+  }
+  // a card's photo, full-bleed on top of the box (the box is its only frame)
+  function media(o, im, title) {
+    var f = U.img(im.src, 'kit-media' + (im.cls ? ' ' + im.cls : ''), Object.assign({ sizes: '(max-width: 480px) 92vw, 520px', alt: im.alt == null ? '' : im.alt }, im));
+    o.box.insertBefore(f, o.box.firstChild); o.classList.add('has-media'); return f;
+  }
+  // "189 € · 6 libres": the first part is the value, the rest is quieter (the text is the same: a screen reader and a test read it whole)
+  function splitVals(dl) {
+    [].forEach.call(dl.querySelectorAll('dd'), function (dd) { var t = dd.textContent, i = t.indexOf(' · '); if (i < 1 || dd.children.length) return;
+      dd.textContent = ''; dd.appendChild(el('span', 'kit-v', t.slice(0, i))); dd.appendChild(el('span', 'kit-v2', t.slice(i))); });
+    return dl;
+  }
+  // motion (v0.10 rules): once, only when the node is on screen in a visible tab and motion is allowed. Without it the
+  // final state is the default, so a frozen or skipped animation never leaves anything half drawn.
+  function whenSeen(n, cls, ms) {
+    try {
+      if (!root.IntersectionObserver || (root.matchMedia && root.matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
+      var io = new root.IntersectionObserver(function (es) {
+        if (!es.some(function (e) { return e.isIntersecting; }) || document.visibilityState !== 'visible') return;
+        io.disconnect(); n.classList.add(cls); setTimeout(function () { n.classList.remove(cls); }, ms || 900);
+      }, { threshold: 0.5 });
+      io.observe(n);
+    } catch (e) {}
+  }
+  function cap(s) { s = String(s || ''); return s.charAt(0).toUpperCase() + s.slice(1); }
 
   // ── cards: one item from a table ────────────────────────────────────────────────────────────────
   // cfg = { cls, param: 'id', items: { id: item }, kicker, reply(id, item, ctx) → [label, say] | null, links(id, item, ctx) → [el…],
   //         disclaimer, lang, single: true (no id: draws items._),
   //         fallback: 'id' (v0.3: an UNSET id, a flow's @{field}, draws that item instead of nothing; an unknown id still draws nothing) }
-  // item = { kicker, title, who, line, points: [], pointsCls: 'is-check', rows: [[label, value]], note, noteCls, link: [label, url] }
+  // item = { kicker, title, who, line, points: [], pointsCls: 'is-check', rows: [[label, value]], note, noteCls, link: [label, url],
+  //          img: { src, srcset, alt, width, height } (v0.10: full-bleed on top), price: { now, unit, list } (v0.10: on the photo, or under the title) }
   function cards(name, cfg) {
     var cls = cfg.cls || ('kit-' + name), param = cfg.param || 'id', ids = Object.keys(cfg.items || {});
     checkCfg('cards', name, cfg, ['items']);
@@ -286,11 +317,15 @@
       // (cfg.status = { param: 'estado', items: { key: { text, tone } } }: a flow message writes [[p:card id=x estado=@{estado}]];
       // an unset field or an unknown key draws the item's own status, or none)
       var sk = cfg.status && cfg.status.param ? p.one(cfg.status.param, Object.keys(cfg.status.items || {})) : null;
-      U.head(o.box, it.kicker || val(cfg.kicker, id, it) || '', it.title, badgeOf(it.badge));
+      // v0.10 · a card with a photo leads with it, full-bleed (one frame), the badge and the price on it over a scrim
+      var md = it.img && it.img.src ? media(o, it.img, it.title) : null, pr = priceEl(it.price);
+      if (md) { var bd = badgeOf(it.badge); if (bd) { bd.classList.add('kit-on-photo'); md.appendChild(bd); } }
+      U.head(o.box, it.kicker || val(cfg.kicker, id, it) || '', it.title, md ? null : badgeOf(it.badge));
       statusHead(o.box, sk ? cfg.status.items[sk] : it.status);   // under the title, as on every card (v0.8.1.4 critique)
+      if (pr) { if (md && !/\bis-product\b/.test(it.img.cls || '')) { pr.classList.add('is-over'); o.classList.add('has-over'); } o.box.appendChild(pr); }   // after the title in the DOM: a screen reader hears the name first
       if (it.who) o.box.appendChild(el('p', 'kit-who', it.who));
       if (it.line) o.box.appendChild(el('p', 'kit-line', it.line));
-      if (it.rows) meters(U.rows(o.box, it.rows), it.rows, lang).classList.add('kit-lines');   // v0.10: [label, value, { of }] rows carry a meter
+      if (it.rows) meters(splitVals(U.rows(o.box, it.rows)), it.rows, lang).classList.add('kit-lines');   // v0.10: values split at ' · ' (cards & pass), [label, value, { of }] rows carry a meter (live & numbers)
       if (it.pointsTitle) o.box.appendChild(el('p', 'kit-ql', it.pointsTitle));
       list(o.box, it.points, it.pointsCls || cfg.pointsCls);
       note(o.box, it.note, it.noteCls || 'is-safe');
@@ -587,11 +622,12 @@
     if (s.kicker) b.appendChild(el('div', 'kit-slide-kicker', s.kicker));
     var nm = b.appendChild(el('div', 'lbw-name', s.name)); nm.setAttribute('role', 'heading'); nm.setAttribute('aria-level', '4');   // v0.9.5: under the card's level-3 title
     if (s.sub) b.appendChild(el('div', 'lbw-muted kit-sub', s.sub));
-    if (s.price) { var pr = el('div', 'kit-price'); pr.appendChild(el('strong', null, s.price.now)); if (s.price.unit) pr.appendChild(el('span', 'kit-unit', s.price.unit)); if (s.price.list) pr.appendChild(el('s', 'kit-list', s.price.list)); b.appendChild(pr); }
+    var pr = priceEl(s.price); if (pr) { b.appendChild(pr); if (s.img && !(s.img.cls && /\bis-product\b/.test(s.img.cls))) { pr.classList.add('is-over'); sl.classList.add('has-over'); } }   // v0.10: on the photo (a product shot on white keeps it below)
     if (s.save) b.appendChild(el('div', 'kit-save', s.save));
     if (s.status) { var stt = tone(s.status.tone, s.status.ok ? 'ok' : ''); var sd = el('div', 'kit-stock' + (stt ? ' is-' + stt : ''), s.status.text); if (stt && stt !== 'neutral') withIcon(sd, { ok: 'check', info: 'info', warn: 'alert', danger: 'x' }[stt]); b.appendChild(sd); }   // v0.8.1.4: a tone, or ok: true as before
     if (s.desc) b.appendChild(el('p', 'kit-desc', s.desc));
-    var acts = []; if (s.reply) acts.push(U.reply(s.reply[0], s.reply[1], { primary: true, fields: s.reply[2] })); if (s.link) acts.push(U.link(s.link[0], s.link[1]));
+    // v0.10 · a slide's reply is a quiet ring, never a fill: one primary per carousel (its own reply, under the strip)
+    var acts = []; if (s.reply) acts.push(U.reply(s.reply[0], s.reply[1], { fields: s.reply[2], cls: 'kit-slide-b' })); if (s.link) acts.push(U.link(s.link[0], s.link[1]));
     if (acts.length) U.row(b, acts);
     return sl;
   }
@@ -625,6 +661,8 @@
           if (!s || !s.name) { warn(wh, 'no name: the slide was left out'); return; }
           budget(wh, 'title', s.name); budget(wh, 'line', s.desc); st.appendChild(slideEl(s)); });
         if (!st.children.length) return false;
+        // v0.10 · photos lead: the slides are the cards (no box around them: one frame per photo). "style": "box" keeps the box
+        if (cfg.style !== 'box' && st.querySelector('.kit-img:not(.is-empty)')) o.classList.add('is-media');
         U.head(o.box, sel.kicker || '', sel.title || '');
         note(o.box, sel.lead); o.box.appendChild(st); note(o.box, sel.note);
         // v0.8.1.1 · "1 / 6": the cut slide says "swipe", the count says how far. It follows the strip.
@@ -914,13 +952,45 @@
     LBW.widget(name, function (p, ctx) {
       if (!cfg.allowDup && dup(ctx, cls)) return null;
       var ls = cfg.form ? last[cfg.form] : {}; if (!ls) return null;
-      var lang = langOf(cfg, ctx), o = U.card(lang, 'kit-confirm ' + cls), t = val(cfg.title, ls, ctx);
-      U.head(o.box, '', t); statusHead(o.box, { text: val(cfg.status, ls, ctx), tone: 'ok' }); budget("confirm('" + name + "')", 'title', t);   // v0.8.1.4: the status under the title, as on every card
-      var rows = val(cfg.rows, ls, ctx); if (rows && rows.length) U.rows(o.box, rows).classList.add('kit-lines');
+      var lang = langOf(cfg, ctx), o = U.card(lang, 'kit-confirm ' + cls), t = val(cfg.title, ls, ctx), w = words(lang);
+      budget("confirm('" + name + "')", 'title', t);
+      // v0.10 · a booking code: from the sent state or a param, never invented; a value that isn't a plain code is left out
+      var code = String(val(cfg.code, ls, ctx) || '').trim(); if (code && !/^[A-Za-z0-9][A-Za-z0-9 ._\/-]{0,23}$/.test(code)) { LBW.drop('confirm ' + name + ': the code is not a plain code'); code = ''; }
+      if (cfg.style === 'pass') return pass(o, cfg, ls, ctx, lang, t, code);
+      U.head(o.box, '', t); statusHead(o.box, { text: val(cfg.status, ls, ctx), tone: 'ok' });   // v0.8.1.4: the status under the title, as on every card
+      var rows = (val(cfg.rows, ls, ctx) || []).concat(code ? [[w.code, code]] : []); if (rows.length) U.rows(o.box, rows).classList.add('kit-lines');
       list(o.box, val(cfg.steps, ls, ctx), 'is-steps'); note(o.box, val(cfg.note, ls, ctx), 'is-muted');
       var a = buttons(cfg.actions && cfg.actions(ls, ctx)); if (a.length) U.row(o, a);
       return o;
     });
+  }
+  // v0.10 · the "pass": a ticket for a booking. The status with a check that draws itself, the title, the date big and the
+  // time (a slots booking), then a perforation and the stub: the rows (less the one that repeats the time), the booking code,
+  // the next steps, the note. Its primary is "Add to calendar" (the .ics the slots widget makes) when there is a date.
+  function pass(o, cfg, ls, ctx, lang, t, code) {
+    var w = words(lang), s = ls.state || {}, day = typeof s.day === 'number' ? s.day : null, box = o.box;
+    var fmt = function (m) { return T.format(m, cfg.sep, { h12: cfg.h12 }); }, tm = day != null && typeof s.from === 'number' ? fmt(s.from) + (typeof s.to === 'number' ? '–' + fmt(s.to) : '') : '';
+    o.classList.add('kit-pass');
+    var top = box.appendChild(el('div', 'kit-pass-top')), bar = top.appendChild(el('div', 'kit-pass-bar')), ck = bar.appendChild(el('span', 'kit-pass-i')), ic = icon('check'), st = val(cfg.status, ls, ctx);
+    if (ic) ck.appendChild(ic); if (st) bar.appendChild(el('span', 'kit-pass-st', st));
+    if (day != null && cfg.countdown !== false) { var n = day - D.today(); if (n >= 0 && n <= 366) bar.appendChild(el('span', 'kit-pass-in', cap(n === 0 ? w.today : n === 1 ? w.tomorrow : fill(w.inDays, { n: n })))); }
+    U.head(top, '', t);
+    if (day != null) {
+      var wh = top.appendChild(el('div', 'kit-pass-when')), dt = wh.appendChild(el('div', 'kit-pass-date')), f = function (k) { var x = {}; x[k] = k === 'day' ? 'numeric' : 'long'; return D.format(day, lang, x); };
+      dt.appendChild(el('span', 'kit-pass-wd', f('weekday'))); dt.appendChild(el('span', 'kit-pass-d', f('day'))); dt.appendChild(el('span', 'kit-pass-m', f('month')));
+      if (tm) wh.appendChild(el('div', 'kit-pass-t', tm));
+    }
+    var stub = el('div', 'kit-pass-stub'), rows = (val(cfg.rows, ls, ctx) || []).filter(function (r) { return !(tm && r && String(r[1]).replace(/\s/g, '') === tm.replace(/\s/g, '')); });
+    if (code) { var c = stub.appendChild(el('div', 'kit-pass-code')); c.appendChild(el('span', null, w.code)); c.appendChild(el('strong', null, code)); }
+    if (rows.length) U.rows(stub, rows).classList.add('kit-lines');
+    list(stub, val(cfg.steps, ls, ctx), 'is-steps'); note(stub, val(cfg.note, ls, ctx), 'is-muted');
+    if (stub.children.length) box.appendChild(stub); else o.classList.add('is-short');
+    var a = buttons(cfg.actions && cfg.actions(ls, ctx)), e = day != null && cfg.ics !== false ? (val(cfg.ics, ls, ctx) || {}) : null;
+    if (e) { var cal = withIcon(U.ics(e.label || w.addCal, { title: e.title || t, day: day, from: s.from, to: s.to, where: e.where, file: e.file || 'reserva' }, 'is-primary kit-pass-cal'), 'calendar');
+      a.forEach(function (x) { x.classList.remove('is-primary'); }); a.unshift(cal); }   // one primary
+    if (a.length) U.row(o, a);
+    whenSeen(ck, 'is-drawing', 900);
+    return o;
   }
   // ── review: a quote or a configuration, line by line, Confirm / Discard (ChatKit's "Software purchase") ──
   // cfg = { cls, lang, kicker, title, state(p, ctx) → start state | null,
@@ -1184,10 +1254,13 @@
 
   // ── compare: two or three items of your data side by side (v0.7.4; three demos had written it by hand) ──────────
   // cfg = { cls, lang, kicker, title: text | fn(ids, ctx), param: 'ids', min: 2, max: 3 (never more: the chat column is narrow),
-  //         items: { id: { name, values: { rowKey: text }, reply: [label, say, fields], link: [label, url] } },
-  //         rows: [[rowKey, label, cls]] (cls 'is-strong' for the line that decides, e.g. the price), empty: '—', note }
+  //         items: { id: { name, values: { rowKey: text | true | false }, img: { src, srcset, alt }, reply: [label, say, fields], link: [label, url] } },
+  //         rows: [[rowKey, label, cls, unit]] (cls 'is-strong' for the line that decides, e.g. the price; unit 'm²' is written
+  //         after every value that lacks it), empty: '—', note, best: 'id' | { id, label } (v0.10: the column you recommend) }
   // The tag names the items: [[p:compare ids=a,b,c]]. Fewer than `min` known ids draws nothing (one item is a card's job).
-  // A row with no value in any column is left out. One label line, then equal columns: it fits 340 px.
+  // A row with no value in any column is left out. One label line, then equal columns: it fits 340 px; from 460 px the labels
+  // take a column of their own. v0.10: a yes/no value (true/false, or the language's own "Yes"/"No") draws ✓ or ✕ with the
+  // word kept for a screen reader; item photos head their columns; the best column is tinted and badged, and its reply is the primary.
   function compare(name, cfg) {
     var cls = cfg.cls || ('kit-' + name), ids = Object.keys(cfg.items || {}), param = cfg.param || 'ids', max = Math.min(cfg.max || 3, 3), empty = cfg.empty == null ? '—' : cfg.empty;
     checkCfg('compare', name, cfg, ['items', 'rows']); register('compare', name, param, ids);
@@ -1195,36 +1268,51 @@
     LBW.widget(name, function (p, ctx) {
       if (!cfg.allowDup && dup(ctx, cls)) return null;
       var got = p.list(param, ids, max); if (got.length < (cfg.min || 2)) return null;
-      var o = U.card(langOf(cfg, ctx), 'kit-compare ' + cls), grid = el('div', 'kit-cmp is-' + got.length); grid.setAttribute('role', 'table');
+      var lang = langOf(cfg, ctx), Wl = words(lang), bst = cfg.best && (typeof cfg.best === 'string' ? { id: cfg.best } : cfg.best), bi = bst ? got.indexOf(bst.id) : -1;
+      var o = U.card(lang, 'kit-compare ' + cls), grid = el('div', 'kit-cmp is-' + got.length + (bi >= 0 ? ' has-best' : '')); grid.setAttribute('role', 'table');
       var names = got.map(function (id) { return cfg.items[id].name; }), ttl = String(val(cfg.title, got, ctx) || '').split('{names}').join(names.join(' · '));
       U.head(o.box, cfg.kicker || '', ttl); if (ttl) grid.setAttribute('aria-label', ttl); grid.setAttribute('aria-colcount', String(got.length + 1));
+      // a yes/no value → [its word, 'yes' | 'no'] (the word stays the cell's text), else null
+      var yn = function (v) { if (v === true || v === false) return [v ? Wl.yes : Wl.no, v ? 'yes' : 'no']; var t = String(v).trim().toLowerCase(); return t === Wl.yes.toLowerCase() ? [String(v), 'yes'] : t === Wl.no.toLowerCase() ? [String(v), 'no'] : null; };
       // v0.9.5 · the item names are column headers, and every cell says its column (aria-colindex: the row's label is column 1),
-      // so "16 kg" is read with "Urbana"
+      // so "16 kg" is read with "Urbana". A cell is text, or a function that fills it.
       function line(label, cells, c) {
         var r = el('div', 'kit-cmp-row' + (c ? ' ' + c : '')), head = !label; r.setAttribute('role', 'row');
         if (label) { var h = el('div', 'kit-cmp-label', label); h.setAttribute('role', 'rowheader'); h.setAttribute('aria-colindex', '1'); r.appendChild(h); }
-        var cs = el('div', 'kit-cmp-cells'); cells.forEach(function (t, i) { var d = el('div', 'kit-cmp-cell', t); d.setAttribute('role', head ? 'columnheader' : 'cell'); d.setAttribute('aria-colindex', String(i + 2)); cs.appendChild(d); });
+        var cs = el('div', 'kit-cmp-cells'); cells.forEach(function (t, i) {
+          var d = el('div', 'kit-cmp-cell' + (i === bi ? ' is-best' : ''), typeof t === 'string' ? t : null); d.setAttribute('role', head ? 'columnheader' : 'cell'); d.setAttribute('aria-colindex', String(i + 2));
+          if (typeof t === 'function') t(d); cs.appendChild(d); });
         r.appendChild(cs); grid.appendChild(r);
       }
-      line('', got.map(function (id) { return cfg.items[id].name; }), 'is-head');
+      var pics = got.some(function (id) { var im = cfg.items[id].img; return im && im.src; });
+      line('', got.map(function (id, i) { var it = cfg.items[id]; return !pics && i !== bi ? it.name : function (d) {
+        if (it.img && it.img.src) d.appendChild(U.img(it.img.src, 'kit-cmp-img', Object.assign({ sizes: '200px' }, it.img, { alt: '' })));   // beside its name: decorative
+        else if (pics) d.appendChild(el('div', 'lbw-img kit-cmp-img is-blank'));   // the names stay on one line
+        d.appendChild(el('span', 'kit-cmp-name', it.name));
+        if (i === bi) { d.appendChild(el('span', 'kit-sr', ', ')); d.appendChild(el('span', 'kit-tag kit-cmp-best', bst.label || Wl.best)); } }; }), 'is-head');   // read "Eléctrica, Best pick"
       var folded = [];
       (cfg.rows || []).forEach(function (row) {
-        var cells = got.map(function (id) { var v = (cfg.items[id].values || {})[row[0]]; return v == null || v === '' ? empty : String(v); });
+        var raw = got.map(function (id) { return (cfg.items[id].values || {})[row[0]]; });
+        var cells = raw.map(function (v) { if (v == null || v === '') return empty; var y = yn(v); if (y) return y[0]; v = String(v); return row[3] && v.indexOf(row[3]) < 0 ? v + ' ' + row[3] : v; });
         // a row where every column says the same isn't a difference: it is drawn quieter (v0.8.1.1), or, with same: 'fold',
         // left out of the table and listed in one line under it (v0.8.1.3: 4 of 7 rows were the same on a live demo)
         var same = cells.length > 1 && cells.every(function (t) { return t === cells[0]; });
         if (!cells.some(function (t) { return t !== empty; })) return;
         if (same && !row[2] && cfg.same === 'fold') { if (cells[0] !== empty) folded.push(row[1] + ': ' + cells[0]); return; }
-        line(row[1], cells, (row[2] || '') + (same && !row[2] ? ' is-same' : ''));
+        line(row[1], cells.map(function (t, i) { var y = t !== empty ? yn(raw[i]) : null; return !y ? t : function (d) {
+          var m = el('span', 'kit-yn is-' + y[1]), ic = icon(y[1] === 'yes' ? 'check' : 'x'); if (ic) m.appendChild(ic); d.appendChild(m); d.appendChild(el('span', 'kit-sr', t)); }; }),
+          (row[2] || '') + (same && !row[2] ? ' is-same' : ''));
       });
       o.box.appendChild(grid);
-      if (folded.length) { var Wl = words(langOf(cfg, ctx)), lab = got.length === 2 ? Wl.cSame2 : Wl.cSame; note(o.box, folded.length === 1 ? lab.replace(/\s*:\s*$/, '') + ' · ' + folded[0] : lab + '\n' + folded.join('\n'), 'kit-cmp-same'); }   // v0.8.1.8: one equal row reads "The same in both · View: Sea" (not two colons)   // one equal row stays on the label's line
+      if (folded.length) { var lab = got.length === 2 ? Wl.cSame2 : Wl.cSame; note(o.box, folded.length === 1 ? lab.replace(/\s*:\s*$/, '') + ' · ' + folded[0] : lab + '\n' + folded.join('\n'), 'kit-cmp-same'); }   // v0.8.1.8: one equal row reads "The same in both · View: Sea" (not two colons)   // one equal row stays on the label's line
       note(o.box, cfg.note, 'is-muted');
       var g = U.once('kit-actions'), links = [];
-      var firstReply = true;
-      got.forEach(function (id, i) { var it = cfg.items[id]; if (it.reply) { var rb = U.reply(it.reply[0], it.reply[1], { primary: firstReply && cfg.primary !== false, fields: it.reply[2] }); rb.style.setProperty('--kit-col', String(i + 1)); g.appendChild(rb); firstReply = false; } if (it.link) links.push(U.link(it.link[0], it.link[1])); });   /* v0.8.1.9: each reply in its item's column; the first reply is the primary ("primary": false for equals, v0.8.1.7) */
+      // the primary: the best column's reply, else the first one ("primary": false for equals, v0.8.1.7)
+      var pi = bi >= 0 && cfg.items[got[bi]].reply ? bi : got.map(function (id) { return !!cfg.items[id].reply; }).indexOf(true);
+      got.forEach(function (id, i) { var it = cfg.items[id]; if (it.reply) { var rb = U.reply(it.reply[0], it.reply[1], { primary: i === pi && cfg.primary !== false, fields: it.reply[2] }); rb.style.setProperty('--kit-col', String(i + 1)); g.appendChild(rb); } if (it.link) links.push(U.link(it.link[0], it.link[1])); });   /* v0.8.1.9: each reply in its item's column */
       if (g.children.length) { g.classList.add('kit-cmp-acts'); g.style.setProperty('--kit-n', String(got.length)); }   // v0.8.1.9: one column per item, under its column
-      var acts = (g.children.length ? [g] : []).concat(buttons(links)); if (acts.length) U.row(o, acts);
+      // v0.10 · inside the card, under the columns they choose (they were three equal pills under it)
+      var acts = (g.children.length ? [g] : []).concat(buttons(links)); if (acts.length) U.row(o.box, acts, 'kit-cmp-foot');
       return o;
     });
   }

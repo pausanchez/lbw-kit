@@ -294,8 +294,7 @@
       }
       // fetched once when the chat loads; with a URL per language, only the default language's
       if (load && src.data == null && src.prefetch !== false && typeof fetch === 'function' && (!lang || lang === (cfg.defaultLang && (cfg.langs || []).indexOf(cfg.defaultLang) >= 0 ? cfg.defaultLang : (cfg.langs || [lang])[0]))) { try { load().then(null, function () {}); } catch (e) {} }
-      K.carousel(name, merge(pick(w, ['cls', 'lang', 'allowDup']), { live: !!src && w.live !== false,   // v0.10: the "Live" chip on slides from the source
-
+      K.carousel(name, merge(pick(w, ['cls', 'lang', 'allowDup', 'style']), { live: !!src && w.live !== false,   // v0.10: the "Live" chip on slides from the source; "style": "box" keeps the framed look
         select: function (p) {
           var k = by ? p.one(param, vals) : null, today = LBW.day.today();
           // v0.7.8 · ids=a,b in the tag: only those slides, in that order ("does it work with X?"). Saved items only: a live
@@ -424,6 +423,11 @@
       var sc = function (l, ctx) { return { v: merge(l.state, { text: l.text }), items: FORMS[w.form + '|' + lang] || {}, money: String, lang: w.lang || (ctx && ctx.lang) || cfg.defaultLang || 'en', sep: src.sep, h12: src.h12 }; };
       var T = function (t) { return function (l, ctx) { return tpl(t, sc(l, ctx)); }; };
       o.title = T(w.title); if (w.status != null) o.status = T(w.status); if (w.note != null) o.note = T(w.note);
+      // v0.10 · "style": "pass" (a ticket), "code": "{ref}" (a param or a sent value; empty → none), "countdown": false, and the
+      // calendar file: the slots widget's "ics", or this one's ({ title, where, label }; false: none). Times as the slots draw them.
+      o.style = w.style; o.countdown = w.countdown; o.sep = src.sep; o.h12 = src.h12; if (w.code != null) o.code = T(w.code);
+      var ic = w.ics === false ? false : merge(isObj(src.ics) ? src.ics : null, isObj(w.ics) ? w.ics : null);
+      o.ics = ic === false ? false : function (l, ctx) { var c = sc(l, ctx), e = {}; ['title', 'where', 'label', 'file'].forEach(function (k) { if (isStr(ic[k])) e[k] = tpl(ic[k], c); }); return e; };
       if (w.rows) o.rows = function (l, ctx) { var c = sc(l, ctx); return w.rows.map(function (r) { return [tpl(r[0], c), tpl(r[1], c)]; }); };
       if (w.steps) o.steps = function (l, ctx) { var c = sc(l, ctx); return w.steps.map(function (x) { return tpl(x, c); }); };
       if (w.actions) o.actions = function (l) { return actions(cfg, w.actions, l.text); };
@@ -442,7 +446,7 @@
       K.review(name, o);
     },
     compare: function (cfg, name, w, lang) {
-      var o = pick(w, ['cls', 'lang', 'kicker', 'title', 'param', 'items', 'rows', 'min', 'max', 'empty', 'note', 'same', 'primary', 'allowDup']);
+      var o = pick(w, ['cls', 'lang', 'kicker', 'title', 'param', 'items', 'rows', 'min', 'max', 'empty', 'note', 'same', 'primary', 'best', 'allowDup']);
       // "titles": { "2": "Two ways to go", "3": "Three ways to go" }: a title by how many are compared
       if (w.titles) o.title = function (ids) { return own(w.titles, String(ids.length)) ? w.titles[ids.length] : w.title || ''; };
       K.compare(name, o);
@@ -557,6 +561,12 @@
       if (isObj(w) && w.type === 'people' && isObj(w.items)) {   // v0.8.1.12 · a person's img: one URL, the smallest size
         var ppl = {}; Object.keys(w.items).forEach(function (id) { var x = w.items[id]; if (!isObj(x) || x.img == null) { ppl[id] = x; return; } var c = merge(x, {}), u = one(x.img, name, id + '.img', 'url'); if (u === undefined) delete c.img; else c.img = u; ppl[id] = c; });
         put(name, merge(w, { items: ppl })); return;
+      }
+      // v0.10 · a card's or a compared item's "img", written out the same way as a slide's
+      if (isObj(w) && (w.type === 'cards' || w.type === 'compare') && (isObj(w.items) || isObj(w.item))) {
+        var byId = function (items, pre) { var r = {}; Object.keys(items).forEach(function (id) { if (id === '__proto__') return; var x = items[id]; if (!isObj(x) || x.img == null) { r[id] = x; return; }
+          var c = merge(x, {}), im = one(x.img, name, pre + id + '.img', false, x.title || x.name); if (im === undefined) delete c.img; else c.img = im; r[id] = c; }); return r; };
+        var cw = merge(w, {}); if (isObj(w.items)) cw.items = byId(w.items, ''); if (isObj(w.item)) cw.item = byId({ item: w.item }, '').item; put(name, cw); return;
       }
       if (!isObj(w) || w.type !== 'carousel' || !isArr(w.items)) { put(name, w); return; }
       put(name, merge(w, { items: w.items.map(function (it, i) {
