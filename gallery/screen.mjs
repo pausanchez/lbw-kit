@@ -139,7 +139,7 @@ ${libCss}
 export function screenSection(config) {
   const cfg = screenConfig(config);
   const json = JSON.stringify({ screen: cfg.screen, widgets: { plan: { type: 'form', step: 'plan', '…': '…' }, noches: { type: 'calendar', step: 'noches', '…': '…' } } }, null, 2);
-  return `<div class="group" id="g-pantalla"><div class="group-head"><h2>Modo pantalla</h2><p>Para que el bot parezca una app y no un chat: una pantalla cada vez, una cabecera con los pasos y una barra abajo con la acción principal. Funciona con cualquier tipo, guiado por el flujo o por un agente.</p></div>
+  return `<div class="group" id="g-pantalla"><div class="group-head"><h2>Modo pantalla <small>(experimental)</small></h2><p><strong>Experimental:</strong> no es para bots en producción y se decidirá en la v0.14. Para que el bot parezca una app y no un chat: una pantalla cada vez, una cabecera con los pasos y una barra abajo con la acción principal. Funciona con cualquier tipo, guiado por el flujo o por un agente.</p></div>
 <section class="feature" id="pantalla">
   <header class="type-head"><h3>Una pantalla cada vez</h3><code class="tname">"screen": { "on": true }</code><span class="since">prototipo</span></header>
   <div class="type-body">

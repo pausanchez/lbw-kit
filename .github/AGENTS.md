@@ -6,6 +6,9 @@ You are building interactive widgets that appear inside a Landbot AI agent's mes
 ## The model in one paragraph
 The AI agent ends its message with a tag, `[[prefix:name key=value lang=xx]]`. The bot's Custom JS (`runtime/lbw.js` + your widgets) finds the tag in the chat's DOM, removes it, validates every value against closed lists, and draws a widget from **your** data (code, a public API, or Landbot fields). Widget buttons can post a message **as the visitor** (the agent answers it) and write **Landbot fields** with that message. Flow messages can carry tags too, with `@{field}` values that Landbot fills in.
 
+## Principles
+The agent chooses, the code tells; widgets live **inside the conversation** (the chat stays a chat); one checked config per bot; one place that knows Landbot (`runtime/host-v4.js`); proven with a visitor on a phone, not only with assertions. Every feature answers the questions in [PRINCIPLES.md](https://github.com/pausanchez/lbw-kit/blob/main/.github/PRINCIPLES.md). **Screen mode (`"screen"`) is experimental: don't use it in client bots.**
+
 ## The short path: the library and a JSON config
 The runtime, the kit and their CSS are one versioned library, `lbw-kit`, loaded by URL. A bot's widgets are one JSON object, `LBW.kit.setup({…})`, with the kit's 20 types. **Start from an example**: copy `kit/example/config.json` or `kit/example-lead/config.json`, change the data, and run `npm run check:config -- config.json` until it prints no problem. Then `npm run bot -- config.json --out build` writes the bot's Custom JS and CSS from it. Write JavaScript only for what the JSON can't say.
 

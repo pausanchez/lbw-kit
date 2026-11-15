@@ -12,6 +12,8 @@ The agent chooses which widget to show; the code decides what it says. A bot's w
 - `scripts/`: build, version sync, the config checker and the bot-code generator
 - `test/`: `npm test`
 
+**Principles:** the agent chooses, the code tells; widgets live inside the conversation; one checked config per bot; one place that knows Landbot. Read [PRINCIPLES.md](https://github.com/pausanchez/lbw-kit/blob/main/.github/PRINCIPLES.md) before proposing a feature.
+
 ## Load it in Landbot
 
 Pin the version in the URL (never `@latest`) and keep `integrity` and `crossorigin`. Current version: v0.10.0.1.
@@ -90,7 +92,9 @@ Every key of every type, a minimal example and what the checker rejects: [refere
 | `season` | Open or closed today from dated ranges, with the next dates. |
 | `chart` | Line or bar chart (one or two series; stacked bars) from formulas or values. |
 
-## Screen mode: the chat as an app
+## Screen mode (experimental)
+
+> **Experimental since v0.13.** It goes against principle 2 (widgets live inside the conversation) and adds Landbot DOM assumptions, so it is off by default, not for production bots, and will be kept, reshaped or removed at v0.14 with evidence. See [PRINCIPLES.md](https://github.com/pausanchez/lbw-kit/blob/main/.github/PRINCIPLES.md).
 
 Add `"screen": { "on": true, "header": { "title": "Book a flight", "steps": [["where", "Where"], ["when", "When"], ["pay", "Pay"]] }, "bar": true, "bleed": true }` to a config and the chat reads as an app: one screen at a time, a header with the steps, a sticky bar with the primary action, earlier messages behind "View conversation". The visitor can still type, and an AI agent's reply shows under the current screen. Every key: [reference/types](https://github.com/pausanchez/lbw-kit/blob/main/reference/types/README.md#screen-mode-the-screen-key). Try it in [the gallery](https://pausanchez.github.io/lbw-kit/).
 
