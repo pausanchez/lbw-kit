@@ -132,7 +132,7 @@ async function tapUncovered(page, sel) {
   }, sel);
   await clickIn(page, sel); await page.waitForTimeout(150);
   const r = await page.evaluate((s) => { const t = document.querySelector(s), d = t.closest('.lbw').querySelector('.kit-dock, .kit-foot'); return { a: t.getBoundingClientRect().bottom, b: d.getBoundingClientRect().top, top: t.getBoundingClientRect().top, col: document.querySelector('.col').getBoundingClientRect().top }; }, sel);
-  expect(r.a, 'the picked day is not under the docked action').toBeLessThanOrEqual(r.b + 1);
+  expect(r.a, 'the picked day is not under the docked action (a sub-pixel hairline allowed)').toBeLessThanOrEqual(r.b + 2);
   expect(r.top, 'nor scrolled off the top').toBeGreaterThanOrEqual(r.col - 1);
   return covered;
 }
@@ -301,6 +301,47 @@ for (const [label, viewport] of SIZES.slice(0, 2)) {
       await type(page, '¿Y mi otra bici?');
       await expect(trk).toHaveCount(2);
       await expect(trk.first()).toHaveClass(/\bis-old\b/);
+    });
+  });
+}
+
+// v0.14.0.3 · the docked action never sits over a control: a three-line answer above a tall moment, on a phone (390 × 664 visible,
+// iPhone 13 with Safari's bars) and with the keyboard open (390 × 464), and the same chat shrinking from one to the other
+const THREE = 'Sí: con la tarifa flexible puedes cancelar hasta 48 horas antes y te devolvemos el importe completo, sin preguntas. Con la tarifa básica no hay reembolso, pero puedes cambiar las fechas una vez sin coste. Elige tus noches y lo vemos:';
+const covered = (page) => page.evaluate(() => {
+  const col = document.querySelector('.col').getBoundingClientRect(), m = [...document.querySelectorAll('.lbw.is-focus:not(.is-focus-done)')].pop();
+  const d = m.querySelector('.kit-dock, .kit-foot'), dr = d.getBoundingClientRect(), docked = !m.classList.contains('is-undocked');
+  const out = [];
+  for (const x of m.querySelectorAll('button, select, input, [tabindex="0"]')) {
+    if (d.contains(x) || x.disabled || !x.getClientRects().length) continue;
+    const b = x.getBoundingClientRect(), cx = b.left + b.width / 2, cy = b.top + b.height / 2;
+    if (cy < col.top || cy > col.bottom) continue;   // out of the chat's view: not covered, just scrolled away
+    if (docked && b.top >= dr.top - 1) continue;   // wholly under the docked footer: below the chat's edge, as below the fold
+    const hit = document.elementFromPoint(cx, cy);
+    if (!hit || !(x === hit || x.contains(hit))) out.push(`${x.className || x.tagName} "${(x.getAttribute('aria-label') || x.textContent).trim().slice(0, 24)}" under ${hit && (hit.className || hit.tagName)}`);
+    else if (docked && b.top < dr.top - 1 && b.bottom > dr.top + 1 && cy > dr.top - 2) out.push(`${x.className} "${(x.getAttribute('aria-label') || x.textContent).trim().slice(0, 24)}" cut by the footer, its centre under it`);
+  }
+  return { out, docked, dock: [dr.top - col.top, col.bottom - dr.bottom], tall: m.getBoundingClientRect().height > col.height };
+});
+async function footerClear(page, where) {
+  await page.waitForTimeout(3200);   // the reveal's hold (2.5 s) and the kit's last measure
+  const r = await covered(page);
+  expect(r.out, `${where}: no control under the docked footer`).toEqual([]);
+  if (r.tall) { expect(r.docked, `${where}: taller than the chat, the action stays docked`).toBe(true); expect(r.dock[1], `${where}: docked above the column's 40 px fade`).toBeGreaterThanOrEqual(39); expect(r.dock[0]).toBeGreaterThan(0); }
+  return r;
+}
+for (const [label, viewport] of [['390 × 664', { width: 390, height: 664 }], ['390 × 464, keyboard open', { width: 390, height: 464 }]]) {
+  test.describe(`docked footer at ${label}`, () => {
+    test.use({ viewport });
+    test('a three-line answer above a tall moment: no control under the footer, the action in view', async ({ demo: page }) => {
+      await page.evaluate((t) => window.__bot(t + ' [[gx:noches]]'), THREE);
+      await expect(page.locator('.lbw.is-focus[data-widget="noches"]')).toHaveCount(1);
+      const r = await footerClear(page, label);
+      if (viewport.height < 600) expect(r.tall, 'the moment is taller than the chat here').toBe(true);
+      if (viewport.height === 664) {   // then the keyboard opens
+        await page.setViewportSize({ width: 390, height: 464 });
+        await footerClear(page, 'after the keyboard opened');
+      }
     });
   });
 }

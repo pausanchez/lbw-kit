@@ -48,6 +48,8 @@ body { background: var(--chat-bg); color: var(--chat-ink); font: 15px/1.5 system
 .win-head h1 { margin: 0; font: 600 16px/1.25 system-ui, sans-serif; }
 .win-head p { margin: 0; font-size: 12px; color: var(--chat-muted); }
 .col { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+/* as v4's column does (scroll-fade-b): its last 40 px fade out, over whatever is docked there */
+.col { -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 40px), transparent); mask-image: linear-gradient(to bottom, #000 calc(100% - 40px), transparent); }
 .list { display: flex; flex-direction: column; gap: 12px; padding: 16px 12px 20px; }
 .msg { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; min-width: 0; }
 .msg > .bubble { background: var(--chat-top); border: 1px solid var(--chat-line); border-radius: 18px; padding: 9px 14px; max-width: 86%; }

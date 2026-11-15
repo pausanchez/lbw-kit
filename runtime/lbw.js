@@ -1,4 +1,4 @@
-/* lbw.js · Landbot AI Widgets runtime · v0.14.0.2
+/* lbw.js · Landbot AI Widgets runtime · v0.14.0.3
    Turns tags that an AI agent (or a flow message) writes at the end of a bot message, e.g. [[shop:card id=boots lang=en]],
    into interactive widgets inside the Landbot v4 web chat. Distilled from four production experiments.
    You write: your data, your labels and one function per widget. The runtime does the rest:
@@ -1165,7 +1165,7 @@
   }
 
   root.LBW = {
-    version: '0.14.0.2',
+    version: '0.14.0.3',
     host: H,   // the Landbot v4 adapter (runtime/host-v4.js): LBW.host.check() → { ok, missing, input }
     ready: false,   // v0.9.5: true once init() ran and the first scan is done
     // LBW.init({ prefix, langs, defaultLang, labels: {en:{…}}, links: ['https://shop.example/', 'tel:', 'mailto:', 'https://calendar.google.com/'], maxPerMessage, quietMs, timeZone: 'Europe/Madrid' })
@@ -1188,6 +1188,10 @@
           check: check, receipt: receipt },   // v0.10: a self-drawing check; receipt(widget, after) → its "Sent · 21:04" line
     // LBW.motion() → true while animations may run (the tab is visible, no reduced motion, init's motion isn't false) (v0.10)
     motion: moving,
+    // v0.14.0.3 · LBW.unhold(): ends the reveal of the newest reply (lbw.js holds it in view for 2.5 s, undoing scrolls toward
+    // the chat's end) as if the visitor had taken over. The kit calls it before it moves the chat so a focus moment's docked
+    // action can dock clear of its controls; otherwise the hold would undo that move
+    unhold: function () { if (HOLD && !HOLD.done && HOLD.end) HOLD.end({ type: 'unhold' }); },
     // LBW.announce(text, lang, key): one short line in the chat's polite live region (v0.9.5)
     announce: announce,
     day: { num: dayNum, parts: dayParts, read: dayRead, today: dayToday, format: dayFormat, str: dayStr, easter: dayEaster, nth: dayNth, next: dayNext, on: dayOn },

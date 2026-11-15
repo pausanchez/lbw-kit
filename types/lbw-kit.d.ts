@@ -463,6 +463,8 @@ export interface Api {
   motion(): boolean;
   /** Says one short line in the chat's polite live region (v0.9.5). */
   announce(text: string, lang: string, key?: string): unknown;
+  /** v0.14.0.3: ends the reveal of the newest reply (held in view for 2.5 s) as if the visitor had taken over. */
+  unhold(): void;
   /** The kit. Present only when `kit/kit.js` is loaded. */
   kit: Kit;
   /** @experimental In the source's `LBW`, not in the docs: logs to `window.__lbwDropped`. */

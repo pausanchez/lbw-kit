@@ -199,9 +199,9 @@ test('host: mark() puts data-lbw-focus on the message that holds a node, on the 
   assert.doesNotMatch(read('runtime/host-v4.js'), /responsive-container|data-lbw-(past|slot|screen|cur|chrome|aside|off)/);
 });
 
-test('v0.14: screen mode is gone from the runtime: no LBW.screen, no LBW.unhold, no screen.js in the bundle', () => {
+test('v0.14: screen mode is gone from the runtime: no LBW.screen, no screen.js in the bundle (LBW.unhold came back in v0.14.0.3)', () => {
   const c = setup({});
-  assert.equal(c.LBW.screen, undefined); assert.equal(c.LBW.unhold, undefined);
+  assert.equal(c.LBW.screen, undefined);
   assert.doesNotMatch(read('dist/lbw.min.js'), /lbw-scr-|data-lbw-screen/);
   assert.doesNotMatch(read('dist/lbw-kit.min.css'), /lbw-scr-|data-lbw-screen/);
   c.close();
@@ -408,4 +408,28 @@ test('newest: a spent group stays spent (a sent chip doesn\'t come back); the ne
   c.say('Otra'); c.draw('Vale.');
   assert.ok(g.classList.contains('is-done') && [...g.querySelectorAll('button')].filter((x) => !x.disabled).length <= 1, 'still spent');
   c.close();
+});
+
+// ── v0.14.0.3 · the docked footer never sits over a control ──────────────────────────────────────────
+test('dockShift: the least move after which no control is cut by the footer\'s edge with its centre under it', () => {
+  const c = setup({}), S = c.LBW.kit.h.dockShift, room = { top: 0, min: -500, max: 500 };
+  assert.equal(S([[100, 144], [300, 344]], 200, [10, 40], room), 0, 'none cut: no move');
+  assert.equal(S([[180, 224]], 200, [10, 40], room), -5, 'a control cut with its centre under the edge: up until its centre is above it');
+  assert.equal(S([[190, 214]], 200, null, room), -5);
+  assert.equal(S([[150, 205]], 200, null, room), 0, 'its centre above the edge: tappable, left alone');
+  // rows of 44 px controls one after another: a row boundary is put at the edge
+  const rows = [0, 1, 2, 3, 4].map((i) => [100 + i * 46, 144 + i * 46]);
+  const dy = S(rows, 230, null, room); assert.ok(dy !== null && Math.abs(dy) <= 46, String(dy));
+  assert.ok(!rows.some(([a, b]) => a + dy < 229 && b + dy > 231 && (a + b) / 2 + dy > 228), 'no row cut after it');
+  // the heading must stay in view: the move up that would hide it is refused, the move down taken
+  assert.equal(S([[180, 224]], 200, [0, 30], { top: 0, min: -500, max: 500 }), 22, 'down, wholly under the edge');
+  assert.equal(S([[180, 224]], 200, [0, 30], { top: 0, min: -500, max: 0 }), null, 'neither possible: null (the kit un-docks it)');
+  c.close();
+});
+
+test('docked footer: lifted above a fading scroller edge, not docked when the moment fits; LBW.unhold is back', () => {
+  const css = read('kit/kit.css');
+  assert.match(css, /\.lbw\.is-focus \.kit-dock \{ position: sticky; bottom: calc\(8px \+ var\(--lbw-dock-b, 0px\)\)/);
+  assert.match(css, /\.lbw\.is-focus\.is-undocked \.kit-dock, \.lbw\.is-focus\.is-undocked \.kit-foot \{ position: static; box-shadow: none; \}/);
+  const c = setup({}); assert.equal(typeof c.LBW.unhold, 'function'); c.LBW.unhold(); c.close();
 });

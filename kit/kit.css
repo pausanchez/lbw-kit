@@ -1,4 +1,4 @@
-/* AI Widgets kit v0.14.0.2 · the kit-* classes, from the --lbw-* tokens only (set them in the demo's theme.css).
+/* AI Widgets kit v0.14.0.3 · the kit-* classes, from the --lbw-* tokens only (set them in the demo's theme.css).
    Order in custom_css: @imports, lbw.css, kit.css, the demo's theme.css, the chat skin. */
 .kit-note { margin: 10px 0 0; font-size: var(--lbw-text-min, 14px); line-height: 17px; color: var(--lbw-muted); }
 .kit-note:not(.is-safe):not(.is-flag), .kit-line, .kit-desc { max-width: 62ch; }
@@ -619,7 +619,11 @@
 .kit-focus-h:focus { outline: none; }
 .kit-focus-h:focus-visible { outline: 2px solid var(--lbw-focus, var(--lbw-ink)); outline-offset: 2px; }
 .lbw.is-focus .lbw-cta { width: 100%; }
-.lbw.is-focus .kit-dock { position: sticky; bottom: 8px; z-index: 2; box-shadow: 0 0 0 8px var(--lbw-focus-surface, var(--lbw-card)); }
+.lbw.is-focus .kit-dock { position: sticky; bottom: calc(8px + var(--lbw-dock-b, 0px)); z-index: 2; box-shadow: 0 0 0 8px var(--lbw-focus-surface, var(--lbw-card)); }
+/* v0.14.0.3 · docked above a fading scroller edge (--lbw-dock-b, set by the kit: 40px when the chat's scroller has a mask, or
+   --lbw-dock-lift); not docked at all when the whole moment fits in what the chat shows (.is-undocked) */
+.lbw.is-focus .kit-foot { bottom: var(--lbw-dock-b, 0px); }
+.lbw.is-focus.is-undocked .kit-dock, .lbw.is-focus.is-undocked .kit-foot { position: static; box-shadow: none; }
 /* v0.14.0.1 · the docked action never covers a pick: its height (--lbw-dock-h, measured) is every control's scroll margin, so
    keyboard focus stops above it; a tap it would cover is scrolled up by the kit */
 .lbw.is-focus :is(button, select, input, [role="radio"]) { scroll-margin-bottom: calc(var(--lbw-dock-h, 52px) + 16px); }

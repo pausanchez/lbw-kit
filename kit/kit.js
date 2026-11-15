@@ -1,4 +1,4 @@
-/* AI Widgets kit v0.14.0.2 · on lbw.js v0.14.0.2 · the widgets every url-to-demo build rewrote, written once with options. Load it after lbw.js and before the
+/* AI Widgets kit v0.14.0.3 · on lbw.js v0.14.0.3 · the widgets every url-to-demo build rewrote, written once with options. Load it after lbw.js and before the
    client's widgets.js: custom_js = <script>lbw.js</script><script>kit.js</script><script>widgets.js</script>.
 
    Each maker registers a widget under the name you give it, from data you pass. Nothing here holds client facts.
@@ -1874,6 +1874,84 @@
       }, 30);
     }
     o.addEventListener('click', keep); o.addEventListener('change', keep);
+    dockFit(o, dk);
+  }
+  // v0.14.0.3 · the docked action never sits over a control, at rest. Measured when the moment is drawn, while the reveal
+  // settles, and whenever the moment, the chat's scroller or the visual viewport (the keyboard) changes size:
+  //  - the moment fits in what the chat shows → the footer is not docked (.is-undocked: it flows at the card's end, in view);
+  //  - it is taller → the footer stays docked (the action always in view): if the card has only just come into view (the
+  //    footer can't rise above its form's start and lay over its first controls), the chat is moved up until it docks; then
+  //    by the least amount (dockShift) that leaves no control cut by the footer with its centre under it, the heading in view.
+  //    When neither is possible, the footer isn't docked. A visitor's own scroll is never undone; this runs only on those changes.
+  // A scroller that fades its bottom edge (a mask-image, as v4's column has: its last ~40 px dimmed the docked button) lifts
+  // the footer above the fade: --lbw-dock-b, 40px unless the theme sets --lbw-dock-lift. Read from the scroller's computed
+  // style, found as every other scroller (no Landbot selector)
+  function chatScroller(n) {
+    for (var e = n && n.parentElement; e && e !== document.body && e !== document.documentElement; e = e.parentElement) {
+      var cs = getComputedStyle(e); if (/(auto|scroll)/.test(cs.overflowY)) return e; }
+    return null;
+  }
+  // dockShift(ctrls, edge, head, room) → the least dy (content moved down by dy px: scrollTop −= dy) after which no control is
+  // cut by the docked footer with its centre under it: the footer's top (edge) is the chat's lower edge, as the screen's is,
+  // so a control is above it (its centre at least) or wholly under it, like one below the fold. The heading [top, bottom]
+  // stays between room.top and the edge; room.min..max limit dy (the scroll there is). 0 when none is cut; null when no move
+  // does it. ctrls: [[top, bottom], …] in viewport px
+  function dockShift(ctrls, edge, head, room) {
+    var cut = function (c, dy) { var a = c[0] + dy, b = c[1] + dy; return a < edge - 1 && b > edge + 1 && (a + b) / 2 > edge - 2; };
+    var bad = function (dy) { return ctrls.some(function (c) { return cut(c, dy); }); };
+    if (!bad(0)) return 0;
+    var cand = [];
+    ctrls.forEach(function (c) { if (cut(c, 0)) cand.push(edge - c[1] - 2, edge - c[0] + 2, edge - 3 - (c[0] + c[1]) / 2); });
+    cand.sort(function (a, b) { return Math.abs(a) - Math.abs(b); });
+    for (var i = 0; i < cand.length; i++) {
+      var dy = Math.round(cand[i]);
+      if (dy < room.min || dy > room.max) continue;
+      if (head && (head[0] + dy < room.top - 1 || head[1] + dy > edge)) continue;
+      if (!bad(dy)) return dy;
+    }
+    return null;
+  }
+  function dockFit(o, dk) {
+    var sc = null, t = 0;
+    function lift() {
+      var cs = getComputedStyle(sc), m = cs.maskImage || cs.webkitMaskImage || '', own = parseFloat(getComputedStyle(o).getPropertyValue('--lbw-dock-lift'));
+      return isFinite(own) ? own : m && m !== 'none' ? 40 : 0;
+    }
+    function move(top) { var st = sc.style, was = st.scrollBehavior; if (LBW.unhold) LBW.unhold(); st.scrollBehavior = 'auto'; sc.scrollTop = Math.max(0, Math.round(top)); st.scrollBehavior = was; }
+    function run() {
+      t = 0; var d = dk(); if (!d || !o.isConnected) return;
+      sc = sc && sc.isConnected ? sc : chatScroller(o); if (!sc) return;
+      var r = sc.getBoundingClientRect(), vv = root.visualViewport, bot = Math.min(r.bottom, vv ? vv.offsetTop + vv.height : root.innerHeight), lf = lift();
+      o.style.setProperty('--lbw-dock-b', lf + 'px');
+      o.classList.remove('is-undocked');   // measured docked
+      var un = function () { o.classList.add('is-undocked'); };
+      if (o.getBoundingClientRect().height <= bot - r.top - 12) return un();   // it all fits: nothing to dock
+      var h = o.querySelector('.kit-focus-h, .lbw-title'), head = function () { var b = h && h.getBoundingClientRect(); return b ? [b.top, b.bottom] : null; };
+      // 1 · a card that has only just come into view: its footer can't rise above the start of its form (sticky stops at its
+      // containing block), so it lay over the first controls. The chat is moved up until the footer reaches its docked place,
+      // the heading kept in view; when that isn't possible, the footer isn't docked
+      var f = d.getBoundingClientRect(), at = bot - lf - (d.classList.contains('kit-dock') ? 8 : 0) - f.height, over = f.top - at;
+      if (over > 1) {
+        var hd = head(), s1 = Math.min(over + 4, hd ? hd[0] - r.top - 4 : over + 4, sc.scrollHeight - sc.clientHeight - sc.scrollTop);
+        if (s1 > 0) move(sc.scrollTop + s1);
+        f = d.getBoundingClientRect(); if (f.top - at > 1) return un();
+      }
+      // 2 · docked: no control cut by it with its centre under it (one wholly under it is below the fold, as below the screen)
+      var hd2 = head();
+      var ctrls = [].filter.call(o.querySelectorAll('button, select, input, [tabindex="0"], a[href]'), function (x) { return !d.contains(x) && !x.disabled && x.getClientRects().length; })
+        .map(function (x) { var b = x.getBoundingClientRect(); return [b.top, b.bottom]; }).filter(function (c) { return c[1] > r.top && c[0] < bot; });
+      // content may move down only while the footer's form still starts above its docked place (else it un-docks onto them)
+      var cb = d.parentElement.getBoundingClientRect().top, at2 = f.top;
+      var dy = dockShift(ctrls, f.top, hd2, { top: r.top, min: -(sc.scrollHeight - sc.clientHeight - sc.scrollTop), max: Math.min(sc.scrollTop, at2 - cb - 2) });
+      if (dy == null) return un();
+      if (dy) move(sc.scrollTop - dy);
+    }
+    function soon() { if (!t) t = setTimeout(run, 60); }
+    if (typeof ResizeObserver === 'function') { try { var ro = new ResizeObserver(soon); ro.observe(o); setTimeout(function () { sc = chatScroller(o); if (sc) ro.observe(sc); }, 0); } catch (e) {} }
+    if (root.visualViewport) root.visualViewport.addEventListener('resize', soon);
+    root.addEventListener('resize', soon);
+    // while lbw.js's reveal settles the reply (it holds it for 2.5 s), then once it has
+    [0, 400, 1000, 1800, 2700].forEach(function (ms) { setTimeout(soon, ms); });   // the first moves end lbw.js's hold (LBW.unhold)
   }
   function momentDone(o) {
     var f = o.__focus || {}, line = o.querySelector('.kit-sentline');
@@ -1948,7 +2026,7 @@
   }
   LBW.on('say', function () { [400, 1200, 3000, 6000].forEach(function (ms) { setTimeout(echoes, ms); }); });
 
-  LBW.kit = { version: '0.14.0.2', dev: DEV, describe: describe, L: L, last: last, cards: cards, table: table, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent, compare: compare, season: season, rating: rating,
+  LBW.kit = { version: '0.14.0.3', dev: DEV, describe: describe, L: L, last: last, cards: cards, table: table, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent, compare: compare, season: season, rating: rating,
     h: { usedByVisitor: usedByVisitor, wasQuieted: wasQuieted, quietAgain: quietAgain, keepPlace: keepPlace, upgraded: upgraded, radioGroup: radioGroup, note: note, list: list, label: label, dup: dup, choice: choice, multiChoice: multiChoice, copyBox: copyBox, status: status, wa: wa, fill: fill, money: money, total: total, lightbox: lightbox, chart: chart, statusHead: statusHead,
       icon: icon, withIcon: withIcon, icons: Object.keys(ICONS), badge: badge, tones: TONES.slice() } };
   // v0.10 · live & numbers (its own line: other makers' exports stay where they are)
@@ -1957,5 +2035,6 @@
   LBW.kit.map = mapCard;   // v0.10
   LBW.kit.tracker = tracker;   // v0.10
   LBW.kit.focus = moment;   // v0.14 · focus moments
+  LBW.kit.h.dockShift = dockShift;   // v0.14.0.3
   LBW.kit.focus.types = ['form', 'calendar', 'slots', 'calc', 'review', 'compare', 'confirm'];
 })(typeof window !== 'undefined' ? window : this);
