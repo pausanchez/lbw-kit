@@ -1,4 +1,4 @@
-/* lbw.js · Landbot AI Widgets runtime · v0.14.0.1
+/* lbw.js · Landbot AI Widgets runtime · v0.14.0.2
    Turns tags that an AI agent (or a flow message) writes at the end of a bot message, e.g. [[shop:card id=boots lang=en]],
    into interactive widgets inside the Landbot v4 web chat. Distilled from four production experiments.
    You write: your data, your labels and one function per widget. The runtime does the rest:
@@ -1137,13 +1137,17 @@
       if (made.length) host.classList.add('has-lbw');
       if (made.length) reveal(host, wasAtEnd);
     }
-    // one-shot groups nobody used go quiet once the visitor has written after them. v0.14 · except in the newest focus moment
-    // that is still open (the kit's .lbw.is-focus, kit/kit.js): a question typed in the middle of a booking doesn't end it; a
-    // newer moment does, or its own completion (the kit makes an older copy of the same moment inert)
-    var all = H.messages(), lastU = -1, fx = document.querySelectorAll('.lbw.is-focus:not(.is-focus-done)'), keep = fx.length ? H.messageOf(fx[fx.length - 1]) : null;
+    // one-shot groups nobody used go quiet once the visitor has written after them, except in two places. v0.14 · the newest
+    // focus moment that is still open (the kit's .lbw.is-focus): a question typed in the middle of a booking doesn't end it.
+    // v0.14.0.2 · the NEWEST widget of the thread (the last bot message that drew one): a free question ("is it fragile?")
+    // doesn't take away the tracker's "Leave with a neighbour", nor the chips the bot offered last; the visitor taps instead
+    // of typing what a button does. A newer widget ends it (then this sweep quiets the older one, as before). A group that
+    // already sent stays done (only groups that aren't .is-done are touched), and a control still sends once (say()'s lock)
+    var all = H.messages(), lastU = -1, fx = document.querySelectorAll('.lbw.is-focus:not(.is-focus-done)'), keep = fx.length ? H.messageOf(fx[fx.length - 1]) : null, newest = null;
     [].forEach.call(all, function (m, i) { if (H.isUser(m)) lastU = i; });
+    for (var nw = all.length - 1; nw >= 0 && !newest; nw--) if (H.isBot(all[nw]) && all[nw].querySelector('.lbw')) newest = all[nw];
     [].forEach.call(all, function (m, i) { if (i < lastU) [].forEach.call(m.querySelectorAll('.lbw-unsent'), function (x) { x.remove(); }); });   // v0.9.5: the visitor moved on
-    [].forEach.call(all, function (m, i) { if (i < lastU && m !== keep) [].forEach.call(m.querySelectorAll('.lbw-once:not(.is-done)'), function (g) { g.classList.add('is-stale'); done(g); var w = g.closest('.lbw'); if (w && !w.querySelector('.is-sent')) w.classList.add('is-spent'); }); });   // v0.8.1.9: is-spent: nothing was sent from this card
+    [].forEach.call(all, function (m, i) { if (i < lastU && m !== keep && m !== newest) [].forEach.call(m.querySelectorAll('.lbw-once:not(.is-done)'), function (g) { g.classList.add('is-stale'); done(g); var w = g.closest('.lbw'); if (w && !w.querySelector('.is-sent')) w.classList.add('is-spent'); }); });   // v0.8.1.9: is-spent: nothing was sent from this card
   }
   function start() {
     if (started) return; started = true;
@@ -1161,7 +1165,7 @@
   }
 
   root.LBW = {
-    version: '0.14.0.1',
+    version: '0.14.0.2',
     host: H,   // the Landbot v4 adapter (runtime/host-v4.js): LBW.host.check() → { ok, missing, input }
     ready: false,   // v0.9.5: true once init() ran and the first scan is done
     // LBW.init({ prefix, langs, defaultLang, labels: {en:{…}}, links: ['https://shop.example/', 'tel:', 'mailto:', 'https://calendar.google.com/'], maxPerMessage, quietMs, timeZone: 'Europe/Madrid' })

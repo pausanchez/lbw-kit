@@ -209,6 +209,7 @@ test('v0.14: screen mode is gone from the runtime: no LBW.screen, no LBW.unhold,
 
 test('tracker: "eta": { "big": true } draws the ETA as a large title (--lbw-title-xl)', () => {
   const c = setup({ pedido: { type: 'tracker', title: 'Tu pedido', steps: [{ key: 'hecho', label: 'Hecho' }, { key: 'ruta', label: 'En ruta' }, { key: 'listo', label: 'Entregado' }], eta: { time: 'hora', text: 'Llega {when}', big: true } } });
+  c.w.__lbwNow = '10:00';   // the ETA (18:30) is still to come, whatever the clock says
   assert.equal(c.result.ok, true, JSON.stringify(c.result.errors));
   const w = c.draw('[[s:pedido estado=ruta hora=18:30]]').widgets()[0], e = w.querySelector('.kit-trk-eta');
   assert.ok(e.classList.contains('is-big'), e.outerHTML);
@@ -374,4 +375,37 @@ test('calendar: "hidePast" leaves out the weeks with no day to pick; a preset op
 test('text: the library\'s smallest text is a token, 14px; no label or caption is set under it', () => {
   assert.match(read('runtime/lbw.css'), /--lbw-text-min: 14px;/);
   for (const f of ['runtime/lbw.css', 'kit/kit.css']) assert.doesNotMatch(read(f), /font(-size)?:[^;]*\b(1[0-3]|[0-9])px/, f);
+});
+
+// ── v0.14.0.2 · the newest widget stays live after the visitor types ─────────────────────────────────────
+const TRK = { pedido: { type: 'tracker', title: 'Tu pedido', steps: [{ key: 'a', label: 'Preparado' }, { key: 'b', label: 'En reparto', actions: [{ reply: ['Dejar al vecino', 'Déjalo con un vecino'] }, { reply: ['Mañana', 'Entregadlo mañana'] }] }, { key: 'c', label: 'Entregado' }] },
+  chips: W().chips, info: { type: 'cards', item: { title: 'Info' }, reply: ['Más', 'Quiero saber más'] } };
+test('newest: after free text the newest widget\'s buttons still send (once); an older one goes quiet when a newer widget arrives', async () => {
+  const c = setup(TRK); assert.equal(c.result.ok, true, JSON.stringify(c.result.errors));
+  const m = c.draw('Tu pedido: [[s:pedido estado=b]]'), t = m.widgets()[0];
+  c.say('¿Es frágil?'); c.draw('Sí, va bien protegido.');   // the agent's answer: text, no tag
+  const b = [...t.querySelectorAll('button')].find((x) => x.textContent === 'Dejar al vecino');
+  assert.equal(t.querySelector('.lbw-once.is-stale'), null); assert.equal(b.disabled, false);
+  await wait(30); b.click(); b.click(); await wait(400);
+  assert.deepEqual(c.sent.filter((x) => x[0] === 'landbot-msg-send').map((x) => x[1].message), ['Déjalo con un vecino'], 'sent once');
+  assert.ok(t.querySelector('.lbw-once.is-done'), 'the group is spent');
+  // a newer widget after the visitor wrote: the older one goes quiet; the newest is live
+  const m2 = c.draw('Más: [[s:info]]'), i = m2.widgets()[0];
+  c.say('Gracias'); c.draw('De nada.');
+  assert.equal(i.querySelector('.lbw-once.is-stale'), null, 'the newest');
+  const m3 = c.draw('[[s:chips q=si,no]]');
+  assert.ok(i.querySelector('.lbw-once.is-stale') && i.classList.contains('is-spent'), 'no longer the newest: quiet, as before');
+  assert.equal(m3.querySelector('.lbw-once.is-stale'), null);
+  c.close();
+});
+
+test('newest: a spent group stays spent (a sent chip doesn\'t come back); the newest chips stay live after free text', async () => {
+  const c = setup(TRK); const m = c.draw('[[s:chips q=si,no]]'), g = m.querySelector('.lbw-once');
+  c.say('Una pregunta'); c.draw('Respuesta.');
+  assert.ok(!g.classList.contains('is-stale'), 'chips the bot offered last stay live');
+  await wait(30); g.querySelector('button').click(); await wait(400);
+  assert.ok(g.classList.contains('is-done'));
+  c.say('Otra'); c.draw('Vale.');
+  assert.ok(g.classList.contains('is-done') && [...g.querySelectorAll('button')].filter((x) => !x.disabled).length <= 1, 'still spent');
+  c.close();
 });

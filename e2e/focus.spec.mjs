@@ -279,3 +279,28 @@ test.describe('focus moments, text size', () => {
     expect(small).toEqual([]);
   });
 });
+
+// v0.14.0.2 · the newest widget stays live after the visitor types: a free question after the tracker, then its button sends
+for (const [label, viewport] of SIZES.slice(0, 2)) {
+  test.describe(`newest widget at ${label}`, () => {
+    test.use({ viewport });
+    test('a free question after a tracker: its button still sends, once; a newer widget quiets it', async ({ demo: page }) => {
+      await type(page, '¿Cómo va mi bici?');
+      const trk = page.locator('.lbw[data-widget="pedido"]');
+      await expect(trk).toHaveCount(1);
+      await type(page, '¿Es frágil?');
+      await expect(page.getByText('Sí, la bici va bien protegida')).toBeVisible();
+      const go = trk.locator('button', { hasText: 'Voy a recogerla' });
+      await expect(go).toBeEnabled();
+      await expect(trk.locator('.lbw-once.is-stale')).toHaveCount(0);
+      await clickIn(page, '.lbw[data-widget="pedido"] .lbw-pill.is-primary'); await clickIn(page, '.lbw[data-widget="pedido"] .lbw-pill.is-primary');
+      await expect.poll(() => page.evaluate(() => window.__focusSent.map((s) => s.text))).toEqual(['Voy a recoger la bici']);
+      expect(await page.evaluate(() => window.__focusSent[0].fields)).toMatchObject({ estado: 'recogida', gx_orden: 'RN-2318' });
+      // a newer widget, after the visitor wrote: the older card goes quiet, as before
+      await expect(page.getByText('Perfecto, te esperamos en el taller')).toBeVisible();
+      await type(page, '¿Y mi otra bici?');
+      await expect(trk).toHaveCount(2);
+      await expect(trk.first()).toHaveClass(/\bis-old\b/);
+    });
+  });
+}

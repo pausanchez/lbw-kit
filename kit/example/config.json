@@ -1,5 +1,5 @@
 {
-  "$schema": "https://cdn.jsdelivr.net/gh/pausanchez/lbw-kit@v0.14.0.1/dist/lbw-kit.schema.json",
+  "$schema": "https://cdn.jsdelivr.net/gh/pausanchez/lbw-kit@v0.14.0.2/dist/lbw-kit.schema.json",
   "prefix": "np",
   "langs": ["en"],
   "defaultLang": "en",

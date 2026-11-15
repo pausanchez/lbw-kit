@@ -75,6 +75,8 @@ test('0.8.1.9 review: compare columns follow the items; a reply sits in its own 
 test('0.8.1.9 review: a card whose replies went stale with nothing sent is marked is-spent by the runtime', () => {
   const c = setup({ ch: { type: 'chips', items: { a: ['A', 'Say A'] } } });
   const m = draw(c, '[[t:ch q=a]]'); c.user('typed something'); c.LBW.scan();
+  assert.ok(!m.querySelector('.lbw').classList.contains('is-spent'), 'v0.14.0.2: the newest widget stays live after free text');
+  draw(c, 'Otra cosa: [[t:ch q=a]]');   // a newer widget: now the older one goes quiet, as before
   assert.ok(m.querySelector('.lbw').classList.contains('is-spent'));
   c.close();
 });

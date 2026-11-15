@@ -245,6 +245,8 @@ test('data (v0.9.3): a message the visitor sent before the data landed does not 
   const c = chat(cfg), m = draw(c, '[[p:tour id=kayak]]'); await wait(60);
   assert.equal(title(m), 'Kayak (copia guardada)');
   c.user('¿Y mañana?'); c.LBW.scan(); await wait(10);
+  assert.ok(!m.widgets()[0].querySelector('.lbw-once.is-stale'), 'v0.14.0.2: the newest card stays live after free text');
+  draw(c, 'Mira también: [[p:tour id=kayak]]'); await wait(10);   // a newer widget: the older card goes quiet, as before
   assert.ok(m.widgets()[0].querySelector('.lbw-once.is-stale'), 'the runtime quieted the saved copy');
   c.put('tours', TOURS); await wait(30);
   const w = m.widgets()[0];
@@ -261,6 +263,7 @@ test('data (v0.9.3): the same for a carousel: the visitor wrote, nobody pressed 
   const names = (m) => [...m.querySelectorAll('.lbw-name')].map((x) => x.textContent);
   const c = chat(cfg), m = draw(c, '[[p:rutas]]'); await wait(60);
   c.user('Hola'); c.LBW.scan(); await wait(10);
+  draw(c, 'Y esto: [[p:rutas]]'); await wait(10);   // v0.14.0.2: a newer widget is what quiets the older one
   c.put('rutas', [{ id: 'r1', name: 'Ruta del faro' }, { id: 'r2', name: 'Ruta del puerto' }]); await wait(30);
   const w = m.widgets()[0];
   assert.deepEqual(names(m), ['Ruta del faro', 'Ruta del puerto']); assert.equal(w.getAttribute('data-lbw-upgraded'), '1');

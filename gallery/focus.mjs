@@ -16,6 +16,7 @@ export const focusConfig = (config) => ({
       steps: ['Te escribimos para confirmar', 'Pagas al llegar'], note: 'Demo: no se reserva nada.', actions: ['call'],
       focus: { steps: STEPS, step: 'listo' },
     },
+    pedido: config.widgets.pedido,   // v0.14.0.2: a plain widget (no focus) whose buttons stay live after a free question
   },
 });
 
@@ -99,7 +100,7 @@ ${libCss}
     busy = true;
     var dots = document.createElement('div'); dots.className = 'typing'; dots.setAttribute('role', 'status'); dots.textContent = 'Escribiendo…';
     list.appendChild(dots); col.scrollTop = col.scrollHeight;
-    setTimeout(function () { dots.remove(); var m = /\\[\\[gx:(\\w+)/.exec(text); if (m) open = m[1] === 'reserva' ? null : m[1]; row('bot', text); setTimeout(next, 250); }, window.__focusDelay == null ? 600 : window.__focusDelay);
+    setTimeout(function () { dots.remove(); var m = /\\[\\[gx:(\\w+)/.exec(text); if (m) open = m[1] === 'plan' || m[1] === 'noches' ? m[1] : null; row('bot', text); setTimeout(next, 250); }, window.__focusDelay == null ? 600 : window.__focusDelay);
   }
   function answer(text) {
     if (/^Mi plan:/.test(text)) { open = null; return bot(['Perfecto: con ese plan, la cabaña de la vía verde te va bien. Elige tus noches: [[gx:noches]]']); }
@@ -108,6 +109,9 @@ ${libCss}
     var again = open && window.__focusRetag !== false ? ' [[gx:' + open + ']]' : '';   // tests: __focusRetag = false, an agent that forgot the tag
     if (/perr/i.test(text)) return bot(['Sí, admitimos perros pequeños sin coste; avísanos al llegar.' + (again ? ' Sigue cuando quieras:' + again : '')]);
     // dates said in words: the agent copies them into the tag (from= to=), and the calendar opens on that month with them picked
+    if (/^Voy a recoger/.test(text)) return bot(['Perfecto, te esperamos en el taller hasta las 20:00.']);
+    if (/bici|reparaci/i.test(text)) return bot(['Así va tu reparación: [[gx:pedido estado=lista orden=RN-2318]]']);
+    if (/frágil|fragil/i.test(text)) return bot(['Sí, la bici va bien protegida; cuando quieras, pasa a recogerla.']);
     if (/diciembre/i.test(text)) return bot(['Del 9 al 12 de diciembre hay sitio; te lo dejo marcado: [[gx:noches from=9/12/2026 to=12/12/2026]]']);
     if (/precio|cuest|€/i.test(text)) return bot(['Cada noche muestra su precio en el calendario; el total sale al elegir las fechas.' + again]);
     bot(['Te leo. ' + (again ? 'Seguimos donde estabas:' + again : '¿En qué más te ayudo?')]);
@@ -155,7 +159,7 @@ export function focusSection(config) {
         <li>Tipos con <code>focus</code>: form, calendar, slots, calc, review, compare y confirm. Cualquier tipo acepta <code>"actionRows": true</code> (botones en filas a lo ancho cuando el widget es estrecho).</li>
       </ul>
       <details><summary>El JSON de este ejemplo</summary><pre><code>${esc(json)}</code></pre></details>
-      <p class="watch"><strong>Prueba.</strong> Rellena el plan; en el calendario marca dos noches y escribe «¿Admitís perros?»: la copia nueva conserva tus noches. Luego escribe «¿Y en diciembre?».</p>
+      <p class="watch"><strong>Prueba.</strong> Rellena el plan; en el calendario marca dos noches y escribe «¿Admitís perros?»: la copia nueva conserva tus noches. Luego escribe «¿Y en diciembre?». Al final, «¿Cómo va mi bici?» y después «¿Es frágil?»: el botón del seguimiento sigue funcionando.</p>
     </div>
     <div class="stage is-frame"><iframe class="phone" src="focus.html" title="Demo de momentos de foco: una reserva dentro de una conversación"></iframe><p class="frame-note"><a href="focus.html">Abrir la demo a pantalla completa</a> · <a href="focus.html?dark=1">en oscuro</a></p></div>
   </div>

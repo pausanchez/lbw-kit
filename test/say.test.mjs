@@ -145,10 +145,12 @@ test('say (v0.9.4.1): the v4 chat\'s box is an <input>: typed there, never into 
   c.close();
 });
 
-test('once: chips nobody used go quiet when the visitor writes after them', () => {
+test('once: chips nobody used go quiet when the visitor writes after them and a newer widget is drawn', () => {
   const c = chat(), m = c.bot('Pick [[t:size]]');
   c.LBW.scan(); c.user('something else'); c.LBW.scan();
   const g = m.querySelector('.lbw-once');
+  assert.ok(!g.classList.contains('is-stale'), 'v0.14.0.2: still the newest widget, still live');
+  c.bot('Or [[t:size]]'); c.LBW.scan();
   assert.ok(g.classList.contains('is-stale'));
   assert.ok([...g.querySelectorAll('button')].every((b) => b.disabled));
   c.close();
