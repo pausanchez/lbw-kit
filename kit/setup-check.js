@@ -40,7 +40,7 @@
     slide: 'id img badge kicker name sub price save status desc reply link gallery until'.split(' '), compare: 'name values reply link img'.split(' ') };
   var NEED = { cards: [], table: [], form: ['steps', 'summary', 'cta'], contact: ['title'], chips: ['items'], carousel: [], calc: ['state', 'controls', 'result', 'send', 'cta'],
     stats: [], people: ['items'], consent: ['title', 'yes', 'no'], slots: ['cta', 'say'], confirm: ['form', 'title'], review: ['state', 'lines', 'send', 'cta'], chart: ['title', 'x', 'series'], compare: ['items', 'rows'], season: ['ranges'], rating: ['title', 'send'] };
-  KEYS.calendar = 'type cls lang kicker title cta note mode nights notice horizon months rates days closed unlisted priceFrom source send collapse allowDup params money words legend';   // v0.10; words, legend v0.13.0.1
+  KEYS.calendar = 'type cls lang kicker title cta note mode nights notice horizon months rates days closed unlisted priceFrom source send collapse allowDup params money words legend hidePast';   // v0.10; words, legend v0.13.0.1; hidePast v0.14.0.1
   NEED.calendar = ['cta', 'send'];
   NEED.map = ['places'];   // v0.10
   NEED.tracker = ['title', 'steps'];   // v0.10
@@ -906,6 +906,7 @@
           if (w.priceFrom != null && typeof w.priceFrom !== 'boolean') err('"priceFrom" is true (the total reads "from 654 €") or left out');
           // v0.13.0.1 · the kit's words, changed (a flight: "Pick your departure", "{n} days"), and "legend": false
           if (w.legend != null && w.legend !== false && w.legend !== true) err('"legend" is false (no key under the grid) or left out');
+          if (w.hidePast != null && typeof w.hidePast !== 'boolean') err('"hidePast" is true (the weeks before the first day that can be picked are left out) or false');
           if (w.words != null) {
             var CW = { pickIn: '', pickOut: '', pickDay: '', arrive: '{d}', night: '{n}', nights: '{n}', inDay: '', outDay: '', per: '', few: '', left: '{n}', left1: '{n}', full: '', closed: '', min: '{n}', max: '{n}', gap: '' };
             if (!isObj(w.words)) err('"words" is { "pickIn": "Pick your departure", "nights": "{n} days", … }: the kit\'s words, changed');

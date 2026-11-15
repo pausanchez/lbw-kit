@@ -9,7 +9,7 @@ export const focusConfig = (config) => ({
   widgets: {
     plan: { ...config.widgets.plan, kicker: '', title: '¿Qué escapada buscas?', note: 'Tres toques, sin datos personales.',
       focus: { title: 'Tu escapada', steps: STEPS, step: 'plan' } },
-    noches: { ...config.widgets.noches, kicker: '', focus: { title: 'Elige tus noches', steps: STEPS, step: 'noches' } },
+    noches: { ...config.widgets.noches, kicker: '', hidePast: true, focus: { title: 'Elige tus noches', steps: STEPS, step: 'noches' } },
     reserva: {
       type: 'confirm', style: 'pass', form: 'noches', status: 'Reserva recibida', title: 'Cabaña de la vía verde',
       rows: [['Llegada', '{from:date}'], ['Salida', '{to:date}'], ['Noches', '{nights}']],
@@ -107,6 +107,8 @@ ${libCss}
     // a free question: a useful answer, then the open moment again (its older copy goes inert)
     var again = open && window.__focusRetag !== false ? ' [[gx:' + open + ']]' : '';   // tests: __focusRetag = false, an agent that forgot the tag
     if (/perr/i.test(text)) return bot(['Sí, admitimos perros pequeños sin coste; avísanos al llegar.' + (again ? ' Sigue cuando quieras:' + again : '')]);
+    // dates said in words: the agent copies them into the tag (from= to=), and the calendar opens on that month with them picked
+    if (/diciembre/i.test(text)) return bot(['Del 9 al 12 de diciembre hay sitio; te lo dejo marcado: [[gx:noches from=9/12/2026 to=12/12/2026]]']);
     if (/precio|cuest|€/i.test(text)) return bot(['Cada noche muestra su precio en el calendario; el total sale al elegir las fechas.' + again]);
     bot(['Te leo. ' + (again ? 'Seguimos donde estabas:' + again : '¿En qué más te ayudo?')]);
   }
@@ -146,13 +148,14 @@ export function focusSection(config) {
       <dl><div><dt>Cuándo</dt><dd>Una decisión con varios datos (fechas, personas, extras), revisar y confirmar, un configurador.</dd></div><div><dt>Cuándo no</dt><dd>Una respuesta normal o una sola elección: para eso, una tarjeta o chips.</dd></div></dl>
       <ul class="feat">
         <li>El paso viene del JSON (<code>"step": "noches"</code>) o del tag (<code>step=noches</code>), siempre de la lista cerrada de <code>focus.steps</code>. Otro valor se anota y se ignora.</li>
-        <li>Si el visitante pregunta algo a mitad, el agente responde y termina con el tag del momento otra vez: la copia nueva queda a la vista y la anterior se vuelve inerte (solo su título). Nunca hay dos juegos de controles vivos.</li>
+        <li>Si el visitante pregunta algo a mitad, el agente responde y termina con el tag del momento otra vez: la copia nueva <strong>conserva lo que ya había elegido</strong> (salvo lo que el tag cambie) y la anterior queda en una línea («Elige tus noches · Del 16 al 19 nov…»). Nunca hay dos juegos de controles vivos.</li>
+        <li>Fechas dichas con palabras: el agente las copia en el tag (<code>from=9/12/2026 to=12/12/2026</code>) y el calendario se abre en ese mes con la estancia marcada. Con <code>"hidePast": true</code> no enseña las semanas ya pasadas.</li>
         <li>Una pregunta escrita no cierra el momento: sus botones siguen funcionando hasta que se envía o se dibuja de nuevo.</li>
         <li>Accesible: es una región con nombre; el foco entra al llegar solo si no estás escribiendo en la caja; el recibo se anuncia con cortesía; sin animación con movimiento reducido.</li>
         <li>Tipos con <code>focus</code>: form, calendar, slots, calc, review, compare y confirm. Cualquier tipo acepta <code>"actionRows": true</code> (botones en filas a lo ancho cuando el widget es estrecho).</li>
       </ul>
       <details><summary>El JSON de este ejemplo</summary><pre><code>${esc(json)}</code></pre></details>
-      <p class="watch"><strong>Prueba.</strong> Rellena el plan; en el calendario, escribe «¿Admitís perros?» antes de elegir las noches y mira cómo responde el agente y qué pasa con la copia anterior.</p>
+      <p class="watch"><strong>Prueba.</strong> Rellena el plan; en el calendario marca dos noches y escribe «¿Admitís perros?»: la copia nueva conserva tus noches. Luego escribe «¿Y en diciembre?».</p>
     </div>
     <div class="stage is-frame"><iframe class="phone" src="focus.html" title="Demo de momentos de foco: una reserva dentro de una conversación"></iframe><p class="frame-note"><a href="focus.html">Abrir la demo a pantalla completa</a> · <a href="focus.html?dark=1">en oscuro</a></p></div>
   </div>

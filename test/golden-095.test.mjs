@@ -206,6 +206,9 @@ if (WRITE) {
       const fx = load(k);
       for (const mode of ['withData', 'noData']) {
         const got = await draw(fx, { withData: mode === 'withData' }), want = fx[mode];
+        // v0.14.0.1 · the one intended change: an older tracker (drawn again later) gets its one-line summary, .kit-gone (kit.css
+        // shows that line and hides the rest). Taken out here, every card is still byte for byte what v0.10.0 drew
+        for (const ph of ['now', 'late']) got[ph].forEach((x) => { if (x.html) x.html = x.html.replace(/<p class="kit-gone">.*?<\/p>/g, ''); });
         // compared as JSON: assert.deepEqual's diff of two long values that differ can take minutes
         same(got.result, want.result, mode + ': setup() answer');
         same(got.describe, want.describe, mode + ': describe()');

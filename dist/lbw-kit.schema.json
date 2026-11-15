@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cdn.jsdelivr.net/gh/pausanchez/lbw-kit@v0.14.0/dist/lbw-kit.schema.json",
-  "title": "lbw-kit config v0.14.0",
+  "$id": "https://cdn.jsdelivr.net/gh/pausanchez/lbw-kit@v0.14.0.1/dist/lbw-kit.schema.json",
+  "title": "lbw-kit config v0.14.0.1",
   "description": "A bot's widgets for LBW.kit.setup(config). Generated from the checker (kit/setup-check.js); `npm run check:config` is the full check.",
   "type": "object",
   "properties": {
@@ -4984,6 +4984,13 @@
         },
         "legend": {
           "description": "false: no key under the grid (\"few left\", \"full\", the price line).",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "hidePast": {
+          "description": "true: the weeks before the first day that can be picked are left out (less to scroll on a phone).",
           "type": [
             "boolean",
             "null"

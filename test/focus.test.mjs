@@ -132,7 +132,8 @@ test('focus: drawn again, the older copy goes inert (no control, its message unm
   assert.equal(m1.hasAttribute('data-lbw-focus'), false); assert.equal(m2.getAttribute('data-lbw-focus'), '');
   assert.ok(b.classList.contains('is-focus') && !b.classList.contains('is-inert'));
   assert.equal(c.d.querySelectorAll('.lbw.is-focus[data-widget="plan"]').length, 1);
-  const css = read('kit/kit.css'); assert.match(css, /\.lbw\.is-inert > \.lbw-box \*:not\(\.lbw-title\):not\(:has\(\.lbw-title\)\), \.lbw\.is-inert > \.lbw-actions \{ display: none !important; \}/);
+  const css = read('kit/kit.css'); assert.match(css, /\.lbw\.is-inert > \.lbw-box > :not\(\.kit-gone\), \.lbw\.is-inert > \.lbw-actions \{ display: none !important; \}/);
+  assert.equal(a.querySelector('.lbw-box > .kit-gone .kit-gone-t').textContent, 'Tu escapada', 'one line: its title');
   c.close();
 });
 
@@ -263,4 +264,114 @@ test('schema: "focus" on the seven types, "actionRows" on every type, "screen" k
   for (const t of ['cards', 'chips', 'tracker', 'rating']) { assert.equal(schema.$defs[t].properties.focus, undefined, t); assert.ok(schema.$defs[t].properties.actionRows, t); }
   assert.notDeepEqual(validate(schema, { ...BASE, widgets: { x: { ...W().justo, focus: { after: 'fold' } } } }), []);
   assert.notDeepEqual(validate(schema, { ...BASE, widgets: { x: { type: 'cards', item: { title: 'T' }, focus: true } } }), []);
+});
+
+// ── v0.14.0.1 · from two live bots ───────────────────────────────────────────────────────────────────
+const W2 = () => ({
+  ...W(),
+  viaje: { type: 'calc', title: 'Tu viaje', cta: 'Confirmar', focus: { title: 'Revisa tu viaje', steps: STEPS, step: 'listo' },
+    state: { adults: { min: 1, max: 9, default: 1, int: true }, kids: { min: 0, max: 9, default: 0, int: true }, cabin: { values: ['eco', 'plus'], default: 'eco' } },
+    controls: [{ stepper: 'adults', label: 'Adultos' }, { stepper: 'kids', label: 'Niños' }, { pick: 'cabin', title: 'Cabina', items: [['eco', 'Economy'], ['plus', 'Economy Plus']] }],
+    tables: { fare: { eco: 99, plus: 136 } }, compute: { total: '(adults + kids) * fare[cabin]' }, result: { total: ['Total', '{total} €'] },
+    send: { text: '{adults} adultos, {kids} niños, {cabin:label}: {total} €', fields: { a: '{adults}' } } },
+  hora: { type: 'slots', title: 'Entrega', cta: 'Reservar', say: { text: 'Entrega el {day:dmy} a las {from:time}', fields: { e: '{from:time}' } }, focus: true,
+    days: [{ date: '16/11/2026', slots: [['10:00', '11:00'], ['12:00', '13:00']] }, { date: '17/11/2026', slots: [['09:00', '10:00'], ['16:00', '17:00']] }] },
+  noches: { type: 'calendar', title: 'Noches', cta: 'Reservar', months: 1, horizon: 120, hidePast: true, focus: { title: 'Elige tus noches', steps: STEPS, step: 'dias' },
+    send: { text: 'Del {from:dmy} al {to:dmy}', fields: { ida: '{from:dmy}' } } },
+});
+const S2 = () => { const c = setup(W2()); c.w.__lbwToday = '14/11/2026'; return c; };
+const live = (c, n) => [...c.d.querySelectorAll(`.lbw.is-focus[data-widget="${n}"]`)].pop();
+
+test('carry: a redrawn moment keeps the visitor\'s live state (form picks, steppers, a pick, slots, a calendar range); the tag\'s new values win', async () => {
+  const c = S2(); assert.equal(c.result.ok, true, JSON.stringify(c.result.errors));
+  // a calc: 2 adults + 1 child + Economy Plus, then a question, then the same tag again
+  const v1 = c.draw('[[s:viaje adults=1]]').widgets()[0];
+  const more = (w, i) => w.querySelectorAll('.lbw-step')[i].querySelectorAll('button')[1].click();
+  more(v1, 0); more(v1, 1); v1.querySelector('[data-k="plus"]').click(); await wait(10);
+  c.say('¿Hay reembolso?'); const v2 = c.draw('No en esta tarifa. [[s:viaje adults=1]]').widgets()[0]; await wait(10);
+  assert.deepEqual([...v2.querySelectorAll('.lbw-step-n')].map((x) => x.textContent), ['2', '1'], 'steppers carried');
+  assert.equal(v2.querySelector('[data-k="plus"]').getAttribute('aria-checked'), 'true', 'the pick carried');
+  assert.match(v2.textContent, /408 €/);
+  assert.deepEqual(json(v2.__carried), ['adults', 'kids', 'cabin']);
+  // the agent writes another value: that key takes it, the rest stay
+  c.say('Somos tres adultos'); const v3 = c.draw('[[s:viaje adults=3]]').widgets()[0]; await wait(10);
+  assert.deepEqual([...v3.querySelectorAll('.lbw-step-n')].map((x) => x.textContent), ['3', '1']);
+  assert.equal(v3.querySelector('[data-k="plus"]').getAttribute('aria-checked'), 'true');
+  // a form's pick
+  const f1 = c.draw('[[s:plan]]').widgets()[0]; pick(f1, 'duro'); await wait(5);
+  c.say('?'); const f2 = c.draw('[[s:plan]]').widgets()[0];
+  assert.equal(f2.querySelector('[data-k="duro"]').getAttribute('aria-checked'), 'true');
+  // slots: the day and the time
+  const s1 = c.draw('[[s:hora]]').widgets()[0]; [...s1.querySelectorAll('[role="radio"]')].find((b) => /17/.test(b.getAttribute('aria-label') || '')).click(); await wait(5);
+  [...s1.querySelectorAll('.kit-slot')].find((b) => /16:00/.test(b.textContent)).click(); await wait(5);
+  c.say('¿Dejáis el paquete al vecino?'); const s2 = c.draw('[[s:hora]]').widgets()[0];
+  assert.match(s2.querySelector('.kit-slot[aria-checked="true"]').textContent, /16:00/);
+  // a calendar range: carried, unless the tag presets another one
+  const d = (w, n) => w.querySelector(`[data-day="${Math.floor(Date.UTC(2026, 10, n) / 864e5)}"]`);
+  const k1 = c.draw('[[s:noches]]').widgets()[0]; d(k1, 18).click(); d(k1, 20).click(); await wait(5);
+  c.say('¿Perros?'); const k2 = c.draw('[[s:noches]]').widgets()[0];
+  assert.equal(d(k2, 18).getAttribute('aria-pressed'), 'true'); assert.equal(d(k2, 20).getAttribute('aria-pressed'), 'true');
+  c.say('Mejor del 23 al 25'); const k3 = c.draw('[[s:noches from=23/11/2026 to=25/11/2026]]').widgets()[0];
+  assert.equal(d(k3, 23).getAttribute('aria-pressed'), 'true'); assert.equal(d(k3, 18).getAttribute('aria-pressed'), null);
+  c.close();
+});
+
+test('carry: only from an open focus moment of the same name; a value that no longer fits is dropped', async () => {
+  const c = S2();
+  const f1 = c.draw('[[s:plan]]').widgets()[0]; pick(f1, 'duro'); await wait(5); f1.querySelector('.lbw-cta').click(); await wait(400);
+  c.say('Otra'); const f2 = c.draw('[[s:plan]]').widgets()[0];
+  assert.equal(f2.querySelector('[data-k="duro"]').getAttribute('aria-checked'), 'false', 'a sent moment hands nothing over');
+  c.close();
+});
+
+test('superseded: an older copy, or an open moment followed by a newer one, is one line "Title · what it had"; trackers too', async () => {
+  const c = S2();
+  const f1 = c.draw('[[s:plan]]').widgets()[0]; pick(f1, 'suave'); await wait(5);
+  c.say('Barcelona a Roma, somos dos'); c.draw('[[s:noches]]');
+  assert.ok(f1.classList.contains('is-inert'), 'another moment supersedes an open one');
+  assert.equal(f1.querySelector('.kit-gone').textContent, 'Tu escapadaSuave');
+  assert.equal(f1.querySelector('.kit-gone-s').textContent, 'Suave');
+  const t = setup({ pedido: { type: 'tracker', title: 'Pedido', ref: { param: 'ref' }, steps: [{ key: 'a', label: 'Hecho' }, { key: 'b', label: 'En reparto' }] } });
+  const o1 = t.draw('[[s:pedido estado=a ref=48213]]').widgets()[0]; const o2 = t.draw('[[s:pedido estado=b ref=48213]]').widgets()[0]; await wait(5);
+  assert.ok(o1.classList.contains('is-old')); assert.match(o1.querySelector('.kit-gone-t').textContent, /^Pedido .*48213$/);
+  assert.equal(o1.querySelector('.kit-trk-upd').textContent, 'Actualizado: En reparto'); assert.equal(o2.querySelector('.kit-gone'), null);
+  assert.match(read('kit/kit.css'), /\.lbw\.kit-tracker\.is-old > \.lbw-box > :not\(\.kit-gone\):not\(\.kit-trk-upd\)/);
+  c.close(); t.close();
+});
+
+test('one echo: a receipt drops its sentence once the visitor\'s own bubble says it; it stays when no bubble does', async () => {
+  const c = S2(); const m = c.draw('[[s:justo]]'), w = m.widgets()[0];
+  pick(w, 'a'); await wait(5); w.querySelector('.lbw-cta').click(); await wait(500);
+  const ln = w.querySelector('.kit-sentline'); assert.ok(!ln.classList.contains('is-echoed'), 'no bubble yet');
+  c.user('Elijo A'); await wait(1000);
+  assert.ok(ln.classList.contains('is-echoed'));
+  assert.match(read('kit/kit.css'), /\.kit-sentline\.is-echoed \.kit-sent-t \{ display: none; \}/);
+  c.close();
+});
+
+test('one counter: a moment with steps hides a compact form\'s "1 / 2"; spent and superseded cards drop their hint', () => {
+  const c = setup({ two: { type: 'form', title: 'Dos', cta: 'Enviar', focus: { steps: STEPS, step: 'plan' },
+    steps: [{ key: 'a', title: 'A', items: [['x', 'X'], ['y', 'Y']] }, { key: 'b', title: 'B', items: [['x', 'X'], ['y', 'Y']] }], summary: '{a} {b}' } });
+  const w = c.draw('[[s:two]]').widgets()[0];
+  assert.ok(w.classList.contains('has-steps') && w.querySelector('.kit-stepn'));
+  const css = read('kit/kit.css');
+  assert.match(css, /\.lbw\.is-focus\.has-steps \.kit-stepn \{ display: none; \}/);
+  assert.match(css, /:is\(\.lbw\.is-spent, \.lbw\.is-inert\) \.lbw-cta:not\(\.is-sent\)/);
+  c.close();
+});
+
+test('calendar: "hidePast" leaves out the weeks with no day to pick; a preset opens on its month; checked', () => {
+  const c = S2();
+  const w = c.draw('[[s:noches]]').widgets()[0];
+  const days = [...w.querySelectorAll('.kit-cal-d')].map((b) => +b.getAttribute('data-day')), first = Math.floor(Date.UTC(2026, 10, 9) / 864e5);
+  assert.ok(Math.min(...days) >= first, 'the weeks before 9 Nov (none can be picked) are gone');
+  const x = c.draw('[[s:noches from=4/12/2026 to=6/12/2026]]').widgets()[0];
+  assert.equal(x.querySelector('.kit-cal-cap').textContent, 'Diciembre de 2026');
+  assert.deepEqual(c.check({ k: { ...W2().noches, hidePast: 'yes' } }), ['k: "hidePast" is true (the weeks before the first day that can be picked are left out) or false']);
+  c.close();
+});
+
+test('text: the library\'s smallest text is a token, 14px; no label or caption is set under it', () => {
+  assert.match(read('runtime/lbw.css'), /--lbw-text-min: 14px;/);
+  for (const f of ['runtime/lbw.css', 'kit/kit.css']) assert.doesNotMatch(read(f), /font(-size)?:[^;]*\b(1[0-3]|[0-9])px/, f);
 });

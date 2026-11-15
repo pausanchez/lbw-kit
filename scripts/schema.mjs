@@ -260,6 +260,7 @@ function own(t) {
         full: text('"full".'), closed: text('"closed".'), min: text('"At least {n} nights", with {n}.'), max: text('"At most {n} nights", with {n}.'),
         gap: text('"Some nights in between are not available".') }),
       legend: bool('false: no key under the grid ("few left", "full", the price line).'),
+      hidePast: bool('true: the weeks before the first day that can be picked are left out (less to scroll on a phone).'),
       source: strict('Days from LBW.data: { "data", "map": { "date", "price", "state", "left" } }.', { data: any('A key of LBW.data, or { "param" }.', 'LbwText | { param: string }'),
         wait: num('ms.'), upgrade: num('ms.'), path: any('The dotted key of the list.', 'LbwText'), map: obj('{ "date": "{fecha}", … }.'), max: int('Rows read.', 1, 2000) }, ['data']),
       send: strict('{ "text", "fields" } over {from} {to} {day} {nights} {total} {price} {summary}.', { text: text('The sentence sent.'), fields: obj('Saved in Landbot.') }, ['text', 'fields']) },

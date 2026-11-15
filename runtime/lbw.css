@@ -1,4 +1,4 @@
-/* lbw.css · base look for Landbot AI Widgets (v0.14.0)
+/* lbw.css · base look for Landbot AI Widgets (v0.14.0.1)
    The ChatKit-gallery language measured in four production experiments: white cards, 18px radius, a hairline and a soft shadow; a small
    kicker above an 18px title; pill buttons (primary filled, secondary an inset ring) under the card. Re-skin it by
    overriding the variables below in your Custom CSS; keep the class names, the test harness reads some of them. */
@@ -35,6 +35,7 @@
   --lbw-shadow-1: 0 1px 2px rgba(0,0,0,.06);                /* a card at rest */
   --lbw-shadow-2: 0 4px 8px -2px rgba(0,0,0,.1);            /* raised: a sticky footer, a selected tile */
   /* --lbw-foot-bg: the sticky total-and-CTA footer of a compact calc or review. Unset, it is the card */
+  --lbw-text-min: 14px;         /* v0.14.0.1 · the smallest text the library draws (labels, captions, prices in a calendar day): 14px */
   --lbw-title-xl: 28px;         /* v0.14 · a large title: the line a visitor came for (an ETA, a total), with .lbw-title-xl or a tracker's "eta": { "big": true } */
   /* /v0.10 · density tokens */
 }
@@ -50,11 +51,11 @@
 .lbw:has(.lbw-strip), .lbw.lbw-split { max-width: none; }
 .lbw-box > p { max-width: 62ch; }
 .lbw-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin: 0 0 10px; }
-.lbw-kicker { font: 600 12px/16px var(--lbw-font); letter-spacing: .04em; text-transform: uppercase; color: var(--lbw-accent-text, var(--lbw-accent)); }
+.lbw-kicker { font: 600 var(--lbw-text-min, 14px)/1.3 var(--lbw-font); letter-spacing: .04em; text-transform: uppercase; color: var(--lbw-accent-text, var(--lbw-accent)); }
 .lbw-title { margin-top: 2px; font: 600 18px/24px var(--lbw-display); letter-spacing: -.01em; }
-.lbw-muted { color: var(--lbw-muted); font-size: 13px; line-height: 18px; }
+.lbw-muted { color: var(--lbw-muted); font-size: var(--lbw-text-min, 14px); line-height: 18px; }
 .lbw-rows { margin: 0; border-top: 1px solid var(--lbw-line); }
-.lbw-rows > div { display: grid; grid-template-columns: minmax(72px, 34%) 1fr; gap: 10px; padding: 7px 0; font-size: 13px; line-height: 18px; }
+.lbw-rows > div { display: grid; grid-template-columns: minmax(72px, 34%) 1fr; gap: 10px; padding: 7px 0; font-size: var(--lbw-text-min, 14px); line-height: 18px; }
 .lbw-rows > div + div { border-top: 1px solid var(--lbw-hair, rgba(13,13,13,.06)); }
 .lbw-rows dt { color: var(--lbw-muted); } .lbw-rows dd { margin: 0; font-weight: 600; text-wrap: balance; }
 .lbw-img { overflow: hidden; background: var(--lbw-soft); }
@@ -79,7 +80,7 @@
 .lbw-once.is-done .lbw-pill:not(.is-sent), .lbw-once.is-stale .lbw-pill { opacity: 1; background: transparent !important; color: var(--lbw-muted) !important; box-shadow: none !important; cursor: default; font-weight: 400; }   /* v0.8.1.6: 400, not 500 (the house weights are 400/600/700). Same height, padding and font size as before. No box at all: a box means "can be pressed" (live: a ring or a fill; disabled: a faint ring): older cards must not change size when the visitor writes */
 .lbw-chips { display: flex; flex-wrap: wrap; gap: 8px; }
 /* toggles (multi-select) */
-.lbw-tog { min-height: 44px; padding: 9px 14px; border: 0; border-radius: var(--lbw-radius-pill); background: var(--lbw-pill-bg, #fff); box-shadow: inset 0 0 0 1px var(--lbw-pill-ring, var(--lbw-control)); font: 600 13px/1.2 var(--lbw-font); color: var(--lbw-accent-text, var(--lbw-accent)); cursor: pointer; }   /* v0.8.1.7: tappable, so the accent (was the ink) */
+.lbw-tog { min-height: 44px; padding: 9px 14px; border: 0; border-radius: var(--lbw-radius-pill); background: var(--lbw-pill-bg, #fff); box-shadow: inset 0 0 0 1px var(--lbw-pill-ring, var(--lbw-control)); font: 600 var(--lbw-text-min, 14px)/1.2 var(--lbw-font); color: var(--lbw-accent-text, var(--lbw-accent)); cursor: pointer; }   /* v0.8.1.7: tappable, so the accent (was the ink) */
 .lbw-tog[aria-pressed="true"], .lbw-tog[aria-checked="true"] { background: var(--lbw-tint); color: var(--lbw-ink); box-shadow: inset 0 0 0 2px var(--lbw-accent-text, var(--lbw-accent)); }   /* a selection: tint, ring and tick. The filled accent is for the card's one primary action */
 .lbw-tog[aria-pressed="true"], .lbw-tog[aria-checked="true"] { padding-inline: 8px; }
 .lbw-tog[aria-pressed="true"]::before, .lbw-tog[aria-checked="true"]::before { content: "✓ "; white-space: pre; }
@@ -91,7 +92,7 @@
 .lbw-slide .lbw-img { aspect-ratio: 16 / 10; }
 .lbw-slide-body { display: flex; flex-direction: column; flex: 1; padding: 12px 14px 14px; }
 .lbw-slide .lbw-actions { margin-top: auto; padding-top: 10px; flex-wrap: nowrap; }
-.lbw-slide .lbw-pill { flex: 1; min-width: 0; min-height: 44px; padding: 6px 10px; font-size: 13px; line-height: 1.2; text-align: center; overflow-wrap: anywhere; }   /* v0.9.5: a long label wraps inside the slide (WCAG 1.4.12: an ellipsis cut it under text-spacing overrides; was nowrap + … since v0.8.1.7) */   /* v0.8.1.7: a long label ends in … inside the slide, never past its edge ("On the website ↗" ran 40 px out) */
+.lbw-slide .lbw-pill { flex: 1; min-width: 0; min-height: 44px; padding: 6px 10px; font-size: var(--lbw-text-min, 14px); line-height: 1.2; text-align: center; overflow-wrap: anywhere; }   /* v0.9.5: a long label wraps inside the slide (WCAG 1.4.12: an ellipsis cut it under text-spacing overrides; was nowrap + … since v0.8.1.7) */   /* v0.8.1.7: a long label ends in … inside the slide, never past its edge ("On the website ↗" ran 40 px out) */
 .lbw-slide .lbw-pill.is-sent { padding-inline: 3px; }   /* v0.8.1.5: a sent slide button doesn't grow by its ✓ */
 .lbw-name { font: 600 14px/20px var(--lbw-font); margin: 2px 0 6px; }
 .lbw-price { font: 700 18px/24px var(--lbw-font); color: var(--lbw-accent-text, var(--lbw-accent)); }
@@ -123,7 +124,7 @@
 .lbw-form > .lbw-cta:disabled:not(.is-sent), .lbw-form > .lbw-cta[aria-disabled="true"]:not(.is-sent) { background: var(--lbw-soft, #F5F5F7); color: var(--lbw-muted) !important; box-shadow: none; font-weight: 400; }
 .lbw-form > .lbw-cta:disabled:not(.is-sent)::before, .lbw-form > .lbw-cta[aria-disabled="true"]:not(.is-sent)::before { content: "↑ "; white-space: pre; }   /* v0.8.1.13 · a ring and a question read as a text box (Callan critique): a soft fill and an arrow up to what is missing */   /* v0.8.1.7: 400 (house weights). Not ready yet: a faint ring and a label that says what is missing; a pale full-width bar read as a dead end (v0.8.1.3) */
 .lbw-step { display: flex; align-items: center; gap: 8px; }
-.lbw-step-l { flex: 1; display: flex; flex-direction: column; font-size: 14px; line-height: 18px; min-width: 0; } .lbw-step-l .lbw-muted { font-size: 12px; }
+.lbw-step-l { flex: 1; display: flex; flex-direction: column; font-size: 14px; line-height: 18px; min-width: 0; } .lbw-step-l .lbw-muted { font-size: var(--lbw-text-min, 14px); }
 .lbw-step-b { width: 44px; height: 44px; flex: none; border: 0; border-radius: 50%; background: var(--lbw-pill-bg, #fff); box-shadow: inset 0 0 0 1px var(--lbw-pill-ring, var(--lbw-control)); font: 600 18px/1 var(--lbw-font); color: var(--lbw-ink); cursor: pointer; }
 .lbw-step-b:disabled { opacity: 1; background: transparent; color: var(--lbw-muted); box-shadow: inset 0 0 0 1px var(--lbw-line); cursor: default; }   /* a soft fill read as "selected" on a tinted theme */
 .lbw-step-n { min-width: 24px; text-align: center; font-weight: 700; }
@@ -134,7 +135,7 @@
 .lbw [tabindex="-1"]:focus { outline: none; }
 .lbw button, .lbw a, .lbw select { scroll-margin-block: 72px; }   /* 2.4.11: a focused control is not hidden under the chat's header or composer */
 /* v0.9.5 · a send that failed: "Not sent. · Retry" under the control (lbw.js unmark); the control is no longer marked sent */
-.lbw-unsent { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 8px 0 0; font: 400 13px/18px var(--lbw-font); color: var(--lbw-muted); }
+.lbw-unsent { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 8px 0 0; font: 400 var(--lbw-text-min, 14px)/1.35 var(--lbw-font); color: var(--lbw-muted); }
 /* v0.9.5.2 · the line goes after the control that failed: inside a row of buttons that doesn't wrap (a slide's footer) it squeezed
    that button to one letter. It takes a line of its own, and its row may wrap while it is there */
 .lbw-unsent { flex: 1 0 100%; min-width: 0; }
@@ -211,12 +212,12 @@
 /* failed: its own state. The pill keeps its label with an alert ring; the "Not sent · Retry" line comes in under it */
 .lbw-pill.is-unsent { box-shadow: inset 0 0 0 1.5px var(--lbw-alert, var(--kit-danger-c, #B42318)); }
 .lbw-pill.is-primary.is-unsent { box-shadow: 0 0 0 2px var(--lbw-card), 0 0 0 3.5px var(--lbw-alert, var(--kit-danger-c, #B42318)); }   /* a filled pill: the ring outside it */
-.lbw-unsent::before { content: "!"; flex: none; display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--lbw-alert, var(--kit-danger-c, #B42318)); color: var(--lbw-card); font: 700 12px/1 var(--lbw-font); }
+.lbw-unsent::before { content: "!"; flex: none; display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--lbw-alert, var(--kit-danger-c, #B42318)); color: var(--lbw-card); font: 700 var(--lbw-text-min, 14px)/1 var(--lbw-font); }
 .lbw-unsent > span { color: var(--lbw-ink); }
 .lbw-motion .lbw-unsent:not(.lbw-played) { animation: lbw-rise var(--lbw-dur) var(--lbw-ease) both; }
 
 /* 4 · done: a receipt with a check that draws itself ("Sent · 21:04") on a card whose job is finished */
-.lbw-receipt:not(.kit-sentline) { display: flex; align-items: center; gap: 8px; margin-top: 12px; font: 600 13px/18px var(--lbw-font); color: var(--lbw-ink); }
+.lbw-receipt:not(.kit-sentline) { display: flex; align-items: center; gap: 8px; margin-top: 12px; font: 600 var(--lbw-text-min, 14px)/1.35 var(--lbw-font); color: var(--lbw-ink); }
 .lbw-check { flex: none; display: inline-flex; width: 20px; height: 20px; color: var(--lbw-done, var(--kit-ok-c, #1F7A45)); align-self: center; }
 .lbw-check svg { display: block; width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .lbw-check circle { stroke-width: 1.4; opacity: .45; }

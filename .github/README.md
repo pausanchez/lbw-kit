@@ -21,14 +21,14 @@ Pin the version in the URL (never `@latest`) and keep `integrity` and `crossorig
 Custom JS:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/pausanchez/lbw-kit@v0.14.0/dist/lbw-kit.min.js" integrity="sha384-aC01Xe4nxMoL5p0LI8T6KgkxEoCFdacwtqX1MLAyFEMebVj9cnmR6HM3yEBjGKEH" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/gh/pausanchez/lbw-kit@v0.14.0.1/dist/lbw-kit.min.js" integrity="sha384-100iYEI5j011C5UHi4AqMxfmrvj2RUdJYl/YS4Y+pDEAzTlXbRXplKMBpYn2Au7F" crossorigin="anonymous"></script>
 <script>LBW.landbot&&LBW.landbot(this);LBW.kit.setup({ …your config… })</script>
 ```
 
 Custom CSS, first line:
 
 ```css
-@import url("https://cdn.jsdelivr.net/gh/pausanchez/lbw-kit@v0.14.0/dist/lbw-kit.min.css");
+@import url("https://cdn.jsdelivr.net/gh/pausanchez/lbw-kit@v0.14.0.1/dist/lbw-kit.min.css");
 ```
 
 `npm run bot` writes both for you, with the fallback script that removes raw tags if the library fails to load.
@@ -100,13 +100,13 @@ Since v0.14 a `form`, `calendar`, `slots`, `calc`, `review`, `compare` or `confi
 "dates": { "type": "calendar", "…": "…", "focus": { "title": "Pick your nights", "steps": [["plan", "Your plan"], ["dates", "Dates"], ["done", "Done"]], "step": "dates" } }
 ```
 
-Use one for a decision with several inputs, a review & confirm or a configurator; never for a normal answer or a single choice (a card, chips). If the visitor asks something mid-moment, the agent answers and ends with the moment's tag again: the newest copy is in view and the older one goes inert, so there is never a second set of live buttons. Landbot's header, history, text box and scroll are never touched. Every key: [reference/types](https://github.com/pausanchez/lbw-kit/blob/main/reference/types/README.md#focus-moments-the-focus-key). Try the conversation in [the gallery](https://pausanchez.github.io/lbw-kit/).
+If the agent draws it again, the new copy keeps what the visitor already picked (unless the tag changed that value) and the older one shrinks to one line. Use one for a decision with several inputs, a review & confirm or a configurator; never for a normal answer or a single choice (a card, chips). If the visitor asks something mid-moment, the agent answers and ends with the moment's tag again: the newest copy is in view and the older one goes inert, so there is never a second set of live buttons. Landbot's header, history, text box and scroll are never touched. Every key: [reference/types](https://github.com/pausanchez/lbw-kit/blob/main/reference/types/README.md#focus-moments-the-focus-key). Try the conversation in [the gallery](https://pausanchez.github.io/lbw-kit/).
 
 v0.13's screen mode (`"screen"`) was removed in v0.14: `check:config` warns and `setup()` ignores the key.
 
 ## Editor support
 
-- **JSON Schema:** start a config with `"$schema": "https://cdn.jsdelivr.net/gh/pausanchez/lbw-kit@v0.14.0/dist/lbw-kit.schema.json"` for completion and inline errors in your editor. It checks structure and keys; `npm run check:config` also checks what depends on the rest of the config (names, links, formulas).
+- **JSON Schema:** start a config with `"$schema": "https://cdn.jsdelivr.net/gh/pausanchez/lbw-kit@v0.14.0.1/dist/lbw-kit.schema.json"` for completion and inline errors in your editor. It checks structure and keys; `npm run check:config` also checks what depends on the rest of the config (names, links, formulas).
 - **TypeScript:** `dist/lbw-kit.d.ts` types the global `LBW` and `LbwConfig`.
 - **For agents:** `npm run -s check:config -- config.json --json` prints `[{ widget, path, message, fix }]`, with "did you mean" for misspelt keys.
 

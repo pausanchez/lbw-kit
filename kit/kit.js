@@ -1,4 +1,4 @@
-/* AI Widgets kit v0.14.0 · on lbw.js v0.14.0 · the widgets every url-to-demo build rewrote, written once with options. Load it after lbw.js and before the
+/* AI Widgets kit v0.14.0.1 · on lbw.js v0.14.0.1 · the widgets every url-to-demo build rewrote, written once with options. Load it after lbw.js and before the
    client's widgets.js: custom_js = <script>lbw.js</script><script>kit.js</script><script>widgets.js</script>.
 
    Each maker registers a widget under the name you give it, from data you pass. Nothing here holds client facts.
@@ -94,7 +94,7 @@
     tracker: 'cls lang kicker title note param default ref eta steps states actions links live allowDup',   // v0.10
     rating: 'cls lang kicker title text kind min max labels say note allowDup'
   };
-  OPTS.calendar = 'cls lang kicker title cta note mode min max notice horizon months money priceFrom days closed send collapse allowDup';   // v0.10
+  OPTS.calendar = 'cls lang kicker title cta note mode min max notice horizon months money priceFrom days closed send collapse allowDup words legend hidePast';   // v0.10
   function checkCfg(maker, name, cfg, required) {
     if (!DEV) return; var ok = OPTS[maker].split(' '), where = maker + "('" + name + "')";
     Object.keys(cfg).forEach(function (k) { if (ok.indexOf(k) < 0) warn(where, 'unknown option "' + k + '" (ignored). Known: ' + ok.join(', ')); });
@@ -443,6 +443,10 @@
       var lang = langOf(cfg, ctx), o = U.card(lang, 'kit-formcard ' + cls), state = {}, pend = null;
       cfg.steps.forEach(function (s) { state[s.key] = s.multi ? [] : null; });
       if (cfg.preset) { var first = cfg.steps.filter(function (s) { return s.key === cfg.preset.step; })[0]; if (first) state[first.key] = p.one(cfg.preset.param, (val(first.items, state) || []).map(function (x) { return x[0]; })); }
+      carry(name, o, state, function (k, v) {   // v0.14.0.1: a pick still among the step's items (they may hang on earlier picks)
+        var st = cfg.steps.filter(function (x) { return x.key === k; })[0], ks = st ? (val(st.items, state) || []).map(function (x) { return x[0]; }) : null;
+        return !!ks && (st.multi ? Array.isArray(v) && v.every(function (x) { return ks.indexOf(x) >= 0; }) : ks.indexOf(v) >= 0);
+      });
       var f = U.form('kit-form', {
         state: state, cta: cfg.cta,
         ready: function (s) {
@@ -727,6 +731,12 @@
       if (!cfg.allowDup && dup(ctx, cls)) return null;
       var state = cfg.state(p, ctx); if (!state) return null;
       var lang = langOf(cfg, ctx), o = U.card(lang, 'kit-calc ' + cls), out = el('div', 'kit-out'), said = '', was = null;
+      carry(name, o, state, function (k, v) {   // v0.14.0.1: a stepper's number in its range, a pick among its items
+        var c = cfg.controls.filter(function (x) { return x.stepper === k || x.pick === k; })[0];
+        if (!c) return typeof v === typeof state[k];
+        if (c.stepper) return typeof v === 'number' && !(c.min != null && v < c.min) && !(c.max != null && v > c.max);
+        return (val(c.items, state, p, ctx) || []).some(function (it) { return it[0] === v; });
+      });
       var f = U.form('kit-calcform', { state: state, cta: cfg.cta, ready: cfg.ready,
         send: function (s) { var r = cfg.send(s); said = r && r[0]; return r; },
         sent: function (s) { if (cfg.collapse !== false && said) fold(o, said, lang); if (cfg.sent) cfg.sent(s); },
@@ -913,7 +923,11 @@
       if (!days.length) return null;
       var lang = langOf(cfg, ctx), w = words(lang), o = U.card(lang, 'kit-slots ' + cls), said = '', fmtT = function (m) { return T.format(m, cfg.sep, { h12: cfg.h12 }); };
       var dayLabel = function (n) { return D.format(n, lang, { weekday: 'short', day: 'numeric', month: 'short' }); };
-      var f = U.form('kit-slotform', { state: { day: days[0].day, from: null, to: null }, cta: cfg.cta,
+      // v0.14.0.1: a day and a free time the visitor picked in the open copy they asked a question from
+      var sst = carry(name, o, { day: days[0].day, from: null, to: null }, function (k, v) { return k === 'day' ? days.some(function (d) { return d.day === v; }) : typeof v === 'number'; });
+      var dd = days.filter(function (d) { return d.day === sst.day; })[0];
+      if (sst.from != null && !(dd && dd.slots.some(function (x) { return x[0] === sst.from && x[1] === sst.to && x[2] !== 'busy'; }))) sst.from = sst.to = null;
+      var f = U.form('kit-slotform', { state: sst, cta: cfg.cta,
         ready: function (s) { return s.from != null || w.pick; },
         send: function (s) { var sel = { day: s.day, from: s.from, to: s.to }, r = cfg.say(sel, ctx); said = r && r[0]; return r; },
         sent: function (s) {
@@ -921,7 +935,7 @@
           var ex = cfg.ics ? [U.ics(cfg.ics.label || '📅', { title: cfg.ics.title, day: s.day, from: s.from, to: s.to, where: cfg.ics.where, file: cfg.ics.file || 'visita' }, 'kit-sent-ics')] : [];
           if (cfg.collapse !== false && said) fold(o, said, lang, ex); if (cfg.sent) cfg.sent(s); } });
       U.head(o.box, cfg.kicker || '', cfg.title || ''); o.box.appendChild(f.el);
-      var dq = f.add(choice('', days.map(function (d) { return [String(d.day), dayLabel(d.day)]; }), String(days[0].day), function (k) { f.state.day = +k; f.state.from = f.state.to = null; drawDay(); f.update(); }, w.day));
+      var dq = f.add(choice('', days.map(function (d) { return [String(d.day), dayLabel(d.day)]; }), String(f.state.day), function (k) { f.state.day = +k; f.state.from = f.state.to = null; drawDay(); f.update(); }, w.day));
       if (dense(cfg)) {   // v0.10 · compact: the days as a date strip (weekday, a big day number, the month), the full date as each one's name
         o.classList.add('kit-dense'); dq.classList.add('kit-dates');
         [].forEach.call(dq.querySelectorAll('[role="radio"]'), function (b) {
@@ -934,7 +948,7 @@
       function drawDay() {
         list.textContent = ''; var d = days.filter(function (x) { return x.day === f.state.day; })[0]; if (!d) return;
         d.slots.slice().sort(function (a, b) { return a[0] - b[0]; }).forEach(function (sl) {
-          var busy = sl[2] === 'busy', t = fmtT(sl[0]) + '–' + fmtT(sl[1]), b = radio(U.btn((busy ? w.busy + ' · ' : '') + t, 'kit-slot' + (busy ? ' is-busy' : '')), false);
+          var busy = sl[2] === 'busy', t = fmtT(sl[0]) + '–' + fmtT(sl[1]), b = radio(U.btn((busy ? w.busy + ' · ' : '') + t, 'kit-slot' + (busy ? ' is-busy' : '')), !busy && f.state.from === sl[0] && f.state.to === sl[1]);
           if (busy) { b.disabled = true; b.setAttribute('aria-label', t + ' · ' + w.busy); }   // the time first, as on the free ones
           else b.addEventListener('click', function () { if (b.closest('.is-done')) return; [].forEach.call(list.children, function (x) { if (!x.disabled) x.setAttribute('aria-checked', x === b ? 'true' : 'false'); }); rove(); f.state.from = sl[0]; f.state.to = sl[1]; f.update(); });
           list.appendChild(b);
@@ -1007,6 +1021,10 @@
       if (!cfg.allowDup && dup(ctx, cls)) return null;
       var state = cfg.state(p, ctx); if (!state) return null;
       var lang = langOf(cfg, ctx), o = U.card(lang, 'kit-review ' + cls), said = '', vals = [], was = null, cpt = dense(cfg);
+      carry(name, o, state, function (k, v) {   // v0.14.0.1: a select's key among its items
+        var ln = cfg.lines.filter(function (x) { return x.select && x.select.key === k; })[0];
+        return ln ? ln.select.items.some(function (it) { return it[0] === v; }) : typeof v === typeof state[k];
+      });
       var f = U.form('kit-reviewform', { state: state, cta: cfg.cta, ready: cfg.ready,
         change: function (s) { vals.forEach(function (v) { v.node.textContent = v.fn(s); }); if (tot) { var t = cfg.total.value(s), shown = tot.textContent; tot.textContent = t; if (was != null) tick(tot, shown, t); if (was != null && t !== was) LBW.announce(cfg.total.label + ' ' + t, lang, 'total:' + name); was = t; } },   // v0.9.5
         send: function (s) { var r = cfg.send(s); said = r && r[0]; return r; },
@@ -1474,6 +1492,9 @@
             var b = U.btn('', 'kit-cal-d'); b.setAttribute('data-day', String(n)); b.tabIndex = -1;
             b.appendChild(el('span', 'kit-cal-n', String(D.parts(n).d))); b.appendChild(el('span', 'kit-cal-p')); td.appendChild(b);
           }
+          // v0.14.0.1 · "hidePast": a week with no day the visitor could pick yet (all before the first) is left out
+          if (cfg.hidePast) { var rs = [].slice.call(body.children), keepR = rs.filter(function (r) { return [].some.call(r.querySelectorAll('.kit-cal-d'), function (b) { return +b.getAttribute('data-day') >= first; }); });
+            if (keepR.length) rs.forEach(function (r) { if (keepR.indexOf(r) < 0) r.remove(); }); }
           t.appendChild(body); m.appendChild(t); return m;
         }
         function render() {
@@ -1535,6 +1556,11 @@
         if (pm && !(+pm[2] >= 1 && +pm[2] <= 12)) pm = null; if (p.has('month') && !pm) bad('month');
         if (pf != null && !night(pf)) pf = null; if (p.has('from') && pf == null) bad('from');
         if (pf != null) { f.state.from = pf; if (range && pt != null && why(pf, pt) == null) f.state.to = pt; else if (p.has('to') && range) bad('to'); }
+        // v0.14.0.1: drawn again as a focus moment, the range the visitor picked stays (unless the tag preset another one)
+        carry(name, o, f.state, function (k, v) { return typeof v === 'number'; });
+        if (f.state.from != null && !night(f.state.from)) f.state.from = f.state.to = null;
+        if (range && f.state.to != null && why(f.state.from, f.state.to) != null) f.state.to = null;
+        if (f.state.from != null) pf = f.state.from;
         view = pf != null ? ym(pf) : pm ? Math.max(firstM, Math.min(lastM, +pm[1] * 12 + +pm[2] - 1)) : ym(first); foc = pf;
         if (cfg.title) U.head(o.box, cfg.kicker || '', cfg.title);
         o.box.appendChild(f.el); f.add(grid);
@@ -1729,6 +1755,7 @@
       if (x === top) return; var u = x.querySelector('.kit-trk-upd') || x.box.insertBefore(el('p', 'kit-trk-upd'), x.box.firstChild);
       u.textContent = words(x.getAttribute('lang')).updated + ': ' + top.__trk.text;
       if (!x.classList.contains('is-old')) { x.classList.add('is-old'); quietAgain(x); }
+      var tt = x.querySelector('.lbw-title'), bd = x.querySelector('.lbw-head .kit-tag'); gone(x, (tt ? tt.textContent.trim() : '') + (bd ? ' ' + bd.textContent.trim() : ''), '');   // v0.14.0.1: an older copy is one line
     });
     if (o !== top) return;
     if (!o.__trkSeen) {   // the pulse runs once the card is on screen in a visible tab (kit.css: twice, then still; never with reduced motion)
@@ -1761,6 +1788,23 @@
         back(); if (q) quietAgain(o); o.setAttribute('data-lbw-upgraded', '1'); trkSettle(o, true);
       });
     });
+  }
+
+  // ── v0.14.0.1 · a focus moment drawn again keeps what the visitor set ─────────────────────────────────────
+  // carry(name, o, state, ok): when the newest open copy of the same widget is a focus moment, its live state is handed to the
+  // new copy, key by key: a key keeps the visitor's value unless the new tag changed it (its starting value differs from the old
+  // copy's starting value: the agent wrote another value), and only when ok(key, value) says it still fits. Every copy keeps
+  // its starting state (__init) and its live one (__live, the object its form changes). → the state, changed in place
+  function carry(name, o, state, ok) {
+    var init = JSON.parse(JSON.stringify(state)), prev = null, own = Object.prototype.hasOwnProperty;
+    [].forEach.call(document.querySelectorAll('.lbw.is-focus:not(.is-focus-done)'), function (x) { if (x.getAttribute('data-widget') === name && x.__live) prev = x; });
+    if (prev) Object.keys(prev.__live).forEach(function (k) {
+      if (!own.call(state, k) || JSON.stringify(init[k]) !== JSON.stringify(prev.__init[k])) return;
+      var v = prev.__live[k]; v = v == null ? v : JSON.parse(JSON.stringify(v));
+      if (JSON.stringify(v) === JSON.stringify(state[k]) || (v != null && ok && !ok(k, v))) return;
+      state[k] = v; o.__carried = (o.__carried || []).concat(k);
+    });
+    o.__init = init; o.__live = state; return state;
   }
 
   // ── v0.14 · focus moments: one widget, at one point of the conversation, as a focused task ─────────────
@@ -1804,11 +1848,32 @@
     var cta = o.querySelector('.lbw-cta');
     if (cta && !cta.closest('.kit-foot')) cta.classList.add('kit-dock');
     else if (!cta) { var pr = o.querySelector('.lbw-actions .is-primary'), row = pr && pr.closest('.lbw-actions'); if (row) row.classList.add('kit-dock'); }
+    if (top) o.classList.add('has-steps');   // v0.14.0.1: the moment's "Step 1 of 3" is the one counter (a compact form's "1 / 2" hides)
+    dockRoom(o);
     // done: any send from the moment (lbw.js marks the widget data-lbw-job); a send that fails opens it again
     if (typeof MutationObserver === 'function') new MutationObserver(function () {
       var j = o.getAttribute('data-lbw-job'); if (j === 'queued' || j === 'sending' || j === 'sent') momentDone(o); else momentOpen(o);
     }).observe(o, { attributes: true, attributeFilter: ['data-lbw-job'] });
     return o;
+  }
+  // v0.14.0.1 · the docked action never covers what the visitor just picked: its height is --lbw-dock-h on the moment (the
+  // controls' scroll-margin-bottom, so keyboard focus stops above it), and a pick it would cover is scrolled up just enough, in
+  // the chat's own scroller, as a reveal does (only after the visitor's own tap or key, never on its own)
+  function dockRoom(o) {
+    var dk = function () { return o.classList.contains('is-focus') && !o.classList.contains('is-focus-done') ? o.querySelector('.kit-dock, .kit-foot') : null; };
+    var size = function () { var d = dk(); if (d) o.style.setProperty('--lbw-dock-h', Math.round(d.getBoundingClientRect().height) + 'px'); };
+    if (typeof ResizeObserver === 'function') { try { var ro = new ResizeObserver(size), d0 = dk(); if (d0) ro.observe(d0); } catch (e) {} }
+    function keep(e) {
+      var t = e.target && e.target.closest ? e.target.closest('button, select, input, [role="radio"]') : null, d = dk(); if (!t || !d || d.contains(t)) return;
+      setTimeout(function () {
+        if (!t.isConnected || !dk()) return; var a = t.getBoundingClientRect(), b = d.getBoundingClientRect(); if (!a.height || !b.height) return;
+        size(); var over = a.bottom - b.top + 12; if (over <= 0 || a.top >= b.bottom) return;
+        var sc = scroller(o); if (!sc) return; var r0 = sc.getBoundingClientRect ? sc.getBoundingClientRect() : { top: 0 };
+        if (a.top - over < (sc === document.scrollingElement ? 0 : r0.top)) over = Math.max(0, a.top - (sc === document.scrollingElement ? 0 : r0.top) - 8);
+        if (over > 0) sc.scrollTop += over;
+      }, 30);
+    }
+    o.addEventListener('click', keep); o.addEventListener('change', keep);
   }
   function momentDone(o) {
     var f = o.__focus || {}, line = o.querySelector('.kit-sentline');
@@ -1830,15 +1895,35 @@
     if (o.classList.contains('is-inert')) return;
     o.classList.remove('is-focus-done', 'is-receipt'); o.classList.add('is-focus'); if (o.isConnected) LBW.host.mark(o, true);
   }
-  // an older copy of a moment, drawn again later: inert, its title only (no second set of live controls anywhere)
+  // v0.14.0.1 · what a card had, in a few words: a compact form's answers, the calendar's range, the time picked, a total
+  function gist(x) {
+    var out = [];
+    [].forEach.call(x.querySelectorAll('.kit-sum-a, .kit-cal-sum, .kit-slot[aria-checked="true"], .kit-foot-t strong, .kit-rtotal strong, .kit-out .kit-total strong'), function (n) {
+      var t = n.textContent.replace(/\s+/g, ' ').trim(); if (t && out.indexOf(t) < 0) out.push(t); });
+    if (!x.querySelector('.kit-sum-a')) [].forEach.call(x.querySelectorAll('.lbw-form [aria-checked="true"], .lbw-form [aria-pressed="true"]'), function (n) {
+      if (n.closest('.kit-cal-g, .kit-slotlist, .kit-dates')) return; var l = n.querySelector('.kit-opt-l'), t = (l || n).textContent.replace(/\s+/g, ' ').trim(); if (t && out.indexOf(t) < 0) out.push(t); });
+    return out.join(' · ').slice(0, 120);
+  }
+  // one line, "Title · what it had", at the top of a superseded card: CSS hides the rest (kit.css .is-inert, .kit-tracker.is-old)
+  function gone(x, title, what) {
+    var box = x.box || x.querySelector('.lbw-box'); if (!box) return null;
+    var g = box.querySelector(':scope > .kit-gone') || box.insertBefore(el('p', 'kit-gone'), box.firstChild); g.textContent = '';
+    if (title) g.appendChild(el('span', 'kit-gone-t', title)); if (what) g.appendChild(el('span', 'kit-gone-s', what));
+    return g;
+  }
+  // a superseded moment (drawn again later, or followed by a newer moment while still open): inert, one line that says what it
+  // had (no second set of live controls anywhere, no half-filled card left with "Step 1 of 3")
   function momentInert(x) {
+    var t = x.querySelector('.kit-focus-h, .lbw-title');
+    gone(x, t ? t.textContent.trim() : '', gist(x));
     x.classList.remove('is-focus'); x.classList.add('is-inert'); x.setAttribute('inert', ''); x.removeAttribute('aria-labelledby'); x.removeAttribute('aria-describedby'); x.removeAttribute('role');
     LBW.host.mark(x, false);
   }
   function arrive(o, name, msg) {
     if (!o || !o.classList.contains('is-focus')) return;
     var H = LBW.host; H.mark(o, true);
-    if (/^[a-z][a-z0-9_]*$/.test(name || '')) [].forEach.call(document.querySelectorAll('.lbw.is-focus[data-widget="' + name + '"]'), function (x) { if (x !== o && !x.classList.contains('is-focus-done') && !x.classList.contains('is-inert')) momentInert(x); });
+    // v0.14.0.1 · every open moment in an earlier message is superseded: an older copy of this one, or another the visitor left
+    [].forEach.call(document.querySelectorAll('.lbw.is-focus:not(.is-focus-done)'), function (x) { if (x !== o && H.messageOf(x) !== msg && (x.compareDocumentPosition(o) & 4)) momentInert(x); });
     // focus moves in on arrival (the newest message only), unless the visitor is in the text box or another field of the page,
     // or isn't in this document at all (a chat in an iframe, the visitor on the host page: focus is never pulled across)
     var all = H.messages(); if (all.length && all[all.length - 1] !== msg) return;
@@ -1847,9 +1932,23 @@
     if (!t || (a && a !== document.body && (a === H.input() || (a.matches && a.matches('input, textarea, select, [contenteditable="true"]') && !(a.closest && a.closest('.lbw')))))) return;
     try { t.focus({ preventScroll: true }); } catch (x) { try { t.focus(); } catch (x2) {} }
   }
-  LBW.on('render', function (e) { arrive(e.el, e.widget, e.message); });
+  LBW.on('render', function (e) { arrive(e.el, e.widget, e.message); echoes(); });
+  // v0.14.0.1 · one echo of what the visitor sent. The chat shows the visitor's own bubble (Landbot's, the conversation's
+  // record, which the kit never hides); a folded card's "Sent · 9:53 · <the sentence> · Show" right above it said it twice. So
+  // the line keeps its check, the time and Show, and drops the sentence once a visitor message after the card says the same
+  // (.is-echoed). With no such bubble (a send the chat didn't show) the sentence stays
+  var norm = function (t) { return String(t || '').replace(/\s+/g, ' ').trim(); };
+  function echoes() {
+    var H = LBW.host, users = H.messages(null, 'user');
+    if (!users.length) return;
+    [].forEach.call(document.querySelectorAll('.kit-sentline:not(.is-echoed)'), function (ln) {
+      var t = ln.querySelector('.kit-sent-t'), w = norm(t && t.textContent), m = H.messageOf(ln) || ln; if (!w) return;
+      if ([].some.call(users, function (u) { return (m.compareDocumentPosition(u) & 4) && norm(H.textOf(u)) === w; })) ln.classList.add('is-echoed');
+    });
+  }
+  LBW.on('say', function () { [400, 1200, 3000, 6000].forEach(function (ms) { setTimeout(echoes, ms); }); });
 
-  LBW.kit = { version: '0.14.0', dev: DEV, describe: describe, L: L, last: last, cards: cards, table: table, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent, compare: compare, season: season, rating: rating,
+  LBW.kit = { version: '0.14.0.1', dev: DEV, describe: describe, L: L, last: last, cards: cards, table: table, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent, compare: compare, season: season, rating: rating,
     h: { usedByVisitor: usedByVisitor, wasQuieted: wasQuieted, quietAgain: quietAgain, keepPlace: keepPlace, upgraded: upgraded, radioGroup: radioGroup, note: note, list: list, label: label, dup: dup, choice: choice, multiChoice: multiChoice, copyBox: copyBox, status: status, wa: wa, fill: fill, money: money, total: total, lightbox: lightbox, chart: chart, statusHead: statusHead,
       icon: icon, withIcon: withIcon, icons: Object.keys(ICONS), badge: badge, tones: TONES.slice() } };
   // v0.10 · live & numbers (its own line: other makers' exports stay where they are)

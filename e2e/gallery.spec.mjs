@@ -86,6 +86,23 @@ for (const width of WIDTHS) {
     test.use(viewportFor(width));
     const isSmoke = SMOKE_WIDTHS.includes(width);
 
+    // v0.14.0.1 · no text a widget draws is under 14 px (labels, captions, prices in a calendar day, badges)
+    test('every visible text in every widget is 14 px or more', async ({ gallery: page }) => {
+      const small = await page.evaluate(() => {
+        const out = [];
+        for (const w of document.querySelectorAll('.lbw')) {
+          const tw = document.createTreeWalker(w, NodeFilter.SHOW_TEXT); let n;
+          while ((n = tw.nextNode())) {
+            const e = n.parentElement; if (!n.nodeValue.trim() || !e.getClientRects().length || getComputedStyle(e).visibility === 'hidden') continue;
+            const r = e.getBoundingClientRect(); if (r.width <= 1 || r.height <= 1) continue;   // screen-reader only
+            const fs = parseFloat(getComputedStyle(e).fontSize); if (fs < 14) out.push(`${e.className || e.tagName} "${n.nodeValue.trim().slice(0, 20)}" ${fs}px`);
+          }
+        }
+        return [...new Set(out)];
+      });
+      expect(small).toEqual([]);
+    });
+
     test('every type is drawn: a widget per entry, no raw tag, no setup error', smoke(isSmoke), async ({ gallery: page }) => {
       const r = await page.evaluate(() => ({
         sections: [...document.querySelectorAll('section.type')].map((s) => ({ id: s.id, widgets: s.querySelectorAll('.chat .lbw[data-widget]').length })),
@@ -332,7 +349,11 @@ for (const width of SMOKE_WIDTHS) {
       const cards = chat(page, 'tracker').locator('.lbw[data-widget="pedido"]');
       await expect(cards.nth(0)).toHaveClass(/\bis-old\b/);
       await expect(cards.nth(0).locator('.kit-trk-upd')).toHaveText('Actualizado: Lista para recoger');
-      await expect(cards.nth(0).getByRole('button', { name: 'Avisadme cuando llegue' })).toBeDisabled();
+      // v0.14.0.1 · the older card is one line (its title, what it says now): its button is disabled and out of sight
+      await expect(cards.nth(0).locator('.kit-gone')).toBeVisible();
+      await expect(cards.nth(0).locator('button', { hasText: 'Avisadme cuando llegue' })).toBeDisabled();
+      await expect(cards.nth(0).locator('button', { hasText: 'Avisadme cuando llegue' })).toBeHidden();
+      expect((await cards.nth(0).boundingBox()).height).toBeLessThan(90);
       await expect(cards.nth(1)).not.toHaveClass(/\bis-old\b/);
       const go = cards.nth(1).getByRole('button', { name: 'Voy a recogerla' });
       await press(go);

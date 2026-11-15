@@ -430,7 +430,7 @@
     // lists only the days that can be booked. Or "source": { "data" } (a data message's rows, mapped like a table's), with
     // rates/days as the saved copy. "send" over {from} {to} {day} {nights} {total} {price} {summary}; prices in units (189.5)
     calendar: function (cfg, name, w, lang) {
-      var o = pick(w, ['cls', 'lang', 'kicker', 'title', 'cta', 'note', 'mode', 'notice', 'horizon', 'months', 'money', 'priceFrom', 'collapse', 'allowDup', 'words', 'legend']), D = LBW.day, src = w.source;
+      var o = pick(w, ['cls', 'lang', 'kicker', 'title', 'cta', 'note', 'mode', 'notice', 'horizon', 'months', 'money', 'priceFrom', 'collapse', 'allowDup', 'words', 'legend', 'hidePast']), D = LBW.day, src = w.source;
       if (isObj(w.nights)) { o.min = w.nights.min; o.max = w.nights.max; }
       if (isObj(w.closed)) { var wk = w.closed.weekdays || [], on = D.on(w.closed.dates || []); o.closed = function (n) { return wk.indexOf(D.parts(n).w) >= 0 || on(n); }; }
       var saved = w.rates || w.days ? { days: calMap(w.rates, w.days, name), unlisted: w.unlisted } : null;
