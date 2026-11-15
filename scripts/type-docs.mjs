@@ -206,7 +206,7 @@ export function pages() {
     const md = [
       `# \`${type}\``, '', def.description, '', prose, '', exampleMd, '',
       '## Keys', '',
-      table(def.properties, def.required || [], S), '',
+      table(Object.fromEntries(Object.entries(def.properties).filter(([, p]) => !p.deprecated)), def.required || [], S), '',   // v0.13's screen and step: ignored, not listed
       ...(needs.length ? [`Also needed: one of ${needs.join(', or ')}.`, ''] : []),
       `Every text may also be written by language (\`{ "en": …, "es": … }\`), and a key may be \`null\` to leave it out. A key not in this table is an error.`, '',
       ...(item ? [`## Item keys`, '', `${item.def.description}`, '', table(item.def.properties, item.def.required || [], S), ''] : []),
@@ -218,12 +218,11 @@ export function pages() {
   }
   const idx = ['# Widget types', '', 'One page per type: when to use it, the smallest working example, every key, and what the checker rejects. Generated from the schema and the checker by `scripts/type-docs.mjs`; the prose between `<!-- prose -->` markers is written by hand and kept.', '',
     '| Type | What it draws | Page |', '|---|---|---|', ...types.map((t) => `| \`${t}\` | ${cell(S.$defs[t].description)} | [${t}.md](${t}.md) |`), '',
-    // the top-level "screen" key: screen mode works with every type
-    '## Screen mode: the `screen` key', '', S.properties.screen.description, '',
-    table(S.properties.screen.properties, S.properties.screen.required || [], S), '',
-    '`screen.header`:', '', table(S.properties.screen.properties.header.properties, [], S), '',
-    'Every type also takes `"screen": false` (never the screen) and `"step"` (its step\'s id). A tag may name the step itself, `step=when` or `step=2`; any other value is logged and ignored. A step gets its ✓ once the visitor was on it and moved forward; a step jumped over reads as skipped. An agent\'s text between screens shows as a normal bubble under the current screen. "View conversation" opens the earlier messages above the screen and takes the visitor to their start (focused); folding them puts the screen back where it was. With `"hideHost": true` Landbot\'s own header hides while screen mode runs (nothing is hidden when the chat has no header hook; `LBW.host.check(null, { header: true })` reports it). The header and the bar keep to the chat\'s column on a wide window. If the chat\'s DOM is not what the library expects, or the `screen` key is wrong, the bot is a normal chat.', '',
-    'Theme tokens (each defaults to the card\'s): `--lbw-screen-head-bg`, `--lbw-screen-head-ink`, `--lbw-screen-head-muted`, `--lbw-screen-head-line`, `--lbw-screen-head-accent`, `--lbw-screen-head-track`, `--lbw-screen-bar-bg`, `--lbw-screen-bar-ink`, `--lbw-screen-bar-line`, `--lbw-screen-step-size`, `--lbw-screen-step-weight`; with `bleed`: `--lbw-screen-surface`, `--lbw-screen-gutter`, `--lbw-screen-pad`, `--lbw-screen-radius`, `--lbw-screen-title-ink`, `--lbw-screen-intro-ink`, `--lbw-screen-title-size`.', ''].join('\n');
+    // v0.14 · focus moments: a key of seven types
+    '## Focus moments: the `focus` key', '', 'Types that take it: ' + types.filter((t) => S.$defs[t].properties.focus).map((t) => `\`${t}\``).join(', ') + '.', '', S.$defs.form.properties.focus.description, '',
+    table(S.$defs.form.properties.focus.anyOf[1].properties, [], S), '',
+    'A tag may name the step itself, `step=fechas`, from the same closed list; any other value is logged and ignored. Everything happens inside the widget: Landbot\'s header, history, text box and scroll are never touched. When the same widget is drawn again (the agent answered a question mid-moment and ended with the tag again), the older copy goes inert and shows its title only. A send from the moment completes it. Every type also takes `"actionRows": true`: its buttons as full-width rows while it is narrow. v0.13\'s `"screen"` (and a widget\'s `"screen"` and `"step"`) were removed in v0.14: the checker warns and `setup()` ignores them.', '',
+    'Theme tokens: `--lbw-focus-surface` (the moment\'s background; the card\'s unset), `--lbw-focus-gutter` (how far it reaches past the message to the column\'s edges; 0), `--lbw-focus-title` (its title\'s size; 22px), `--lbw-focus-step` (the step line and bar\'s accent; the accent as text); `--lbw-title-xl` (a large title: `.lbw-title-xl`, a tracker\'s `"eta": { "big": true }`; 28px).', ''].join('\n');
   out[`${OUT}README.md`] = idx;
   return out;
 }

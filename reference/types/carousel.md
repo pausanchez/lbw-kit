@@ -76,8 +76,7 @@ The tag that draws it: `[[tn:bikes]]`
 | `live` |  | boolean | The "Live" chip beside the title. |
 | `style` |  | `"media"`, `"box"` (or by language) | "media" (photos lead, no box) or "box". |
 | `flow` |  | true or list of keys | true, or the list of keys its flow tag writes, e.g. ["texto", "lang"]. |
-| `screen` |  | boolean | Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one). |
-| `step` |  | string | Screen mode: the step this widget is, an id of "screen.header.steps" (a tag's step= wins). |
+| `actionRows` |  | boolean | true: the buttons as full-width rows while the widget is narrow (480 px or less); every focus moment does it. |
 
 Every text may also be written by language (`{ "en": …, "es": … }`), and a key may be `null` to leave it out. A key not in this table is an error.
 

@@ -81,8 +81,8 @@ The tag that draws it: `[[gx:alquiler]]`
 | `density` |  | `"compact"`, `"comfy"` (or by language) | "compact" (one question at a time, a footer with the total) or "comfy" (the v0.9.5 layout). |
 | `params` |  | object | Typed values the tag carries ({name} in any text): { "plazas": { "type": "int", "min": 0, "max": 99 } }. |
 | `flow` |  | true or list of keys | true, or the list of keys its flow tag writes, e.g. ["texto", "lang"]. |
-| `screen` |  | boolean | Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one). |
-| `step` |  | string | Screen mode: the step this widget is, an id of "screen.header.steps" (a tag's step= wins). |
+| `actionRows` |  | boolean | true: the buttons as full-width rows while the widget is narrow (480 px or less); every focus moment does it. |
+| `focus` |  | boolean or object | A focus moment: at this point of the conversation the widget is a focused task, drawn inside the widget (no card chrome, the column's width, its own title, the step, the primary action docked while it is taller than the chat). true, or { "title", "steps", "step", "after" }. |
 
 Every text may also be written by language (`{ "en": …, "es": … }`), and a key may be `null` to leave it out. A key not in this table is an error.
 

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cdn.jsdelivr.net/gh/pausanchez/lbw-kit@v0.13.0.1/dist/lbw-kit.schema.json",
-  "title": "lbw-kit config v0.13.0.1",
+  "$id": "https://cdn.jsdelivr.net/gh/pausanchez/lbw-kit@v0.14.0/dist/lbw-kit.schema.json",
+  "title": "lbw-kit config v0.14.0",
   "description": "A bot's widgets for LBW.kit.setup(config). Generated from the checker (kit/setup-check.js); `npm run check:config` is the full check.",
   "type": "object",
   "properties": {
@@ -109,111 +109,8 @@
       }
     },
     "screen": {
-      "description": "Screen mode: the chat as an app, one screen at a time. The newest widget is the screen, the messages before its turn fold behind \"View conversation\", a header shows the steps and a bar mirrors the primary action.",
-      "type": [
-        "object",
-        "null"
-      ],
-      "properties": {
-        "on": {
-          "description": "true: screen mode is on.",
-          "type": [
-            "boolean",
-            "null"
-          ]
-        },
-        "header": {
-          "description": "The app header: a title and the steps.",
-          "type": [
-            "object",
-            "null"
-          ],
-          "properties": {
-            "title": {
-              "$ref": "#/$defs/text",
-              "description": "The header's title, one line."
-            },
-            "steps": {
-              "description": "2–8 steps, [id, label]: the id is a lower-case word (a tag's step=id or step=2, or a widget's \"step\").",
-              "anyOf": [
-                {
-                  "type": "array",
-                  "minItems": 2,
-                  "maxItems": 8,
-                  "items": {
-                    "type": "array",
-                    "minItems": 2,
-                    "maxItems": 2
-                  }
-                },
-                {
-                  "$ref": "#/$defs/byLang"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "progress": {
-              "description": "true: a bar and \"Step 2 of 4\" instead of the steps by name.",
-              "type": [
-                "boolean",
-                "null"
-              ]
-            }
-          },
-          "additionalProperties": false
-        },
-        "bar": {
-          "description": "true (the default): the primary action mirrored in a bottom bar while it is ready and out of view; \"always\": whenever it is ready, as a docked footer; false: no bar.",
-          "anyOf": [
-            {
-              "type": [
-                "boolean",
-                "null"
-              ]
-            },
-            {
-              "enum": [
-                "always"
-              ]
-            }
-          ]
-        },
-        "history": {
-          "description": "\"collapse\" (earlier messages fold behind \"View conversation\", the default) or \"keep\" (they stay).",
-          "anyOf": [
-            {
-              "enum": [
-                "collapse",
-                "keep",
-                null
-              ]
-            },
-            {
-              "$ref": "#/$defs/byLang"
-            }
-          ]
-        },
-        "bleed": {
-          "description": "true: the current screen drops its card and bubble, fills the column, its short text reads as a heading and its buttons as full-width rows.",
-          "type": [
-            "boolean",
-            "null"
-          ]
-        },
-        "hideHost": {
-          "description": "true: Landbot's own chat header hides while screen mode runs (the screen header's title carries the brand: header.title, else the hidden header's title).",
-          "type": [
-            "boolean",
-            "null"
-          ]
-        }
-      },
-      "required": [
-        "on"
-      ],
-      "additionalProperties": false
+      "description": "Removed in v0.14 (screen mode): ignored, with a warning from the checker. A widget's \"focus\" is the focused task now.",
+      "deprecated": true
     },
     "actions": {
       "description": "Named actions: { name: action }.",
@@ -1298,20 +1195,20 @@
         "flow": {
           "$ref": "#/$defs/flow"
         },
-        "screen": {
-          "description": "Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one).",
+        "actionRows": {
+          "description": "true: the buttons as full-width rows while the widget is narrow (480 px or less); every focus moment does it.",
           "type": [
             "boolean",
             "null"
           ]
         },
+        "screen": {
+          "description": "Removed in v0.14 (screen mode): ignored, with a warning from the checker.",
+          "deprecated": true
+        },
         "step": {
-          "description": "Screen mode: the step this widget is, an id of \"screen.header.steps\" (a tag's step= wins).",
-          "type": [
-            "string",
-            "null"
-          ],
-          "pattern": "^[a-z][a-z0-9_]*$"
+          "description": "Removed in v0.14 (screen mode): ignored, with a warning from the checker. A focus moment names its step in \"focus\".",
+          "deprecated": true
         }
       },
       "required": [
@@ -1485,20 +1382,20 @@
         "flow": {
           "$ref": "#/$defs/flow"
         },
-        "screen": {
-          "description": "Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one).",
+        "actionRows": {
+          "description": "true: the buttons as full-width rows while the widget is narrow (480 px or less); every focus moment does it.",
           "type": [
             "boolean",
             "null"
           ]
         },
+        "screen": {
+          "description": "Removed in v0.14 (screen mode): ignored, with a warning from the checker.",
+          "deprecated": true
+        },
         "step": {
-          "description": "Screen mode: the step this widget is, an id of \"screen.header.steps\" (a tag's step= wins).",
-          "type": [
-            "string",
-            "null"
-          ],
-          "pattern": "^[a-z][a-z0-9_]*$"
+          "description": "Removed in v0.14 (screen mode): ignored, with a warning from the checker. A focus moment names its step in \"focus\".",
+          "deprecated": true
         }
       },
       "required": [
@@ -1600,20 +1497,89 @@
         "flow": {
           "$ref": "#/$defs/flow"
         },
-        "screen": {
-          "description": "Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one).",
+        "actionRows": {
+          "description": "true: the buttons as full-width rows while the widget is narrow (480 px or less); every focus moment does it.",
           "type": [
             "boolean",
             "null"
           ]
         },
+        "screen": {
+          "description": "Removed in v0.14 (screen mode): ignored, with a warning from the checker.",
+          "deprecated": true
+        },
         "step": {
-          "description": "Screen mode: the step this widget is, an id of \"screen.header.steps\" (a tag's step= wins).",
-          "type": [
-            "string",
-            "null"
-          ],
-          "pattern": "^[a-z][a-z0-9_]*$"
+          "description": "Removed in v0.14 (screen mode): ignored, with a warning from the checker. A focus moment names its step in \"focus\".",
+          "deprecated": true
+        },
+        "focus": {
+          "description": "A focus moment: at this point of the conversation the widget is a focused task, drawn inside the widget (no card chrome, the column's width, its own title, the step, the primary action docked while it is taller than the chat). true, or { \"title\", \"steps\", \"step\", \"after\" }.",
+          "anyOf": [
+            {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            {
+              "description": "The moment.",
+              "type": [
+                "object",
+                "null"
+              ],
+              "properties": {
+                "title": {
+                  "$ref": "#/$defs/text",
+                  "description": "Its title, one line (60 characters at most); else the widget's own."
+                },
+                "steps": {
+                  "description": "2–8 steps [id, label] for \"Step 2 of 4 · Label\": the id a lower-case word, the label 30 characters at most.",
+                  "anyOf": [
+                    {
+                      "type": "array",
+                      "minItems": 2,
+                      "maxItems": 8,
+                      "items": {
+                        "type": "array",
+                        "minItems": 2,
+                        "maxItems": 2
+                      }
+                    },
+                    {
+                      "$ref": "#/$defs/byLang"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "step": {
+                  "description": "The step this widget is, an id of \"steps\" (a tag's step=id from the same list wins).",
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "pattern": "^[a-z][a-z0-9_]*$"
+                },
+                "after": {
+                  "description": "Once sent: \"receipt\" (the default: it folds to its \"Sent · …\" line) or \"keep\" (it stays open).",
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "receipt",
+                        "keep",
+                        null
+                      ]
+                    },
+                    {
+                      "$ref": "#/$defs/byLang"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
         }
       },
       "required": [
@@ -1709,20 +1675,20 @@
         "flow": {
           "$ref": "#/$defs/flow"
         },
-        "screen": {
-          "description": "Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one).",
+        "actionRows": {
+          "description": "true: the buttons as full-width rows while the widget is narrow (480 px or less); every focus moment does it.",
           "type": [
             "boolean",
             "null"
           ]
         },
+        "screen": {
+          "description": "Removed in v0.14 (screen mode): ignored, with a warning from the checker.",
+          "deprecated": true
+        },
         "step": {
-          "description": "Screen mode: the step this widget is, an id of \"screen.header.steps\" (a tag's step= wins).",
-          "type": [
-            "string",
-            "null"
-          ],
-          "pattern": "^[a-z][a-z0-9_]*$"
+          "description": "Removed in v0.14 (screen mode): ignored, with a warning from the checker. A focus moment names its step in \"focus\".",
+          "deprecated": true
         }
       },
       "required": [
@@ -1796,20 +1762,20 @@
         "flow": {
           "$ref": "#/$defs/flow"
         },
-        "screen": {
-          "description": "Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one).",
+        "actionRows": {
+          "description": "true: the buttons as full-width rows while the widget is narrow (480 px or less); every focus moment does it.",
           "type": [
             "boolean",
             "null"
           ]
         },
+        "screen": {
+          "description": "Removed in v0.14 (screen mode): ignored, with a warning from the checker.",
+          "deprecated": true
+        },
         "step": {
-          "description": "Screen mode: the step this widget is, an id of \"screen.header.steps\" (a tag's step= wins).",
-          "type": [
-            "string",
-            "null"
-          ],
-          "pattern": "^[a-z][a-z0-9_]*$"
+          "description": "Removed in v0.14 (screen mode): ignored, with a warning from the checker. A focus moment names its step in \"focus\".",
+          "deprecated": true
         }
       },
       "required": [
@@ -2010,20 +1976,20 @@
         "flow": {
           "$ref": "#/$defs/flow"
         },
-        "screen": {
-          "description": "Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one).",
+        "actionRows": {
+          "description": "true: the buttons as full-width rows while the widget is narrow (480 px or less); every focus moment does it.",
           "type": [
             "boolean",
             "null"
           ]
         },
+        "screen": {
+          "description": "Removed in v0.14 (screen mode): ignored, with a warning from the checker.",
+          "deprecated": true
+        },
         "step": {
-          "description": "Screen mode: the step this widget is, an id of \"screen.header.steps\" (a tag's step= wins).",
-          "type": [
-            "string",
-            "null"
-          ],
-          "pattern": "^[a-z][a-z0-9_]*$"
+          "description": "Removed in v0.14 (screen mode): ignored, with a warning from the checker. A focus moment names its step in \"focus\".",
+          "deprecated": true
         }
       },
       "required": [
@@ -2162,20 +2128,89 @@
         "flow": {
           "$ref": "#/$defs/flow"
         },
-        "screen": {
-          "description": "Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one).",
+        "actionRows": {
+          "description": "true: the buttons as full-width rows while the widget is narrow (480 px or less); every focus moment does it.",
           "type": [
             "boolean",
             "null"
           ]
         },
+        "screen": {
+          "description": "Removed in v0.14 (screen mode): ignored, with a warning from the checker.",
+          "deprecated": true
+        },
         "step": {
-          "description": "Screen mode: the step this widget is, an id of \"screen.header.steps\" (a tag's step= wins).",
-          "type": [
-            "string",
-            "null"
-          ],
-          "pattern": "^[a-z][a-z0-9_]*$"
+          "description": "Removed in v0.14 (screen mode): ignored, with a warning from the checker. A focus moment names its step in \"focus\".",
+          "deprecated": true
+        },
+        "focus": {
+          "description": "A focus moment: at this point of the conversation the widget is a focused task, drawn inside the widget (no card chrome, the column's width, its own title, the step, the primary action docked while it is taller than the chat). true, or { \"title\", \"steps\", \"step\", \"after\" }.",
+          "anyOf": [
+            {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            {
+              "description": "The moment.",
+              "type": [
+                "object",
+                "null"
+              ],
+              "properties": {
+                "title": {
+                  "$ref": "#/$defs/text",
+                  "description": "Its title, one line (60 characters at most); else the widget's own."
+                },
+                "steps": {
+                  "description": "2–8 steps [id, label] for \"Step 2 of 4 · Label\": the id a lower-case word, the label 30 characters at most.",
+                  "anyOf": [
+                    {
+                      "type": "array",
+                      "minItems": 2,
+                      "maxItems": 8,
+                      "items": {
+                        "type": "array",
+                        "minItems": 2,
+                        "maxItems": 2
+                      }
+                    },
+                    {
+                      "$ref": "#/$defs/byLang"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "step": {
+                  "description": "The step this widget is, an id of \"steps\" (a tag's step=id from the same list wins).",
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "pattern": "^[a-z][a-z0-9_]*$"
+                },
+                "after": {
+                  "description": "Once sent: \"receipt\" (the default: it folds to its \"Sent · …\" line) or \"keep\" (it stays open).",
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "receipt",
+                        "keep",
+                        null
+                      ]
+                    },
+                    {
+                      "$ref": "#/$defs/byLang"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
         }
       },
       "required": [
@@ -2298,20 +2333,20 @@
         "flow": {
           "$ref": "#/$defs/flow"
         },
-        "screen": {
-          "description": "Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one).",
+        "actionRows": {
+          "description": "true: the buttons as full-width rows while the widget is narrow (480 px or less); every focus moment does it.",
           "type": [
             "boolean",
             "null"
           ]
         },
+        "screen": {
+          "description": "Removed in v0.14 (screen mode): ignored, with a warning from the checker.",
+          "deprecated": true
+        },
         "step": {
-          "description": "Screen mode: the step this widget is, an id of \"screen.header.steps\" (a tag's step= wins).",
-          "type": [
-            "string",
-            "null"
-          ],
-          "pattern": "^[a-z][a-z0-9_]*$"
+          "description": "Removed in v0.14 (screen mode): ignored, with a warning from the checker. A focus moment names its step in \"focus\".",
+          "deprecated": true
         }
       },
       "required": [
@@ -2442,20 +2477,20 @@
         "flow": {
           "$ref": "#/$defs/flow"
         },
-        "screen": {
-          "description": "Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one).",
+        "actionRows": {
+          "description": "true: the buttons as full-width rows while the widget is narrow (480 px or less); every focus moment does it.",
           "type": [
             "boolean",
             "null"
           ]
         },
+        "screen": {
+          "description": "Removed in v0.14 (screen mode): ignored, with a warning from the checker.",
+          "deprecated": true
+        },
         "step": {
-          "description": "Screen mode: the step this widget is, an id of \"screen.header.steps\" (a tag's step= wins).",
-          "type": [
-            "string",
-            "null"
-          ],
-          "pattern": "^[a-z][a-z0-9_]*$"
+          "description": "Removed in v0.14 (screen mode): ignored, with a warning from the checker. A focus moment names its step in \"focus\".",
+          "deprecated": true
         }
       },
       "required": [
@@ -2536,20 +2571,20 @@
         "flow": {
           "$ref": "#/$defs/flow"
         },
-        "screen": {
-          "description": "Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one).",
+        "actionRows": {
+          "description": "true: the buttons as full-width rows while the widget is narrow (480 px or less); every focus moment does it.",
           "type": [
             "boolean",
             "null"
           ]
         },
+        "screen": {
+          "description": "Removed in v0.14 (screen mode): ignored, with a warning from the checker.",
+          "deprecated": true
+        },
         "step": {
-          "description": "Screen mode: the step this widget is, an id of \"screen.header.steps\" (a tag's step= wins).",
-          "type": [
-            "string",
-            "null"
-          ],
-          "pattern": "^[a-z][a-z0-9_]*$"
+          "description": "Removed in v0.14 (screen mode): ignored, with a warning from the checker. A focus moment names its step in \"focus\".",
+          "deprecated": true
         }
       },
       "required": [
@@ -2670,20 +2705,89 @@
         "flow": {
           "$ref": "#/$defs/flow"
         },
-        "screen": {
-          "description": "Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one).",
+        "actionRows": {
+          "description": "true: the buttons as full-width rows while the widget is narrow (480 px or less); every focus moment does it.",
           "type": [
             "boolean",
             "null"
           ]
         },
+        "screen": {
+          "description": "Removed in v0.14 (screen mode): ignored, with a warning from the checker.",
+          "deprecated": true
+        },
         "step": {
-          "description": "Screen mode: the step this widget is, an id of \"screen.header.steps\" (a tag's step= wins).",
-          "type": [
-            "string",
-            "null"
-          ],
-          "pattern": "^[a-z][a-z0-9_]*$"
+          "description": "Removed in v0.14 (screen mode): ignored, with a warning from the checker. A focus moment names its step in \"focus\".",
+          "deprecated": true
+        },
+        "focus": {
+          "description": "A focus moment: at this point of the conversation the widget is a focused task, drawn inside the widget (no card chrome, the column's width, its own title, the step, the primary action docked while it is taller than the chat). true, or { \"title\", \"steps\", \"step\", \"after\" }.",
+          "anyOf": [
+            {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            {
+              "description": "The moment.",
+              "type": [
+                "object",
+                "null"
+              ],
+              "properties": {
+                "title": {
+                  "$ref": "#/$defs/text",
+                  "description": "Its title, one line (60 characters at most); else the widget's own."
+                },
+                "steps": {
+                  "description": "2–8 steps [id, label] for \"Step 2 of 4 · Label\": the id a lower-case word, the label 30 characters at most.",
+                  "anyOf": [
+                    {
+                      "type": "array",
+                      "minItems": 2,
+                      "maxItems": 8,
+                      "items": {
+                        "type": "array",
+                        "minItems": 2,
+                        "maxItems": 2
+                      }
+                    },
+                    {
+                      "$ref": "#/$defs/byLang"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "step": {
+                  "description": "The step this widget is, an id of \"steps\" (a tag's step=id from the same list wins).",
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "pattern": "^[a-z][a-z0-9_]*$"
+                },
+                "after": {
+                  "description": "Once sent: \"receipt\" (the default: it folds to its \"Sent · …\" line) or \"keep\" (it stays open).",
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "receipt",
+                        "keep",
+                        null
+                      ]
+                    },
+                    {
+                      "$ref": "#/$defs/byLang"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
         }
       },
       "required": [
@@ -2826,20 +2930,89 @@
         "flow": {
           "$ref": "#/$defs/flow"
         },
-        "screen": {
-          "description": "Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one).",
+        "actionRows": {
+          "description": "true: the buttons as full-width rows while the widget is narrow (480 px or less); every focus moment does it.",
           "type": [
             "boolean",
             "null"
           ]
         },
+        "screen": {
+          "description": "Removed in v0.14 (screen mode): ignored, with a warning from the checker.",
+          "deprecated": true
+        },
         "step": {
-          "description": "Screen mode: the step this widget is, an id of \"screen.header.steps\" (a tag's step= wins).",
-          "type": [
-            "string",
-            "null"
-          ],
-          "pattern": "^[a-z][a-z0-9_]*$"
+          "description": "Removed in v0.14 (screen mode): ignored, with a warning from the checker. A focus moment names its step in \"focus\".",
+          "deprecated": true
+        },
+        "focus": {
+          "description": "A focus moment: at this point of the conversation the widget is a focused task, drawn inside the widget (no card chrome, the column's width, its own title, the step, the primary action docked while it is taller than the chat). true, or { \"title\", \"steps\", \"step\", \"after\" }.",
+          "anyOf": [
+            {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            {
+              "description": "The moment.",
+              "type": [
+                "object",
+                "null"
+              ],
+              "properties": {
+                "title": {
+                  "$ref": "#/$defs/text",
+                  "description": "Its title, one line (60 characters at most); else the widget's own."
+                },
+                "steps": {
+                  "description": "2–8 steps [id, label] for \"Step 2 of 4 · Label\": the id a lower-case word, the label 30 characters at most.",
+                  "anyOf": [
+                    {
+                      "type": "array",
+                      "minItems": 2,
+                      "maxItems": 8,
+                      "items": {
+                        "type": "array",
+                        "minItems": 2,
+                        "maxItems": 2
+                      }
+                    },
+                    {
+                      "$ref": "#/$defs/byLang"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "step": {
+                  "description": "The step this widget is, an id of \"steps\" (a tag's step=id from the same list wins).",
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "pattern": "^[a-z][a-z0-9_]*$"
+                },
+                "after": {
+                  "description": "Once sent: \"receipt\" (the default: it folds to its \"Sent · …\" line) or \"keep\" (it stays open).",
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "receipt",
+                        "keep",
+                        null
+                      ]
+                    },
+                    {
+                      "$ref": "#/$defs/byLang"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
         }
       },
       "required": [
@@ -2970,20 +3143,89 @@
         "flow": {
           "$ref": "#/$defs/flow"
         },
-        "screen": {
-          "description": "Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one).",
+        "actionRows": {
+          "description": "true: the buttons as full-width rows while the widget is narrow (480 px or less); every focus moment does it.",
           "type": [
             "boolean",
             "null"
           ]
         },
+        "screen": {
+          "description": "Removed in v0.14 (screen mode): ignored, with a warning from the checker.",
+          "deprecated": true
+        },
         "step": {
-          "description": "Screen mode: the step this widget is, an id of \"screen.header.steps\" (a tag's step= wins).",
-          "type": [
-            "string",
-            "null"
-          ],
-          "pattern": "^[a-z][a-z0-9_]*$"
+          "description": "Removed in v0.14 (screen mode): ignored, with a warning from the checker. A focus moment names its step in \"focus\".",
+          "deprecated": true
+        },
+        "focus": {
+          "description": "A focus moment: at this point of the conversation the widget is a focused task, drawn inside the widget (no card chrome, the column's width, its own title, the step, the primary action docked while it is taller than the chat). true, or { \"title\", \"steps\", \"step\", \"after\" }.",
+          "anyOf": [
+            {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            {
+              "description": "The moment.",
+              "type": [
+                "object",
+                "null"
+              ],
+              "properties": {
+                "title": {
+                  "$ref": "#/$defs/text",
+                  "description": "Its title, one line (60 characters at most); else the widget's own."
+                },
+                "steps": {
+                  "description": "2–8 steps [id, label] for \"Step 2 of 4 · Label\": the id a lower-case word, the label 30 characters at most.",
+                  "anyOf": [
+                    {
+                      "type": "array",
+                      "minItems": 2,
+                      "maxItems": 8,
+                      "items": {
+                        "type": "array",
+                        "minItems": 2,
+                        "maxItems": 2
+                      }
+                    },
+                    {
+                      "$ref": "#/$defs/byLang"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "step": {
+                  "description": "The step this widget is, an id of \"steps\" (a tag's step=id from the same list wins).",
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "pattern": "^[a-z][a-z0-9_]*$"
+                },
+                "after": {
+                  "description": "Once sent: \"receipt\" (the default: it folds to its \"Sent · …\" line) or \"keep\" (it stays open).",
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "receipt",
+                        "keep",
+                        null
+                      ]
+                    },
+                    {
+                      "$ref": "#/$defs/byLang"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
         }
       },
       "required": [
@@ -3134,20 +3376,20 @@
         "flow": {
           "$ref": "#/$defs/flow"
         },
-        "screen": {
-          "description": "Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one).",
+        "actionRows": {
+          "description": "true: the buttons as full-width rows while the widget is narrow (480 px or less); every focus moment does it.",
           "type": [
             "boolean",
             "null"
           ]
         },
+        "screen": {
+          "description": "Removed in v0.14 (screen mode): ignored, with a warning from the checker.",
+          "deprecated": true
+        },
         "step": {
-          "description": "Screen mode: the step this widget is, an id of \"screen.header.steps\" (a tag's step= wins).",
-          "type": [
-            "string",
-            "null"
-          ],
-          "pattern": "^[a-z][a-z0-9_]*$"
+          "description": "Removed in v0.14 (screen mode): ignored, with a warning from the checker. A focus moment names its step in \"focus\".",
+          "deprecated": true
         }
       },
       "required": [
@@ -3358,20 +3600,89 @@
         "flow": {
           "$ref": "#/$defs/flow"
         },
-        "screen": {
-          "description": "Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one).",
+        "actionRows": {
+          "description": "true: the buttons as full-width rows while the widget is narrow (480 px or less); every focus moment does it.",
           "type": [
             "boolean",
             "null"
           ]
         },
+        "screen": {
+          "description": "Removed in v0.14 (screen mode): ignored, with a warning from the checker.",
+          "deprecated": true
+        },
         "step": {
-          "description": "Screen mode: the step this widget is, an id of \"screen.header.steps\" (a tag's step= wins).",
-          "type": [
-            "string",
-            "null"
-          ],
-          "pattern": "^[a-z][a-z0-9_]*$"
+          "description": "Removed in v0.14 (screen mode): ignored, with a warning from the checker. A focus moment names its step in \"focus\".",
+          "deprecated": true
+        },
+        "focus": {
+          "description": "A focus moment: at this point of the conversation the widget is a focused task, drawn inside the widget (no card chrome, the column's width, its own title, the step, the primary action docked while it is taller than the chat). true, or { \"title\", \"steps\", \"step\", \"after\" }.",
+          "anyOf": [
+            {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            {
+              "description": "The moment.",
+              "type": [
+                "object",
+                "null"
+              ],
+              "properties": {
+                "title": {
+                  "$ref": "#/$defs/text",
+                  "description": "Its title, one line (60 characters at most); else the widget's own."
+                },
+                "steps": {
+                  "description": "2–8 steps [id, label] for \"Step 2 of 4 · Label\": the id a lower-case word, the label 30 characters at most.",
+                  "anyOf": [
+                    {
+                      "type": "array",
+                      "minItems": 2,
+                      "maxItems": 8,
+                      "items": {
+                        "type": "array",
+                        "minItems": 2,
+                        "maxItems": 2
+                      }
+                    },
+                    {
+                      "$ref": "#/$defs/byLang"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "step": {
+                  "description": "The step this widget is, an id of \"steps\" (a tag's step=id from the same list wins).",
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "pattern": "^[a-z][a-z0-9_]*$"
+                },
+                "after": {
+                  "description": "Once sent: \"receipt\" (the default: it folds to its \"Sent · …\" line) or \"keep\" (it stays open).",
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "receipt",
+                        "keep",
+                        null
+                      ]
+                    },
+                    {
+                      "$ref": "#/$defs/byLang"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
         }
       },
       "required": [
@@ -3508,20 +3819,20 @@
         "flow": {
           "$ref": "#/$defs/flow"
         },
-        "screen": {
-          "description": "Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one).",
+        "actionRows": {
+          "description": "true: the buttons as full-width rows while the widget is narrow (480 px or less); every focus moment does it.",
           "type": [
             "boolean",
             "null"
           ]
         },
+        "screen": {
+          "description": "Removed in v0.14 (screen mode): ignored, with a warning from the checker.",
+          "deprecated": true
+        },
         "step": {
-          "description": "Screen mode: the step this widget is, an id of \"screen.header.steps\" (a tag's step= wins).",
-          "type": [
-            "string",
-            "null"
-          ],
-          "pattern": "^[a-z][a-z0-9_]*$"
+          "description": "Removed in v0.14 (screen mode): ignored, with a warning from the checker. A focus moment names its step in \"focus\".",
+          "deprecated": true
         }
       },
       "required": [
@@ -3841,20 +4152,20 @@
         "flow": {
           "$ref": "#/$defs/flow"
         },
-        "screen": {
-          "description": "Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one).",
+        "actionRows": {
+          "description": "true: the buttons as full-width rows while the widget is narrow (480 px or less); every focus moment does it.",
           "type": [
             "boolean",
             "null"
           ]
         },
+        "screen": {
+          "description": "Removed in v0.14 (screen mode): ignored, with a warning from the checker.",
+          "deprecated": true
+        },
         "step": {
-          "description": "Screen mode: the step this widget is, an id of \"screen.header.steps\" (a tag's step= wins).",
-          "type": [
-            "string",
-            "null"
-          ],
-          "pattern": "^[a-z][a-z0-9_]*$"
+          "description": "Removed in v0.14 (screen mode): ignored, with a warning from the checker. A focus moment names its step in \"focus\".",
+          "deprecated": true
         }
       },
       "required": [
@@ -3921,7 +4232,7 @@
           "additionalProperties": false
         },
         "eta": {
-          "description": "{ \"day\": a tag key, \"time\": a tag key, \"text\": \"Lista {when}\" }.",
+          "description": "{ \"day\": a tag key, \"time\": a tag key, \"text\": \"Lista {when}\", \"big\": true }.",
           "type": [
             "object",
             "null"
@@ -3938,6 +4249,13 @@
             "text": {
               "$ref": "#/$defs/text",
               "description": "With {when}."
+            },
+            "big": {
+              "description": "true: the ETA as a large title (--lbw-title-xl).",
+              "type": [
+                "boolean",
+                "null"
+              ]
             }
           },
           "additionalProperties": false
@@ -4074,20 +4392,20 @@
         "flow": {
           "$ref": "#/$defs/flow"
         },
-        "screen": {
-          "description": "Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one).",
+        "actionRows": {
+          "description": "true: the buttons as full-width rows while the widget is narrow (480 px or less); every focus moment does it.",
           "type": [
             "boolean",
             "null"
           ]
         },
+        "screen": {
+          "description": "Removed in v0.14 (screen mode): ignored, with a warning from the checker.",
+          "deprecated": true
+        },
         "step": {
-          "description": "Screen mode: the step this widget is, an id of \"screen.header.steps\" (a tag's step= wins).",
-          "type": [
-            "string",
-            "null"
-          ],
-          "pattern": "^[a-z][a-z0-9_]*$"
+          "description": "Removed in v0.14 (screen mode): ignored, with a warning from the checker. A focus moment names its step in \"focus\".",
+          "deprecated": true
         }
       },
       "required": [
@@ -4224,20 +4542,20 @@
         "flow": {
           "$ref": "#/$defs/flow"
         },
-        "screen": {
-          "description": "Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one).",
+        "actionRows": {
+          "description": "true: the buttons as full-width rows while the widget is narrow (480 px or less); every focus moment does it.",
           "type": [
             "boolean",
             "null"
           ]
         },
+        "screen": {
+          "description": "Removed in v0.14 (screen mode): ignored, with a warning from the checker.",
+          "deprecated": true
+        },
         "step": {
-          "description": "Screen mode: the step this widget is, an id of \"screen.header.steps\" (a tag's step= wins).",
-          "type": [
-            "string",
-            "null"
-          ],
-          "pattern": "^[a-z][a-z0-9_]*$"
+          "description": "Removed in v0.14 (screen mode): ignored, with a warning from the checker. A focus moment names its step in \"focus\".",
+          "deprecated": true
         }
       },
       "required": [
@@ -4674,20 +4992,89 @@
         "flow": {
           "$ref": "#/$defs/flow"
         },
-        "screen": {
-          "description": "Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one).",
+        "actionRows": {
+          "description": "true: the buttons as full-width rows while the widget is narrow (480 px or less); every focus moment does it.",
           "type": [
             "boolean",
             "null"
           ]
         },
+        "screen": {
+          "description": "Removed in v0.14 (screen mode): ignored, with a warning from the checker.",
+          "deprecated": true
+        },
         "step": {
-          "description": "Screen mode: the step this widget is, an id of \"screen.header.steps\" (a tag's step= wins).",
-          "type": [
-            "string",
-            "null"
-          ],
-          "pattern": "^[a-z][a-z0-9_]*$"
+          "description": "Removed in v0.14 (screen mode): ignored, with a warning from the checker. A focus moment names its step in \"focus\".",
+          "deprecated": true
+        },
+        "focus": {
+          "description": "A focus moment: at this point of the conversation the widget is a focused task, drawn inside the widget (no card chrome, the column's width, its own title, the step, the primary action docked while it is taller than the chat). true, or { \"title\", \"steps\", \"step\", \"after\" }.",
+          "anyOf": [
+            {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            {
+              "description": "The moment.",
+              "type": [
+                "object",
+                "null"
+              ],
+              "properties": {
+                "title": {
+                  "$ref": "#/$defs/text",
+                  "description": "Its title, one line (60 characters at most); else the widget's own."
+                },
+                "steps": {
+                  "description": "2–8 steps [id, label] for \"Step 2 of 4 · Label\": the id a lower-case word, the label 30 characters at most.",
+                  "anyOf": [
+                    {
+                      "type": "array",
+                      "minItems": 2,
+                      "maxItems": 8,
+                      "items": {
+                        "type": "array",
+                        "minItems": 2,
+                        "maxItems": 2
+                      }
+                    },
+                    {
+                      "$ref": "#/$defs/byLang"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "step": {
+                  "description": "The step this widget is, an id of \"steps\" (a tag's step=id from the same list wins).",
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "pattern": "^[a-z][a-z0-9_]*$"
+                },
+                "after": {
+                  "description": "Once sent: \"receipt\" (the default: it folds to its \"Sent · …\" line) or \"keep\" (it stays open).",
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "receipt",
+                        "keep",
+                        null
+                      ]
+                    },
+                    {
+                      "$ref": "#/$defs/byLang"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
         }
       },
       "required": [

@@ -61,7 +61,6 @@ if (!errors.length) {
 }
 console.log(window.__lbwDropped, LBW.version, LBW.kit.h.money(24700, { cur: '€' }));
 
-// screen mode
-const started: boolean = LBW.screen.start({ on: true, header: { title: 'Booking', steps: [['where', 'Where'], ['when', 'When']] }, history: 'collapse' }, { lang: 'en', widgets: { chips: { screen: false } } });
-const st = LBW.screen.state();
-if (started && st && st.step === 'when' && st.index >= 0) LBW.screen.history(!st.open);
+// v0.14 · a focus moment on a widget you write yourself
+LBW.widget('trip', (p, ctx) => LBW.kit.focus(LBW.ui.card(ctx.lang, 'np-trip'), { title: 'Your trip', steps: [['where', 'Where'], ['when', 'When']], step: 'when', after: 'keep' }, p));
+if (LBW.kit.focus.types.indexOf('form') >= 0) console.log('form takes "focus"');

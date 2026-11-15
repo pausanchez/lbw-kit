@@ -2,8 +2,9 @@
    Every hook the library reads in Landbot's DOM (data-lb-part, data-lb-author) and every Landbot global it talks to
    (the widget's sendMessage, window._landbot, the legacy Landbot.exec bridge) is here, and only here: if Landbot changes its
    web chat, this file is the fix (test/host.test.mjs keeps it that way; test/fixtures/host-v4/ holds the real DOM).
-   Four parts: the hooks a bot message is found by, reading the chat, talking to Landbot, laying out the chat (screen mode,
-   runtime/screen.js). All four go before lbw.js in every bundle. dist/fallback.min.js, which must work with no library and fit the Custom JS upload, carries only the first
+   Three parts: the hooks a bot message is found by, reading the chat, talking to Landbot. All three go before lbw.js in
+   every bundle. v0.14 · back to v0.12's scope (screen mode, v0.13, is gone with its seven DOM hooks), plus mark(): the one
+   attribute the library puts on Landbot's own tree, for a focus moment, found through the message hook alone. dist/fallback.min.js, which must work with no library and fit the Custom JS upload, carries only the first
    (scripts/build.mjs cuts this file at the "@@more" mark).
    It touches no page until called. lbw.js exposes it as LBW.host; for a page, only LBW.host.check() is meant to be called. */
 (function (root) {
@@ -14,7 +15,7 @@
 /* @@more ── reading the chat ───────────────────────────────────────────────────────────────────── */
 (function (root) {
   var H = root.LBW_HOST; if (!H || H.messages) return;
-  var S = H.sel, MSG = S.message, TXT = S.text, WIN = S.window = '[data-lb-part="window"]', HDR = S.header = '[data-lb-part="header"]',
+  var S = H.sel, MSG = S.message, TXT = S.text, WIN = S.window = '[data-lb-part="window"]',
       INP = S.input = '[data-lb-part="input-field"]', AUTHOR = 'data-lb-author';
   var BY = { bot: S.bot, user: S.user = '[data-lb-author="user"]' };
   function doc(r) { return r || document; }
@@ -59,11 +60,9 @@
   // check(root?) → { ok, missing: ['data-lb-part="message"', …], input: bool }: the hooks the library needs that the page
   // lacks. The text box is not required (none while the chat shows buttons): `input` only says if there is one now.
   // With no message on the page, author and text can't be judged, so only the message hook is reported
-  // v0.13.0.1 · check(root, { header: true }) also requires the chat's own header (screen mode's "hideHost" hides it)
-  function check(r, o) {
+  function check(r) {
     var d = doc(r), miss = [], w = isWindow(d) ? d : win(d), ms = messages(d);
     if (!w) miss.push('data-lb-part="window"');
-    else if (o && o.header && !w.querySelector(S.header)) miss.push('data-lb-part="header"');
     if (!ms.length) miss.push('data-lb-part="message"');
     else {
       if (![].some.call(ms, isBot)) miss.push('data-lb-author="bot"');
@@ -72,11 +71,17 @@
     return { ok: !miss.length, missing: miss, input: !!input(d) };
   }
 
+  // v0.14 · mark(node, on): the message that holds `node` (a focus moment's widget) gets data-lbw-focus, or loses it. lbw.css
+  // reads it so that message stops clipping its widget (the moment's primary action sticks to the chat's own scroller) and the
+  // widget may reach the column's edges. Nothing of Landbot's is hidden, moved or restyled otherwise; no new hook (the message
+  // is found as every other one). → the message, or null when the node is in none (nothing marked)
+  function mark(n, on) { var m = messageOf(n); if (!m) return null; if (on) m.setAttribute('data-lbw-focus', ''); else m.removeAttribute('data-lbw-focus'); return m; }
+
   // H.sel: the selectors, for a closest() that must skip the visitor's own messages (lbw.js rawSweep) and for fallback.js;
   // to query the chat, use the functions
   H.name = 'landbot-v4';
   H.messages = messages; H.texts = texts; H.isBot = isBot; H.isUser = isUser; H.messageOf = messageOf; H.textBox = textBox; H.textOf = textOf;
-  H.window = win; H.isWindow = isWindow; H.busy = busy; H.input = input; H.observe = observe; H.check = check;
+  H.window = win; H.isWindow = isWindow; H.busy = busy; H.input = input; H.observe = observe; H.check = check; H.mark = mark;
 })(window);
 
 /* ── talking to Landbot ──────────────────────────────────────────────────────────────────────── */
@@ -136,109 +141,4 @@
   }
 
   H.widget = widget; H.send = send; H.store = store;
-})(window);
-
-/* ── laying out the chat (screen mode, runtime/screen.js) ──────────────────────────────────────── */
-// The chat as one screen at a time: runtime/screen.js decides, these do. Nothing here runs until screen mode is on, and
-// nothing is removed from Landbot's tree: rows are only marked (data-lbw-past, hidden by lbw.css while the window is in
-// 'collapse' mode), and the two slots are our own elements beside the message column, never inside Landbot's header or
-// around its text box.
-(function (root) {
-  var H = root.LBW_HOST; if (!H || !H.messages || H.column) return;
-  var MSG = H.sel.message, SLOT = 'data-lbw-slot', PAST = 'data-lbw-past', MODE = 'data-lbw-screen', CUR = 'data-lbw-cur', CHROME = 'data-lbw-chrome',
-      ASIDE = 'data-lbw-aside', HEAD = '[data-lb-part="message-header"]', OFF = 'data-lbw-off',
-      // v0.13.0.1 · the v4 chat's own width rule: .responsive-container { max-width: var(--web-chat-max-width) (720px);
-      // margin-inline: auto } on the header's wrapper, the message list and the buttons (measured live, 14 Nov 2026). Our slots
-      // take it too, so at 1440 px the screen's header and bar sit on the chat's column, not across the window
-      FIT = 'responsive-container';
-  // column(root?): the window's child that holds the messages (v4: the scrolling column between the header and the text
-  // box), or null with no window or no message in it
-  function column(r) {
-    var w = H.window(r), m = H.messages(r)[0], e = m;
-    if (!w || !m || !w.contains(m)) return null;
-    while (e && e.parentElement !== w) e = e.parentElement;
-    return e || null;
-  }
-  // rowOf(node, root?): the outermost element that holds this message and no other (v4 wraps each message in a row of its
-  // list), never the column itself; null for a node in no message
-  function rowOf(n, r) {
-    var e = H.messageOf(n), col = column(r); if (!e) return null;
-    for (var p = e.parentElement; p && p !== col && !H.isWindow(p) && p.querySelectorAll(MSG).length === 1; p = p.parentElement) e = p;
-    return e;
-  }
-  // slot('head' | 'bar', root?): our own element in the window, right before ('head') or right after ('bar') the column;
-  // made on first use, and put back in place if the chat moved things. null with no column
-  function slot(name, r) {
-    var w = H.window(r), col = column(r), s = null; if (!w || !col) return null;
-    [].some.call(w.children, function (x) { if (x.getAttribute(SLOT) === name) { s = x; return true; } return false; });
-    if (!s) { s = document.createElement('div'); s.setAttribute(SLOT, name); }
-    if (!s.classList.contains(FIT) && w.querySelector('.' + FIT)) s.classList.add(FIT);
-    if (name === 'head' ? s.nextSibling !== col : s.previousSibling !== col) w.insertBefore(s, name === 'head' ? col : col.nextSibling);
-    return s;
-  }
-  // collapse(from, root?): every message row before the row of `from` is marked past, the others unmarked (null: none).
-  // Returns how many are past. Marked rows stay in the DOM
-  function collapse(from, r) {
-    var ms = H.messages(r), f = from ? H.messageOf(from) : null, at = f ? [].indexOf.call(ms, f) : -1, n = 0;
-    [].forEach.call(ms, function (m, i) {
-      var row = rowOf(m, r); if (!row) return;
-      if (i < at) { n++; if (!row.hasAttribute(PAST)) row.setAttribute(PAST, ''); } else if (row.hasAttribute(PAST)) row.removeAttribute(PAST);
-    });
-    return n;
-  }
-  // scroller(node): the element that scrolls the chat around a node (the nearest ancestor with overflow-y auto or scroll), else
-  // the page's own scrolling element
-  function scroller(n) {
-    for (var e = n && n.parentElement; e && e !== document.body && e !== document.documentElement; e = e.parentElement) {
-      var cs = root.getComputedStyle ? root.getComputedStyle(e) : null; if (cs && /(auto|scroll)/.test(cs.overflowY)) return e;
-    }
-    return document.scrollingElement || document.documentElement;
-  }
-  // present(from, to, kindOf, root?): the "bleed" marks for the messages from `from` to `to` (the current screen's turn): each
-  // row data-lbw-cur; the elements between a message and its text box (the bubble's chrome) data-lbw-chrome, the text box
-  // itself data-lbw-chrome = kindOf(message) ('title' or 'intro'); the message's header (avatar, author) data-lbw-aside.
-  // Every other message loses those marks. null: no marks anywhere. lbw.css styles them; nothing moves
-  function present(from, to, kindOf, r) {
-    var ms = H.messages(r), a = from ? [].indexOf.call(ms, H.messageOf(from)) : -1, b = to ? [].indexOf.call(ms, H.messageOf(to)) : -1;
-    [].forEach.call(doc(r).querySelectorAll('[' + CUR + '], [' + CHROME + '], [' + ASIDE + ']'), function (x) { x.removeAttribute(CUR); x.removeAttribute(CHROME); x.removeAttribute(ASIDE); });
-    if (a < 0 || b < a) return 0;
-    for (var i = a; i <= b; i++) {
-      var m = ms[i], row = rowOf(m, r), t = H.textBox(m), hd = m.querySelector(HEAD);
-      if (row) row.setAttribute(CUR, '');
-      if (t) { t.setAttribute(CHROME, (kindOf && kindOf(m)) || 'intro'); for (var e = t.parentElement; e && e !== m; e = e.parentElement) e.setAttribute(CHROME, ''); }
-      if (hd) hd.setAttribute(ASIDE, '');
-    }
-    return b - a + 1;
-  }
-  function doc(r) { return r || document; }
-  // scrollTo(scroller, top): there at once. The v4 column scrolls smoothly (scroll-smooth): a scrollTop written while the
-  // screen re-lays out showed it 376 px off for ~200 ms before it slid back (live, 14 Nov 2026). The inline scroll-behavior
-  // is set to auto for the write and put back as it was
-  function scrollTo(sc, top) {
-    if (!sc) return; var st = sc.style, was = st ? st.scrollBehavior : '';
-    if (st) st.scrollBehavior = 'auto';
-    sc.scrollTop = Math.max(0, Math.round(top));
-    if (st) st.scrollBehavior = was;
-  }
-  // header(hide, root?): the chat's own header ([data-lb-part="header"] and the wrapper that holds only it, a window child)
-  // marked data-lbw-off, which lbw.css hides while the window is in screen mode ("screen": { "hideHost": true }). false takes
-  // the mark away. → the header's title (its heading's text, else its own; '' when none) when found, else null: nothing hidden
-  function header(hide, r) {
-    var w = H.window(r), h = w && w.querySelector(H.sel.header);
-    [].forEach.call(doc(r).querySelectorAll('[' + OFF + ']'), function (x) { x.removeAttribute(OFF); });
-    if (!h) return null;
-    if (hide) { var e = h; while (e.parentElement && e.parentElement !== w && !e.parentElement.querySelector(MSG)) e = e.parentElement; e.setAttribute(OFF, ''); }
-    return (h.querySelector('h1, h2, h3, h4, h5, h6') || h).textContent.replace(/\s+/g, ' ').trim();   // v4: its title is an h4
-  }
-  // layout(mode, root?): marks the window 'collapse' (earlier rows hidden), 'open' (shown again) or 'keep' (never hidden);
-  // a falsy mode takes every mark and slot away: a normal chat again. false with no window
-  function layout(mode, r) {
-    var w = H.window(r); if (!w) return false;
-    if (mode) { if (w.getAttribute(MODE) !== mode) w.setAttribute(MODE, mode); return true; }
-    w.removeAttribute(MODE);
-    [].slice.call(w.querySelectorAll('[' + SLOT + ']')).forEach(function (x) { x.remove(); });
-    collapse(null, r); present(null, null, null, r); header(false, r); return true;
-  }
-  H.column = column; H.rowOf = rowOf; H.slot = slot; H.collapse = collapse; H.layout = layout; H.scroller = scroller; H.present = present;
-  H.scrollTo = scrollTo; H.header = header;
 })(window);

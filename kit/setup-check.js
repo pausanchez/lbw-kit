@@ -45,7 +45,8 @@
   NEED.map = ['places'];   // v0.10
   NEED.tracker = ['title', 'steps'];   // v0.10
   // the tables, for scripts/schema.mjs (the JSON Schema and the config types are generated from them)
-  K.setup._.keys = { TOP: TOP, KEYS: KEYS, ITEM: ITEM, NEED: NEED };
+  var FOCUS = ['form', 'calendar', 'slots', 'calc', 'review', 'compare', 'confirm'];   // v0.14 · the types that take "focus" (kit.js LBW.kit.focus.types)
+  K.setup._.keys = { TOP: TOP, KEYS: KEYS, ITEM: ITEM, NEED: NEED, FOCUS: FOCUS };
   // an unknown key that is a typo of a known one (Levenshtein 2 at most; 1 for a key of 4 letters or fewer): '… Known: a, b. Did you mean "kicker"?'
   function lev(a, b) { var p = [], i, j, q, c; for (j = 0; j <= b.length; j++) p[j] = j; for (i = 1; i <= a.length; i++) { q = [i]; for (j = 1; j <= b.length; j++) { c = a[i - 1] === b[j - 1] ? 0 : 1; q[j] = Math.min(p[j] + 1, q[j - 1] + 1, p[j - 1] + c); } p = q; } return p[b.length]; }
   function near(k, known) { var best = null, bd = 3; k = String(k); known.forEach(function (x) { var d = lev(k.toLowerCase(), String(x).toLowerCase()); if (d < bd && d <= (k.length > 4 ? 2 : 1)) { bd = d; best = x; } }); return best == null ? '' : '. Did you mean "' + best + '"?'; }
@@ -99,39 +100,15 @@
     per.forEach(function (errs, i) { errs.forEach(function (e) {
       var all = per.every(function (o) { return o.some(function (x) { return x.message === e.message; }); }), key = (all ? '' : langs[i] + ' ') + e.message;
       if (seen[key]) return; seen[key] = 1;
-      var o = { widget: e.widget, message: all || langs.length < 2 ? e.message : '[' + langs[i] + '] ' + e.message }; if (e.screen) o.screen = true;
+      var o = { widget: e.widget, message: all || langs.length < 2 ? e.message : '[' + langs[i] + '] ' + e.message }; if (e.warning) o.warning = true;
       out.push(o);
     }); });
     return out;
   }
-  // screen mode ("screen", runtime/screen.js): → the step ids, or null. A problem here never stops the widgets (setup() makes the
-  // bot a normal chat), so each is reported with `screen: true`
-  var SCRK = ['on', 'header', 'bar', 'history', 'bleed', 'hideHost'], SCRH = ['title', 'steps', 'progress'];
-  function screenCheck(sc, say) {
-    if (sc == null) return null;
-    if (!isObj(sc)) { say('"screen" is { "on": true, "header": { "title": "…", "steps": [["id", "Label"], …] }, "bar": true, "history": "collapse" }'); return null; }
-    Object.keys(sc).forEach(function (k) { if (SCRK.indexOf(k) < 0) say('screen: unknown key "' + k + '". Known: ' + SCRK.join(', ') + near(k, SCRK)); });
-    if (sc.on !== true && sc.on !== false) say('screen.on is true (screen mode) or false');
-    if (sc.bar != null && typeof sc.bar !== 'boolean' && sc.bar !== 'always') say('screen.bar is true (the action docked while it is out of view), "always" (docked whenever it is ready) or false (no bottom bar)');
-    if (sc.hideHost != null && typeof sc.hideHost !== 'boolean') say('screen.hideHost is true (Landbot\'s own header hides while screen mode runs) or false');
-    if (sc.bleed != null && typeof sc.bleed !== 'boolean') say('screen.bleed is true (the screen without its card and bubble, filling the column) or false');
-    if (sc.history != null && sc.history !== 'collapse' && sc.history !== 'keep') say('screen.history is "collapse" (earlier messages fold behind "View conversation") or "keep" (they stay)');
-    var h = sc.header, ids = []; if (h == null) return ids;
-    if (!isObj(h)) { say('screen.header is { "title": "…", "steps": [["id", "Label"], …], "progress": true }'); return ids; }
-    Object.keys(h).forEach(function (k) { if (SCRH.indexOf(k) < 0) say('screen.header: unknown key "' + k + '". Known: ' + SCRH.join(', ') + near(k, SCRH)); });
-    if (h.title != null && (typeof h.title !== 'string' || Array.from(h.title).length > 60)) say('screen.header.title is one line of text, 60 characters at most');
-    if (h.progress != null && typeof h.progress !== 'boolean') say('screen.header.progress is true (a bar and "Step 2 of 4") or false (the steps by name)');
-    if (h.steps == null) { if (h.progress) say('screen.header.progress needs "steps"'); return ids; }
-    if (!isArr(h.steps) || h.steps.length < 2 || h.steps.length > 8) { say('screen.header.steps is a list of 2 to 8 [id, label]'); return ids; }
-    h.steps.forEach(function (x, i) {
-      var at = 'screen.header.steps[' + i + ']';
-      if (!isPair(x) || x.length !== 2) say(at + ' is [id, label]');
-      else if (!/^[a-z][a-z0-9_]{0,29}$/.test(x[0])) say(at + ': the id "' + x[0] + '" is a lower-case word (a tag writes it: step=' + String(x[0]).toLowerCase().replace(/[^a-z0-9_]/g, '') + ')');
-      else if (ids.indexOf(x[0]) >= 0) say(at + ': the id "' + x[0] + '" is there twice');
-      else { ids.push(x[0]); if (Array.from(x[1]).length > 30) say(at + ': the label is one or two words, 30 characters at most'); }
-    });
-    return ids;
-  }
+  // v0.14 · v0.13's screen mode is gone: a config that still has "screen" (or a widget's "screen" / "step") is told, never
+  // refused (setup() ignores the keys and draws the widgets as before)
+  var GONE = 'was removed in v0.14 (screen mode) and is ignored: give the widget a "focus" for a focused task';
+  var FOCUSK = ['title', 'steps', 'step', 'after'];
   function check1(cfg) {
     var errs = [], top = function (m) { errs.push({ widget: null, message: m }); };
     if (!isObj(cfg)) { top('the config is not an object'); return errs; }
@@ -141,7 +118,7 @@
     if (cfg.links != null && !isArr(cfg.links)) top('"links" must be a list');
     if (cfg.reveal != null && cfg.reveal !== true && cfg.reveal !== false) top('"reveal" is true or false');
     if (cfg.motion != null && cfg.motion !== true && cfg.motion !== false) top('"motion" is true or false');   // v0.10: false, no animations in this bot
-    var SCR = screenCheck(cfg.screen, function (m) { errs.push({ widget: null, screen: true, message: m }); });
+    if (cfg.screen !== undefined) errs.push({ widget: null, warning: true, message: 'warning: "screen" ' + GONE });
     // v0.9.5 (security review) · an entry is an origin with a host, then an optional path, ending in "/". "https://" alone
     // let every site through. A host with an open redirector is listed by a path, never by its origin alone
     var REDIR = /^https?:\/\/((www\.)?google\.[a-z.]+|(www\.|l\.|lm\.|m\.)?facebook\.com|(www\.)?youtube\.com|t\.co|bit\.ly|(www\.)?linkedin\.com|l\.instagram\.com)\/$/i;
@@ -401,12 +378,32 @@
       try {
         if (!/^[a-z][a-z0-9_]*$/.test(name)) err('a widget name is lower-case letters, digits and _');
         if (!isObj(w) || !isStr(w.type) || !own(KEYS, w.type)) { err('unknown type "' + (isObj(w) ? w.type : w) + '". Known: ' + Object.keys(KEYS).join(', ') + (isObj(w) && isStr(w.type) ? near(w.type, Object.keys(KEYS)) : '')); return; }
-        var known = KEYS[w.type].split(' ').concat('flow', 'screen', 'step');
+        var known = KEYS[w.type].split(' ').concat('flow', 'actionRows', 'screen', 'step', FOCUS.indexOf(w.type) >= 0 ? ['focus'] : []);
         if (w.flow != null && w.flow !== true && !(isArr(w.flow) && w.flow.length && w.flow.every(function (k) { return isStr(k) && /^[a-z_][a-z0-9_]*$/.test(k); }))) err('"flow" is true, or the list of keys its flow tag writes, e.g. ["texto", "lang"]');
         Object.keys(w).forEach(function (k) { if (known.indexOf(k) < 0) err('unknown option "' + k + '" for ' + w.type + '. Known: ' + known.join(', ') + near(k, known)); });
-        // screen mode: "screen": false keeps a widget from becoming the screen; "step" is an id of "screen.header.steps"
-        if (w.screen != null && typeof w.screen !== 'boolean') err('"screen" is true or false: false keeps this widget out of screen mode');
-        if (w.step != null) { if (!SCR) err('"step" names a step of "screen.header.steps", and the config has none'); else if (SCR.indexOf(w.step) < 0) err('"step" "' + w.step + '" is not a step of "screen.header.steps". Known: ' + SCR.join(', ') + near(w.step, SCR)); }
+        ['screen', 'step'].forEach(function (k) { if (w[k] !== undefined) errs.push({ widget: name, warning: true, message: name + ': warning: "' + k + '" ' + GONE }); });
+        if (w.actionRows != null && typeof w.actionRows !== 'boolean') err('"actionRows" is true (the buttons as full-width rows while the widget is narrow) or false');
+        // v0.14 · a focus moment: true, or { title, steps: [[id, label], …], step, after }
+        if (w.focus != null && w.focus !== true && w.focus !== false) {
+          var fo = w.focus, fids = [];
+          if (!isObj(fo)) err('"focus" is true, or { "title": "…", "steps": [["id", "Label"], …], "step": "id", "after": "receipt" | "keep" }');
+          else {
+            only(fo, FOCUSK, 'focus');
+            if (fo.title != null && (!isStr(fo.title) || Array.from(fo.title).length > 60)) err('focus.title is one line of text, 60 characters at most');
+            if (fo.after != null && fo.after !== 'receipt' && fo.after !== 'keep') err('focus.after is "receipt" (it folds to one line once sent, the default) or "keep" (it stays open)');
+            if (fo.steps != null) {
+              if (!isArr(fo.steps) || fo.steps.length < 2 || fo.steps.length > 8) err('focus.steps is a list of 2 to 8 [id, label]');
+              else fo.steps.forEach(function (x, i) {
+                var at = 'focus.steps[' + i + ']';
+                if (!isPair(x) || x.length !== 2) err(at + ' is [id, label]');
+                else if (!/^[a-z][a-z0-9_]{0,29}$/.test(x[0])) err(at + ': the id "' + x[0] + '" is a lower-case word (a tag writes it: step=' + String(x[0]).toLowerCase().replace(/[^a-z0-9_]/g, '') + ')');
+                else if (fids.indexOf(x[0]) >= 0) err(at + ': the id "' + x[0] + '" is there twice');
+                else { fids.push(x[0]); if (Array.from(x[1]).length > 30) err(at + ': the label is one or two words, 30 characters at most'); }
+              });
+            }
+            if (fo.step != null) { if (!fids.length) err('focus.step names one of "focus.steps", and there are none'); else if (fids.indexOf(fo.step) < 0) err('focus.step "' + fo.step + '" is not one of focus.steps. Known: ' + fids.join(', ') + near(fo.step, fids)); }
+          }
+        }
         if (w.density != null && w.density !== 'compact' && w.density !== 'comfy') err('"density" is "compact" (one question at a time, a footer with the total) or "comfy" (the v0.9.5 layout)');   // v0.10
         NEED[w.type].forEach(function (k) { if (w[k] == null && !(k === 'items' && w.source != null)) err('missing "' + k + '"'); });
         var pdefs = isObj(w.params) ? w.params : {};
@@ -818,8 +815,8 @@
           if (w['default'] != null && sk.indexOf(w['default']) < 0) err('"default" "' + w['default'] + '" is not a step or a state. Known: ' + sk.join(', '));
           if (w.ref != null) { if (!isObj(w.ref) || !isStr(w.ref.param)) err('"ref" is { "param": the tag key of the order code, "label": "Orden" }: shown as the tag writes it, never invented'); else { only(w.ref, ['param', 'label'], 'ref'); param(w.ref.param, 'ref.param'); strs(w.ref, ['label'], 'ref'); } }
           if (w.eta != null) {
-            if (!isObj(w.eta) || (w.eta.day == null && w.eta.time == null)) err('"eta" is { "day": a tag key, "time": a tag key, "text": "Lista {when}" }, with a day, a time or both');
-            else { only(w.eta, ['day', 'time', 'text'], 'eta'); param(w.eta.day, 'eta.day'); param(w.eta.time, 'eta.time');
+            if (!isObj(w.eta) || (w.eta.day == null && w.eta.time == null)) err('"eta" is { "day": a tag key, "time": a tag key, "text": "Lista {when}", "big": true }, with a day, a time or both');
+            else { only(w.eta, ['day', 'time', 'text', 'big'], 'eta'); if (w.eta.big != null && typeof w.eta.big !== 'boolean') err('eta.big is true (the ETA as a large title, --lbw-title-xl) or false'); param(w.eta.day, 'eta.day'); param(w.eta.time, 'eta.time');
               if (w.eta.text != null) { text(w.eta.text, 'eta.text', ['when']); if (typeof w.eta.text === 'string' && w.eta.text.indexOf('{when}') < 0) err('eta.text needs {when}: the kit writes the day and the time there ("hoy a las 18:00")'); } }
           }
           // the tag keys it reads are different keys, and no param reads one of them

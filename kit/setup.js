@@ -4,9 +4,10 @@
    config = { prefix, langs, defaultLang, timeZone, maxPerMessage, links: ['https://shop.example/', 'tel:'],
               actions: { name: action },        buttons named once, used by name in any widget
               replies: { name: [label, say] },  quick replies named once
-              widgets: { tagName: { type: one of the kit makers, … } },   (LBW.kit.setup.types lists them)
-              screen: { on: true, header: { title, steps: [[id, label], …], progress }, bar, history, bleed, hideHost } }   screen mode
-                        (runtime/screen.js); a widget may add "screen": false (never a screen) and "step": an id of the steps
+              widgets: { tagName: { type: one of the kit makers, … } } }   (LBW.kit.setup.types lists them)
+   any widget may add "actionRows": true (its buttons as full-width rows while it is narrow); form, calendar, slots, calc,
+   review, compare and confirm may add "focus": true | { title, steps: [[id, label], …], step, after: "receipt" | "keep" }
+   (a focus moment, LBW.kit.focus; v0.14). "screen" (v0.13's screen mode, removed in v0.14) is ignored, with a warning
    action = 'name'  |  { use: 'name', primary: true }  |  { tel, cc, label }  |  { wa, text, label }  |  { link, label }  |  { mail, label }
             |  { reply: [label, say] }      (primary: true fills it)
             any action may add "icon": one of LBW.kit.h.icons, and "danger": true (a destructive or "no" action) (v0.8.1.4)
@@ -817,10 +818,12 @@
     // bundle a bot loads leaves it out. Without it a config is taken as checked, and a widget that fails is skipped.
     var errs = setup._check ? setup._check(cfg) : [], bad = [], made = [];
     cfg = photosIn(cfg);
-    root.__kitSetupErrors = errs.map(function (e) { return e.message; });
+    // v0.14 · a warning (e.warning: v0.13's "screen", "step") is logged and ignored: it neither fails the config nor its widget
+    var warns = errs.filter(function (e) { return e.warning; }); errs = errs.filter(function (e) { return !e.warning; });
+    root.__kitSetupErrors = errs.map(function (e) { return e.message; }); root.__kitSetupWarnings = warns.map(function (e) { return e.message; });
+    warns.forEach(function (e) { LBW.drop('setup: ' + e.message); try { console.warn('[kit] setup: ' + e.message); } catch (x) {} });
     errs.forEach(function (e) { if (e.widget != null) bad.push(e.widget); LBW.drop('setup: ' + e.message); try { console.error('[kit] setup: ' + e.message); } catch (x) {} });
-    // a "screen" error (e.screen) leaves the widgets alone: the bot is a normal chat, as it would be without the key
-    if (errs.some(function (e) { return e.widget == null && !e.screen; })) return { ok: false, errors: root.__kitSetupErrors, widgets: made };
+    if (errs.some(function (e) { return e.widget == null; })) return { ok: false, errors: root.__kitSetupErrors, widgets: made };
     var langs = langsOf(cfg), dflt = dfltOf(cfg, langs);
     LBW.init(merge(pick(cfg, ['prefix', 'langs', 'timeZone', 'maxPerMessage', 'links', 'labels', 'quietMs', 'maxWaitMs', 'reveal', 'motion']), { langs: langs, defaultLang: dflt }));   // the runtime's default must be the config's
     // v0.9.5 · the config is localized once per language, not once per widget and language (38 deep walks of the showcase's
@@ -842,16 +845,19 @@
         // v0.9.5 · "flow": true | [keys]: the widget's tag comes from a flow message with field values (lbw.js LBW.widget)
         if (w0.flow === true || isArr(w0.flow)) opts = merge(opts, { flow: w0.flow });
         var fixed = w0.lang, pickL = function (ctx) { return isStr(fixed) && own(fns, fixed) ? fixed : own(fns, ctx.lang) ? ctx.lang : dflt; };   // a widget with its own `lang` always speaks it
-        LBW.widget(name, isDyn ? function (p, ctx) { var l = pickL(ctx); return dyn(cs[l], name, l, p, ctx); } : function (p, ctx) { return (fns[isStr(fixed) && own(fns, fixed) ? fixed : ctx.lang] || fns[dflt])(p, ctx); }, opts);
+        var draw = isDyn ? function (p, ctx) { var l = pickL(ctx); return dyn(cs[l], name, l, p, ctx); } : function (p, ctx) { return (fns[isStr(fixed) && own(fns, fixed) ? fixed : ctx.lang] || fns[dflt])(p, ctx); };
+        // v0.14 · "actionRows" on any widget, "focus" (a focus moment, LBW.kit.focus) on the types that take it; the focus is
+        // read from the tag's language's copy (its title and step labels may be by language)
+        var fw = w0.focus != null && w0.focus !== false && K.focus && K.focus.types.indexOf(w0.type) >= 0, rows = w0.actionRows === true;
+        LBW.widget(name, fw || rows ? function (p, ctx) {
+          var e = draw(p, ctx); if (!e || e.nodeType !== 1) return e;
+          if (rows) e.classList.add('lbw-stack');
+          if (fw) { var fl = own(fns, ctx.lang) ? ctx.lang : dflt; K.focus(e, locOf(isStr(fixed) && own(fns, fixed) ? fixed : fl).widgets[name].focus, p, name); }
+          return e;
+        } : draw, opts);
         made.push(name);
       } catch (e) { root.__kitSetupErrors.push(name + ': ' + e.message); LBW.drop('setup: ' + name + ': ' + e.message); }
     });
-    // screen mode (runtime/screen.js): on once the widgets are registered, before the first scan. Each widget's "screen":
-    // false and "step" go with it; a config the checker refused stays a normal chat
-    if (isObj(cfg.screen) && cfg.screen.on === true && LBW.screen && !errs.some(function (e) { return e.screen; })) {
-      var sw = {}; made.forEach(function (n) { var w = cfg.widgets[n]; if (w.screen === false || isStr(w.step)) sw[n] = { screen: w.screen, step: w.step }; });
-      LBW.screen.start(cfg.screen, { lang: dflt, widgets: sw });
-    }
     warmIntl(langs, cfg.timeZone);
     return { ok: !root.__kitSetupErrors.length, errors: root.__kitSetupErrors, widgets: made };
   }

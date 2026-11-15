@@ -25,27 +25,19 @@ One page per type: when to use it, the smallest working example, every key, and 
 | `rating` | Thumbs, stars or a scale: one tap sends and saves. | [rating.md](rating.md) |
 | `calendar` | A month grid of days, free, few, full or closed, with a price per night. | [calendar.md](calendar.md) |
 
-## Screen mode: the `screen` key
+## Focus moments: the `focus` key
 
-Screen mode: the chat as an app, one screen at a time. The newest widget is the screen, the messages before its turn fold behind "View conversation", a header shows the steps and a bar mirrors the primary action.
+Types that take it: `form`, `calc`, `slots`, `confirm`, `review`, `compare`, `calendar`.
 
-| Key | Required | Type | What it is |
-|---|---|---|---|
-| `on` | yes | boolean | true: screen mode is on. |
-| `header` |  | object | The app header: a title and the steps. |
-| `bar` |  | boolean or `"always"` | true (the default): the primary action mirrored in a bottom bar while it is ready and out of view; "always": whenever it is ready, as a docked footer; false: no bar. |
-| `history` |  | `"collapse"`, `"keep"` (or by language) | "collapse" (earlier messages fold behind "View conversation", the default) or "keep" (they stay). |
-| `bleed` |  | boolean | true: the current screen drops its card and bubble, fills the column, its short text reads as a heading and its buttons as full-width rows. |
-| `hideHost` |  | boolean | true: Landbot's own chat header hides while screen mode runs (the screen header's title carries the brand: header.title, else the hidden header's title). |
-
-`screen.header`:
+A focus moment: at this point of the conversation the widget is a focused task, drawn inside the widget (no card chrome, the column's width, its own title, the step, the primary action docked while it is taller than the chat). true, or { "title", "steps", "step", "after" }.
 
 | Key | Required | Type | What it is |
 |---|---|---|---|
-| `title` |  | text | The header's title, one line. |
-| `steps` |  | list (or by language) | 2–8 steps, [id, label]: the id is a lower-case word (a tag's step=id or step=2, or a widget's "step"). |
-| `progress` |  | boolean | true: a bar and "Step 2 of 4" instead of the steps by name. |
+| `title` |  | text | Its title, one line (60 characters at most); else the widget's own. |
+| `steps` |  | list (or by language) | 2–8 steps [id, label] for "Step 2 of 4 · Label": the id a lower-case word, the label 30 characters at most. |
+| `step` |  | string | The step this widget is, an id of "steps" (a tag's step=id from the same list wins). |
+| `after` |  | `"receipt"`, `"keep"` (or by language) | Once sent: "receipt" (the default: it folds to its "Sent · …" line) or "keep" (it stays open). |
 
-Every type also takes `"screen": false` (never the screen) and `"step"` (its step's id). A tag may name the step itself, `step=when` or `step=2`; any other value is logged and ignored. A step gets its ✓ once the visitor was on it and moved forward; a step jumped over reads as skipped. An agent's text between screens shows as a normal bubble under the current screen. "View conversation" opens the earlier messages above the screen and takes the visitor to their start (focused); folding them puts the screen back where it was. With `"hideHost": true` Landbot's own header hides while screen mode runs (nothing is hidden when the chat has no header hook; `LBW.host.check(null, { header: true })` reports it). The header and the bar keep to the chat's column on a wide window. If the chat's DOM is not what the library expects, or the `screen` key is wrong, the bot is a normal chat.
+A tag may name the step itself, `step=fechas`, from the same closed list; any other value is logged and ignored. Everything happens inside the widget: Landbot's header, history, text box and scroll are never touched. When the same widget is drawn again (the agent answered a question mid-moment and ended with the tag again), the older copy goes inert and shows its title only. A send from the moment completes it. Every type also takes `"actionRows": true`: its buttons as full-width rows while it is narrow. v0.13's `"screen"` (and a widget's `"screen"` and `"step"`) were removed in v0.14: the checker warns and `setup()` ignores them.
 
-Theme tokens (each defaults to the card's): `--lbw-screen-head-bg`, `--lbw-screen-head-ink`, `--lbw-screen-head-muted`, `--lbw-screen-head-line`, `--lbw-screen-head-accent`, `--lbw-screen-head-track`, `--lbw-screen-bar-bg`, `--lbw-screen-bar-ink`, `--lbw-screen-bar-line`, `--lbw-screen-step-size`, `--lbw-screen-step-weight`; with `bleed`: `--lbw-screen-surface`, `--lbw-screen-gutter`, `--lbw-screen-pad`, `--lbw-screen-radius`, `--lbw-screen-title-ink`, `--lbw-screen-intro-ink`, `--lbw-screen-title-size`.
+Theme tokens: `--lbw-focus-surface` (the moment's background; the card's unset), `--lbw-focus-gutter` (how far it reaches past the message to the column's edges; 0), `--lbw-focus-title` (its title's size; 22px), `--lbw-focus-step` (the step line and bar's accent; the accent as text); `--lbw-title-xl` (a large title: `.lbw-title-xl`, a tracker's `"eta": { "big": true }`; 28px).

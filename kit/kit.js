@@ -1,4 +1,4 @@
-/* AI Widgets kit v0.13.0.1 · on lbw.js v0.13.0.1 · the widgets every url-to-demo build rewrote, written once with options. Load it after lbw.js and before the
+/* AI Widgets kit v0.14.0 · on lbw.js v0.14.0 · the widgets every url-to-demo build rewrote, written once with options. Load it after lbw.js and before the
    client's widgets.js: custom_js = <script>lbw.js</script><script>kit.js</script><script>widgets.js</script>.
 
    Each maker registers a widget under the name you give it, from data you pass. Nothing here holds client facts.
@@ -31,32 +31,32 @@
           open: 'Open now · until {t}', closed: 'Closed now · opens {d} at {t}', closedLong: 'Closed now', today: 'today', change: 'Change', tomorrow: 'tomorrow',
           days: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'], localTime: 'Local time: {t}', sent: 'Sent', show: 'Show', hide: 'Hide', busy: 'Busy', pick: 'Pick a time', confirm: 'Confirm', yes: 'Yes', no: 'No',
           close: 'Close', prev: 'Previous photo', next: 'Next photo', photos: 'Photos', enlarge: 'Enlarge on the page', cSame: 'The same in all:', cSame2: 'The same in both:',
-          sOpen: 'Open today', sClosed: 'Closed today', sUntil: 'Open until', sOpens: 'Opens', sIn: 'Opens in', sCloses: 'Season', sDay: '1 day', sDays: '{n} days', sUnknown: 'The next dates aren’t published yet.' , rateOf: '{n} of {max}', tMore: 'See all {n} rows', tLess: 'See fewer', tPick: 'Choose', tPicked: 'Chosen', tTotal: 'Total', updated: 'Updated', photoOf: 'photo {n} of {max}', day: 'Day', live: 'Live', full: 'Full', addCal: 'Add to calendar', inDays: 'in {n} days', code: 'Booking code', best: 'Best pick' },
+          sOpen: 'Open today', sClosed: 'Closed today', sUntil: 'Open until', sOpens: 'Opens', sIn: 'Opens in', sCloses: 'Season', sDay: '1 day', sDays: '{n} days', sUnknown: 'The next dates aren’t published yet.' , rateOf: '{n} of {max}', tMore: 'See all {n} rows', tLess: 'See fewer', tPick: 'Choose', tPicked: 'Chosen', tTotal: 'Total', updated: 'Updated', photoOf: 'photo {n} of {max}', day: 'Day', live: 'Live', full: 'Full', addCal: 'Add to calendar', inDays: 'in {n} days', code: 'Booking code', best: 'Best pick', stepOf: 'Step {n} of {of}' },
     es: { copy: 'Copiar', copied: 'Copiado ✓', select: 'Selecciona el texto y cópialo', summary: 'Tu resumen',
           open: 'Abierto ahora · hasta las {t}', closed: 'Cerrado ahora · abre {d} a las {t}', closedLong: 'Cerrado ahora', today: 'hoy', change: 'Cambiar', tomorrow: 'mañana',
           days: ['el domingo', 'el lunes', 'el martes', 'el miércoles', 'el jueves', 'el viernes', 'el sábado'], localTime: 'Hora local: {t}', sent: 'Enviado', show: 'Ver', hide: 'Ocultar', busy: 'Ocupado', pick: 'Elige una hora', confirm: 'Confirmar', yes: 'Sí', no: 'No',
           close: 'Cerrar', prev: 'Foto anterior', next: 'Foto siguiente', photos: 'Fotos', enlarge: 'Ampliar en la página', cSame: 'Igual en todas:', cSame2: 'Igual en las dos:',
-          sOpen: 'Abierto hoy', sClosed: 'Cerrado hoy', sUntil: 'Abierto hasta', sOpens: 'Abre', sIn: 'Abre en', sCloses: 'Temporada', sDay: '1 día', sDays: '{n} días', sUnknown: 'Las próximas fechas aún no están publicadas.' , rateOf: '{n} de {max}', tMore: 'Ver las {n} filas', tLess: 'Ver menos', tPick: 'Elegir', tPicked: 'Elegido', tTotal: 'Total', updated: 'Actualizado', photoOf: 'foto {n} de {max}', day: 'Día', live: 'En directo', full: 'Completo', addCal: 'Añadir al calendario', inDays: 'en {n} días', code: 'Código de reserva', best: 'Mejor opción' },
+          sOpen: 'Abierto hoy', sClosed: 'Cerrado hoy', sUntil: 'Abierto hasta', sOpens: 'Abre', sIn: 'Abre en', sCloses: 'Temporada', sDay: '1 día', sDays: '{n} días', sUnknown: 'Las próximas fechas aún no están publicadas.' , rateOf: '{n} de {max}', tMore: 'Ver las {n} filas', tLess: 'Ver menos', tPick: 'Elegir', tPicked: 'Elegido', tTotal: 'Total', updated: 'Actualizado', photoOf: 'foto {n} de {max}', day: 'Día', live: 'En directo', full: 'Completo', addCal: 'Añadir al calendario', inDays: 'en {n} días', code: 'Código de reserva', best: 'Mejor opción', stepOf: 'Paso {n} de {of}' },
     it: { copy: 'Copia', copied: 'Copiato ✓', select: 'Seleziona il testo e copialo', summary: 'Il tuo riepilogo',
           open: 'Aperto ora · fino alle {t}', closed: 'Chiuso ora · apre {d} alle {t}', closedLong: 'Chiuso ora', today: 'oggi', change: 'Cambia', tomorrow: 'domani',
           days: ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato'], localTime: 'Ora locale: {t}', sent: 'Inviato', show: 'Mostra', hide: 'Nascondi', busy: 'Occupato', pick: 'Scegli un orario', confirm: 'Conferma', yes: 'Sì', no: 'No',
           close: 'Chiudi', prev: 'Foto precedente', next: 'Foto successiva', photos: 'Foto', enlarge: 'Ingrandisci nella pagina', cSame: 'Uguale in tutte:', cSame2: 'Uguale in entrambe:',
-          sOpen: 'Aperto oggi', sClosed: 'Chiuso oggi', sUntil: 'Aperto fino a', sOpens: 'Apre', sIn: 'Apre tra', sCloses: 'Stagione', sDay: '1 giorno', sDays: '{n} giorni', sUnknown: 'Le prossime date non sono ancora pubblicate.' , rateOf: '{n} su {max}', tMore: 'Vedi tutte le {n} righe', tLess: 'Vedi meno', tPick: 'Scegli', tPicked: 'Scelto', tTotal: 'Totale', updated: 'Aggiornato', photoOf: 'foto {n} di {max}', day: 'Giorno', live: 'In diretta', full: 'Completo', addCal: 'Aggiungi al calendario', inDays: 'tra {n} giorni', code: 'Codice di prenotazione', best: 'Scelta migliore' },
+          sOpen: 'Aperto oggi', sClosed: 'Chiuso oggi', sUntil: 'Aperto fino a', sOpens: 'Apre', sIn: 'Apre tra', sCloses: 'Stagione', sDay: '1 giorno', sDays: '{n} giorni', sUnknown: 'Le prossime date non sono ancora pubblicate.' , rateOf: '{n} su {max}', tMore: 'Vedi tutte le {n} righe', tLess: 'Vedi meno', tPick: 'Scegli', tPicked: 'Scelto', tTotal: 'Totale', updated: 'Aggiornato', photoOf: 'foto {n} di {max}', day: 'Giorno', live: 'In diretta', full: 'Completo', addCal: 'Aggiungi al calendario', inDays: 'tra {n} giorni', code: 'Codice di prenotazione', best: 'Scelta migliore', stepOf: 'Passo {n} di {of}' },
     de: { copy: 'Kopieren', copied: 'Kopiert ✓', select: 'Text markieren und kopieren', summary: 'Deine Zusammenfassung',
           open: 'Jetzt geöffnet · bis {t} Uhr', closed: 'Jetzt geschlossen · öffnet {d} um {t} Uhr', closedLong: 'Jetzt geschlossen', today: 'heute', change: 'Ändern', tomorrow: 'morgen',
           days: ['am Sonntag', 'am Montag', 'am Dienstag', 'am Mittwoch', 'am Donnerstag', 'am Freitag', 'am Samstag'], localTime: 'Ortszeit: {t}', sent: 'Gesendet', show: 'Anzeigen', hide: 'Ausblenden', busy: 'Belegt', pick: 'Uhrzeit wählen', confirm: 'Bestätigen', yes: 'Ja', no: 'Nein',
           close: 'Schließen', prev: 'Vorheriges Foto', next: 'Nächstes Foto', photos: 'Fotos', enlarge: 'Auf der Seite vergrößern', cSame: 'Bei allen gleich:', cSame2: 'Bei beiden gleich:',
-          sOpen: 'Heute geöffnet', sClosed: 'Heute geschlossen', sUntil: 'Geöffnet bis', sOpens: 'Öffnet', sIn: 'Öffnet in', sCloses: 'Saison', sDay: '1 Tag', sDays: '{n} Tagen', sUnknown: 'Die nächsten Termine sind noch nicht veröffentlicht.' , rateOf: '{n} von {max}', tMore: 'Alle {n} Zeilen anzeigen', tLess: 'Weniger anzeigen', tPick: 'Wählen', tPicked: 'Gewählt', tTotal: 'Gesamt', updated: 'Aktualisiert', photoOf: 'Foto {n} von {max}', day: 'Tag', live: 'Live', full: 'Ausgebucht', addCal: 'Zum Kalender hinzufügen', inDays: 'in {n} Tagen', code: 'Buchungscode', best: 'Beste Wahl' },
+          sOpen: 'Heute geöffnet', sClosed: 'Heute geschlossen', sUntil: 'Geöffnet bis', sOpens: 'Öffnet', sIn: 'Öffnet in', sCloses: 'Saison', sDay: '1 Tag', sDays: '{n} Tagen', sUnknown: 'Die nächsten Termine sind noch nicht veröffentlicht.' , rateOf: '{n} von {max}', tMore: 'Alle {n} Zeilen anzeigen', tLess: 'Weniger anzeigen', tPick: 'Wählen', tPicked: 'Gewählt', tTotal: 'Gesamt', updated: 'Aktualisiert', photoOf: 'Foto {n} von {max}', day: 'Tag', live: 'Live', full: 'Ausgebucht', addCal: 'Zum Kalender hinzufügen', inDays: 'in {n} Tagen', code: 'Buchungscode', best: 'Beste Wahl', stepOf: 'Schritt {n} von {of}' },
     fr: { copy: 'Copier', copied: 'Copié ✓', select: 'Sélectionnez le texte et copiez-le', summary: 'Votre résumé',
           open: 'Ouvert · jusqu’à {t}', closed: 'Fermé · ouvre {d} à {t}', closedLong: 'Fermé', today: 'aujourd’hui', change: 'Modifier', tomorrow: 'demain',
           days: ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'], localTime: 'Heure locale : {t}', sent: 'Envoyé', show: 'Voir', hide: 'Masquer', busy: 'Occupé', pick: 'Choisissez une heure', confirm: 'Confirmer', yes: 'Oui', no: 'Non',
           close: 'Fermer', prev: 'Photo précédente', next: 'Photo suivante', photos: 'Photos', enlarge: 'Agrandir sur la page', cSame: 'Identique pour toutes :', cSame2: 'Identique pour les deux :',
-          sOpen: 'Ouvert aujourd’hui', sClosed: 'Fermé aujourd’hui', sUntil: 'Ouvert jusqu’au', sOpens: 'Ouverture', sIn: 'Ouvre dans', sCloses: 'Saison', sDay: '1 jour', sDays: '{n} jours', sUnknown: 'Les prochaines dates ne sont pas encore publiées.' , rateOf: '{n} sur {max}', tMore: 'Voir les {n} lignes', tLess: 'Voir moins', tPick: 'Choisir', tPicked: 'Choisi', tTotal: 'Total', updated: 'Mis à jour', photoOf: 'photo {n} sur {max}', day: 'Jour', live: 'En direct', full: 'Complet', addCal: 'Ajouter au calendrier', inDays: 'dans {n} jours', code: 'Code de réservation', best: 'Meilleur choix' },
+          sOpen: 'Ouvert aujourd’hui', sClosed: 'Fermé aujourd’hui', sUntil: 'Ouvert jusqu’au', sOpens: 'Ouverture', sIn: 'Ouvre dans', sCloses: 'Saison', sDay: '1 jour', sDays: '{n} jours', sUnknown: 'Les prochaines dates ne sont pas encore publiées.' , rateOf: '{n} sur {max}', tMore: 'Voir les {n} lignes', tLess: 'Voir moins', tPick: 'Choisir', tPicked: 'Choisi', tTotal: 'Total', updated: 'Mis à jour', photoOf: 'photo {n} sur {max}', day: 'Jour', live: 'En direct', full: 'Complet', addCal: 'Ajouter au calendrier', inDays: 'dans {n} jours', code: 'Code de réservation', best: 'Meilleur choix', stepOf: 'Étape {n} sur {of}' },
     ca: { copy: 'Copia', copied: 'Copiat ✓', select: 'Selecciona el text i copia’l', summary: 'El teu resum',
           open: 'Obert ara · fins a les {t}', closed: 'Tancat ara · obre {d} a les {t}', closedLong: 'Tancat ara', today: 'avui', change: 'Canvia', tomorrow: 'demà',
           days: ['diumenge', 'dilluns', 'dimarts', 'dimecres', 'dijous', 'divendres', 'dissabte'], localTime: 'Hora local: {t}', sent: 'Enviat', show: 'Mostra', hide: 'Amaga', busy: 'Ocupat', pick: 'Tria una hora', confirm: 'Confirma', yes: 'Sí', no: 'No',
           close: 'Tanca', prev: 'Foto anterior', next: 'Foto següent', photos: 'Fotos', enlarge: 'Amplia a la pàgina', cSame: 'Igual a totes:', cSame2: 'Igual a les dues:',
-          sOpen: 'Obert avui', sClosed: 'Tancat avui', sUntil: 'Obert fins al', sOpens: 'Obre', sIn: 'Obre d’aquí a', sCloses: 'Temporada', sDay: '1 dia', sDays: '{n} dies', sUnknown: 'Les properes dates encara no estan publicades.' , rateOf: '{n} de {max}', tMore: 'Veure les {n} files', tLess: 'Veure’n menys', tPick: 'Tria', tPicked: 'Triat', tTotal: 'Total', updated: 'Actualitzat', photoOf: 'foto {n} de {max}', day: 'Dia', live: 'En directe', full: 'Complet', addCal: 'Afegeix al calendari', inDays: 'd’aquí a {n} dies', code: 'Codi de reserva', best: 'Millor opció' }
+          sOpen: 'Obert avui', sClosed: 'Tancat avui', sUntil: 'Obert fins al', sOpens: 'Obre', sIn: 'Obre d’aquí a', sCloses: 'Temporada', sDay: '1 dia', sDays: '{n} dies', sUnknown: 'Les properes dates encara no estan publicades.' , rateOf: '{n} de {max}', tMore: 'Veure les {n} files', tLess: 'Veure’n menys', tPick: 'Tria', tPicked: 'Triat', tTotal: 'Total', updated: 'Actualitzat', photoOf: 'foto {n} de {max}', day: 'Dia', live: 'En directe', full: 'Complet', addCal: 'Afegeix al calendari', inDays: 'd’aquí a {n} dies', code: 'Codi de reserva', best: 'Millor opció', stepOf: 'Pas {n} de {of}' }
   };
   function words(lang) { return L[lang] || L.en; }
   function fill(s, o) { return String(s).replace(/\{(\w+)\}/g, function (m, k) { return o[k] == null ? '' : o[k]; }); }
@@ -1687,7 +1687,7 @@
       var end = st ? !!st.end : i === last, tn = st ? tone(st.tone, st.end ? 'danger' : 'warn') : tone(steps[i].tone, i === last ? 'ok' : 'info'), text = st ? st.text : steps[i].label;
       U.head(o.box, cfg.kicker || '', cfg.title, ref ? badge((R.label || tw.ref) + ' ' + ref) : null);
       statusHead(o.box, { text: text, tone: tn });
-      var eta = end ? '' : when(p, lang, w, tw); if (eta) o.box.appendChild(withIcon(el('p', 'kit-trk-eta', fill(E.text || tw.eta, { when: eta })), 'clock'));
+      var eta = end ? '' : when(p, lang, w, tw); if (eta) o.box.appendChild(withIcon(el('p', 'kit-trk-eta' + (E.big ? ' is-big' : ''), fill(E.text || tw.eta, { when: eta })), 'clock'));   // v0.14: "big": the ETA in --lbw-title-xl
       // an ordered list; the current step has aria-current="step", and every step says its state in words (never colour only)
       var ol = el('ol', 'kit-trk-steps'); ol.setAttribute('aria-label', tw.steps);
       steps.forEach(function (s, j) {
@@ -1763,7 +1763,93 @@
     });
   }
 
-  LBW.kit = { version: '0.13.0.1', dev: DEV, describe: describe, L: L, last: last, cards: cards, table: table, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent, compare: compare, season: season, rating: rating,
+  // ── v0.14 · focus moments: one widget, at one point of the conversation, as a focused task ─────────────
+  // LBW.kit.focus(o, focus, p, name?) → o. focus = true | { title, steps: [[id, label], …], step: id, after: 'receipt' | 'keep' }; p (the
+  // tag's params) may pick step=id from the closed list (anything else is logged and ignored). Everything happens inside the
+  // widget: it drops its card chrome and fills the chat's column, shows its own title and "Step 2 of 4 · Dates", keeps its
+  // primary action docked at the bottom while it is taller than the chat (sticky, in the chat's own scroller), and lays its
+  // buttons out as full-width rows when narrow. Once it sends: "receipt" (the default) folds it to its "Sent · …" line, "keep"
+  // leaves it open. When the same widget is drawn again, the older copy goes inert (title only). Landbot's header, history,
+  // text box and scroll are never touched; the only mark on Landbot's tree is the adapter's (LBW.host.mark). JSON: a widget's
+  // "focus" (kit/setup.js) on form, calendar, slots, calc, review, compare, confirm.
+  var FOCUS_ID = 0;
+  function focusOf(f) { return f === true ? {} : f && typeof f === 'object' ? f : null; }
+  function moment(o, f, p, name) {
+    f = focusOf(f); if (!o || o.nodeType !== 1 || !f || o.__focus) return o;
+    if (o.classList.contains('is-loading')) {   // a skeleton: the moment starts when its content is in
+      if (typeof MutationObserver === 'function' && !o.__focusWait) { o.__focusWait = true; var lo = new MutationObserver(function () { if (!o.classList.contains('is-loading')) { lo.disconnect(); moment(o, f, p, name); if (o.isConnected) arrive(o, o.getAttribute('data-widget'), LBW.host.messageOf(o)); } }); lo.observe(o, { attributes: true, attributeFilter: ['class'] }); }
+      return o;
+    }
+    var box = o.box || o.querySelector('.lbw-box'); if (!box) return o;
+    var w = words(o.getAttribute('lang') || 'en'), steps = Array.isArray(f.steps) ? f.steps.filter(function (x) { return Array.isArray(x) && typeof x[0] === 'string' && x[1] != null; }) : [];
+    var ids = steps.map(function (x) { return x[0]; }), st = null;
+    if (p && typeof p.has === 'function' && p.has('step')) { st = p.one('step', ids); if (!st) LBW.drop((name || o.getAttribute('data-widget') || 'focus') + ': step=' + String(p.raw.step).slice(0, 30) + ' is not one of its steps (ignored)'); }
+    if (!st && ids.indexOf(f.step) >= 0) st = f.step;
+    o.classList.add('is-focus'); o.setAttribute('role', 'region'); o.__focus = { after: f.after === 'keep' ? 'keep' : 'receipt' };
+    var at = ids.indexOf(st), top = null, line = null;
+    if (at >= 0) {
+      top = el('div', 'kit-focus-top'); line = top.appendChild(el('p', 'kit-focus-step', fill(w.stepOf, { n: at + 1, of: ids.length }) + ' · ' + steps[at][1]));
+      var bar = top.appendChild(el('ol', 'kit-focus-bar')); bar.setAttribute('aria-hidden', 'true');
+      steps.forEach(function (x, i) { bar.appendChild(el('li', i < at ? 'is-done' : i === at ? 'is-cur' : '')); });
+      box.insertBefore(top, box.firstChild); o.setAttribute('data-lbw-step', st);
+    }
+    var t = box.querySelector('.lbw-title');
+    if (f.title) { if (t) t.textContent = f.title; else { var h = U.head(box, '', f.title); box.insertBefore(h, top ? top.nextSibling : box.firstChild); t = h.querySelector('.lbw-title'); } }
+    if (t && t.textContent.trim()) {
+      t.id = t.id || 'lbw-fh' + (++FOCUS_ID); t.setAttribute('role', 'heading'); t.setAttribute('aria-level', '3'); t.setAttribute('tabindex', '-1'); t.classList.add('kit-focus-h');
+      o.setAttribute('aria-labelledby', t.id);
+      if (line) { line.id = t.id + '-s'; o.setAttribute('aria-describedby', line.id); }
+    } else if (line) o.setAttribute('aria-label', line.textContent);
+    // the primary action, docked: a form's CTA (a compact calc's or review's footer already is), else a row with a primary
+    var cta = o.querySelector('.lbw-cta');
+    if (cta && !cta.closest('.kit-foot')) cta.classList.add('kit-dock');
+    else if (!cta) { var pr = o.querySelector('.lbw-actions .is-primary'), row = pr && pr.closest('.lbw-actions'); if (row) row.classList.add('kit-dock'); }
+    // done: any send from the moment (lbw.js marks the widget data-lbw-job); a send that fails opens it again
+    if (typeof MutationObserver === 'function') new MutationObserver(function () {
+      var j = o.getAttribute('data-lbw-job'); if (j === 'queued' || j === 'sending' || j === 'sent') momentDone(o); else momentOpen(o);
+    }).observe(o, { attributes: true, attributeFilter: ['data-lbw-job'] });
+    return o;
+  }
+  function momentDone(o) {
+    var f = o.__focus || {}, line = o.querySelector('.kit-sentline');
+    if (o.classList.contains('is-focus-done')) { if (line && o.getAttribute('data-lbw-job') === 'sent') U.receipt(o, line); return; }
+    o.classList.add('is-focus-done');
+    if (f.after === 'keep') { var tg = o.querySelector('.kit-sent-toggle'); if (tg && o.classList.contains('is-collapsed')) tg.click(); return; }   // it stays open: a type that folded itself is opened again
+    if (!line) {   // a type that doesn't fold itself (compare, confirm): its line from the sentence it sent
+      var c = o.querySelector('[data-say][data-lbw-job]') || o.querySelector('.is-sent[data-say]'), said = c && c.getAttribute('data-say');
+      if (said) { fold(o, said, o.getAttribute('lang') || 'en'); line = o.querySelector('.kit-sentline'); }
+    }
+    if (!line) return;
+    o.classList.remove('is-focus'); o.classList.add('is-receipt'); LBW.host.mark(o, false);
+    if (o.getAttribute('data-lbw-job') === 'sent') U.receipt(o, line);
+    var said2 = line.querySelector('.kit-sent-t');   // said politely: "Sent: <the sentence>"
+    LBW.announce(words(o.getAttribute('lang') || 'en').sent + ': ' + (said2 ? said2.textContent : ''), o.getAttribute('lang'), 'focus:' + (o.getAttribute('data-widget') || ''));
+  }
+  function momentOpen(o) {
+    if (!o.classList.contains('is-focus-done')) return;
+    if (o.classList.contains('is-inert')) return;
+    o.classList.remove('is-focus-done', 'is-receipt'); o.classList.add('is-focus'); if (o.isConnected) LBW.host.mark(o, true);
+  }
+  // an older copy of a moment, drawn again later: inert, its title only (no second set of live controls anywhere)
+  function momentInert(x) {
+    x.classList.remove('is-focus'); x.classList.add('is-inert'); x.setAttribute('inert', ''); x.removeAttribute('aria-labelledby'); x.removeAttribute('aria-describedby'); x.removeAttribute('role');
+    LBW.host.mark(x, false);
+  }
+  function arrive(o, name, msg) {
+    if (!o || !o.classList.contains('is-focus')) return;
+    var H = LBW.host; H.mark(o, true);
+    if (/^[a-z][a-z0-9_]*$/.test(name || '')) [].forEach.call(document.querySelectorAll('.lbw.is-focus[data-widget="' + name + '"]'), function (x) { if (x !== o && !x.classList.contains('is-focus-done') && !x.classList.contains('is-inert')) momentInert(x); });
+    // focus moves in on arrival (the newest message only), unless the visitor is in the text box or another field of the page,
+    // or isn't in this document at all (a chat in an iframe, the visitor on the host page: focus is never pulled across)
+    var all = H.messages(); if (all.length && all[all.length - 1] !== msg) return;
+    var a = document.activeElement, t = o.querySelector('.kit-focus-h');
+    if (typeof document.hasFocus === 'function' && !document.hasFocus()) return;
+    if (!t || (a && a !== document.body && (a === H.input() || (a.matches && a.matches('input, textarea, select, [contenteditable="true"]') && !(a.closest && a.closest('.lbw')))))) return;
+    try { t.focus({ preventScroll: true }); } catch (x) { try { t.focus(); } catch (x2) {} }
+  }
+  LBW.on('render', function (e) { arrive(e.el, e.widget, e.message); });
+
+  LBW.kit = { version: '0.14.0', dev: DEV, describe: describe, L: L, last: last, cards: cards, table: table, form: form, contact: contact, chips: chips, carousel: carousel, calc: calc, slots: slots, confirm: confirm, review: review, chart: chartCard, stats: stats, people: people, consent: consent, compare: compare, season: season, rating: rating,
     h: { usedByVisitor: usedByVisitor, wasQuieted: wasQuieted, quietAgain: quietAgain, keepPlace: keepPlace, upgraded: upgraded, radioGroup: radioGroup, note: note, list: list, label: label, dup: dup, choice: choice, multiChoice: multiChoice, copyBox: copyBox, status: status, wa: wa, fill: fill, money: money, total: total, lightbox: lightbox, chart: chart, statusHead: statusHead,
       icon: icon, withIcon: withIcon, icons: Object.keys(ICONS), badge: badge, tones: TONES.slice() } };
   // v0.10 · live & numbers (its own line: other makers' exports stay where they are)
@@ -1771,4 +1857,6 @@
   LBW.kit.calendar = calendar;   // v0.10
   LBW.kit.map = mapCard;   // v0.10
   LBW.kit.tracker = tracker;   // v0.10
+  LBW.kit.focus = moment;   // v0.14 · focus moments
+  LBW.kit.focus.types = ['form', 'calendar', 'slots', 'calc', 'review', 'compare', 'confirm'];
 })(typeof window !== 'undefined' ? window : this);

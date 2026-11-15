@@ -84,7 +84,7 @@ The tag that draws it: `[[gx:pedido]]`
 | `param` |  |  | The tag key of the current step ("estado"). |
 | `default` |  | text | The step or state when the tag has none. |
 | `ref` |  | object | The order code: { "param": the tag key, "label" }. |
-| `eta` |  | object | { "day": a tag key, "time": a tag key, "text": "Lista {when}" }. |
+| `eta` |  | object | { "day": a tag key, "time": a tag key, "text": "Lista {when}", "big": true }. |
 | `steps` | yes | list (or by language) | 2–8 steps in order. |
 | `states` |  | list (or by language) | A delay at a step ("at") or an end ("end": true). |
 | `links` |  | list of actions | Buttons: actions (names in "actions" or written out). |
@@ -93,8 +93,7 @@ The tag that draws it: `[[gx:pedido]]`
 | `params` |  | object | Typed values the tag carries ({name} in any text): { "plazas": { "type": "int", "min": 0, "max": 99 } }. |
 | `money` |  | object | How {x:money} is written: { "cur": "€", "after": true, "dec": ",", "th": "." }. |
 | `flow` |  | true or list of keys | true, or the list of keys its flow tag writes, e.g. ["texto", "lang"]. |
-| `screen` |  | boolean | Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one). |
-| `step` |  | string | Screen mode: the step this widget is, an id of "screen.header.steps" (a tag's step= wins). |
+| `actionRows` |  | boolean | true: the buttons as full-width rows while the widget is narrow (480 px or less); every focus moment does it. |
 
 Every text may also be written by language (`{ "en": …, "es": … }`), and a key may be `null` to leave it out. A key not in this table is an error.
 

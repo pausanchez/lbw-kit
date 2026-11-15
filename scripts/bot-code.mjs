@@ -11,7 +11,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { transform } from 'esbuild';
 import { execFileSync } from 'node:child_process';
-import { read, checkConfig } from './lib.mjs';
+import { read, checkConfig, checkWarnings } from './lib.mjs';
 
 const args = process.argv.slice(2), opt = {}, files = [];
 for (let i = 0; i < args.length; i++) {
@@ -27,6 +27,7 @@ if (files.length !== 1 || !opt.out) { console.error('usage: node scripts/bot-cod
 let config;
 try { config = JSON.parse(fs.readFileSync(files[0], 'utf8')); } catch (e) { console.error(`${files[0]}: not valid JSON (${e.message})`); process.exit(1); }
 const errors = checkConfig(config);
+checkWarnings(config).forEach((w) => console.error('⚠ ' + w));
 if (errors.length) { errors.forEach((e) => console.error('✖ ' + e)); process.exit(1); }
 if (/"(csv|json)":\s*"http:\/\/(localhost|127\.0\.0\.1)/.test(JSON.stringify(config))) console.error('⚠ a source on localhost: fine for trying a map in the mock. Do NOT upload this build: a published bot would draw the saved copy for ever.');
 

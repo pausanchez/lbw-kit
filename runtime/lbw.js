@@ -1,4 +1,4 @@
-/* lbw.js · Landbot AI Widgets runtime · v0.13.0.1
+/* lbw.js · Landbot AI Widgets runtime · v0.14.0
    Turns tags that an AI agent (or a flow message) writes at the end of a bot message, e.g. [[shop:card id=boots lang=en]],
    into interactive widgets inside the Landbot v4 web chat. Distilled from four production experiments.
    You write: your data, your labels and one function per widget. The runtime does the rest:
@@ -1137,12 +1137,13 @@
       if (made.length) host.classList.add('has-lbw');
       if (made.length) reveal(host, wasAtEnd);
     }
-    // one-shot groups nobody used go quiet once the visitor has written after them. Screen mode (runtime/screen.js) marks the
-    // current screen's widget .is-screen: a question typed on a screen doesn't end it, the screen does (the next one)
-    var all = H.messages(), lastU = -1;
+    // one-shot groups nobody used go quiet once the visitor has written after them. v0.14 · except in the newest focus moment
+    // that is still open (the kit's .lbw.is-focus, kit/kit.js): a question typed in the middle of a booking doesn't end it; a
+    // newer moment does, or its own completion (the kit makes an older copy of the same moment inert)
+    var all = H.messages(), lastU = -1, fx = document.querySelectorAll('.lbw.is-focus:not(.is-focus-done)'), keep = fx.length ? H.messageOf(fx[fx.length - 1]) : null;
     [].forEach.call(all, function (m, i) { if (H.isUser(m)) lastU = i; });
     [].forEach.call(all, function (m, i) { if (i < lastU) [].forEach.call(m.querySelectorAll('.lbw-unsent'), function (x) { x.remove(); }); });   // v0.9.5: the visitor moved on
-    [].forEach.call(all, function (m, i) { if (i < lastU && !m.querySelector('.lbw.is-screen')) [].forEach.call(m.querySelectorAll('.lbw-once:not(.is-done)'), function (g) { g.classList.add('is-stale'); done(g); var w = g.closest('.lbw'); if (w && !w.querySelector('.is-sent')) w.classList.add('is-spent'); }); });   // v0.8.1.9: is-spent: nothing was sent from this card
+    [].forEach.call(all, function (m, i) { if (i < lastU && m !== keep) [].forEach.call(m.querySelectorAll('.lbw-once:not(.is-done)'), function (g) { g.classList.add('is-stale'); done(g); var w = g.closest('.lbw'); if (w && !w.querySelector('.is-sent')) w.classList.add('is-spent'); }); });   // v0.8.1.9: is-spent: nothing was sent from this card
   }
   function start() {
     if (started) return; started = true;
@@ -1160,7 +1161,7 @@
   }
 
   root.LBW = {
-    version: '0.13.0.1',
+    version: '0.14.0',
     host: H,   // the Landbot v4 adapter (runtime/host-v4.js): LBW.host.check() → { ok, missing, input }
     ready: false,   // v0.9.5: true once init() ran and the first scan is done
     // LBW.init({ prefix, langs, defaultLang, labels: {en:{…}}, links: ['https://shop.example/', 'tel:', 'mailto:', 'https://calendar.google.com/'], maxPerMessage, quietMs, timeZone: 'Europe/Madrid' })
@@ -1185,9 +1186,6 @@
     motion: moving,
     // LBW.announce(text, lang, key): one short line in the chat's polite live region (v0.9.5)
     announce: announce,
-    // v0.13.0.1 · LBW.unhold(): ends the reveal of the newest reply (its 2.5 s hold) as if the visitor had scrolled. Screen
-    // mode's "View conversation" calls it: a pending scroll to the newest reply put the screen 74–77 px off (live, 14 Nov 2026)
-    unhold: function () { if (HOLD && !HOLD.done && HOLD.end) HOLD.end({ type: 'unhold' }); },
     day: { num: dayNum, parts: dayParts, read: dayRead, today: dayToday, format: dayFormat, str: dayStr, easter: dayEaster, nth: dayNth, next: dayNext, on: dayOn },
     time: { now: timeNow, read: timeRead, format: timeFmt, state: timeState, nextOpen: timeNextOpen },
     cal: { google: gcal, ics: icsText },

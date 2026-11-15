@@ -1,4 +1,4 @@
-/* AI Widgets kit v0.13.0.1 · the kit-* classes, from the --lbw-* tokens only (set them in the demo's theme.css).
+/* AI Widgets kit v0.14.0 · the kit-* classes, from the --lbw-* tokens only (set them in the demo's theme.css).
    Order in custom_css: @imports, lbw.css, kit.css, the demo's theme.css, the chat skin. */
 .kit-note { margin: 10px 0 0; font-size: 12px; line-height: 17px; color: var(--lbw-muted); }
 .kit-note:not(.is-safe):not(.is-flag), .kit-line, .kit-desc { max-width: 62ch; }
@@ -601,3 +601,33 @@
   .kit-trk-b { align-items: center; padding-top: 0; }
   .kit-trk-l { font-size: 13px; line-height: 18px; }
 }
+
+/* ── v0.14 · focus moments (LBW.kit.focus, a widget's "focus") ──────────────────────────────────────
+   Drawn inside the widget, never around it: no card chrome, the column's width (--lbw-focus-gutter reaches past the message's
+   own padding to the column's edges; 0 unset), its own title (--lbw-focus-title) and "Step 2 of 4 · Label" with a bar
+   (--lbw-focus-step), the primary action docked at the bottom of the chat's scroller while the moment is taller than it.
+   Once sent it is the "Sent · …" line (.is-receipt: the collapsed card, as any folded form); an older copy drawn again is inert. */
+.lbw.is-focus { max-width: none; width: calc(100% + 2 * var(--lbw-focus-gutter, 0px)); margin-inline: calc(-1 * var(--lbw-focus-gutter, 0px)); }
+.lbw.is-focus > .lbw-box { overflow: clip; border-color: transparent; border-radius: 0; box-shadow: none; background: var(--lbw-focus-surface, var(--lbw-card)); padding-inline: max(16px, var(--lbw-focus-gutter, 0px)); }
+.lbw.is-focus > .lbw-box::before { display: none; }
+.kit-focus-top { margin: 0 0 12px; }
+.kit-focus-step { margin: 0 0 6px; font: 600 12px/16px var(--lbw-font); letter-spacing: .02em; color: var(--lbw-focus-step, var(--lbw-accent-text, var(--lbw-accent))); }
+.kit-focus-bar { display: flex; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.kit-focus-bar li { flex: 1 1 0; height: 4px; border-radius: 2px; background: var(--lbw-line); }
+.kit-focus-bar .is-done, .kit-focus-bar .is-cur { background: var(--lbw-focus-step, var(--lbw-accent-text, var(--lbw-accent))); }
+.lbw.is-focus .kit-focus-h { font-size: var(--lbw-focus-title, 22px); line-height: 1.2; text-wrap: balance; }
+.kit-focus-h:focus { outline: none; }
+.kit-focus-h:focus-visible { outline: 2px solid var(--lbw-focus, var(--lbw-ink)); outline-offset: 2px; }
+.lbw.is-focus .lbw-cta { width: 100%; }
+.lbw.is-focus .kit-dock { position: sticky; bottom: 8px; z-index: 2; box-shadow: 0 0 0 8px var(--lbw-focus-surface, var(--lbw-card)), 0 -8px 14px 8px var(--lbw-focus-surface, var(--lbw-card)); }
+.lbw.is-focus > .lbw-actions.kit-dock { bottom: 0; margin-top: 0; padding: 8px max(16px, var(--lbw-focus-gutter, 0px)); background: var(--lbw-focus-surface, var(--lbw-card)); box-shadow: none; }
+.lbw.is-focus.is-focus-done .kit-dock { position: static; box-shadow: none; }
+.lbw-motion .kit-focus-bar li { transition: background-color var(--lbw-dur) var(--lbw-ease); }
+/* an older copy of a moment, drawn again later: inert (no control), its title only */
+.lbw.is-inert > .lbw-box *:not(.lbw-title):not(:has(.lbw-title)), .lbw.is-inert > .lbw-actions { display: none !important; }
+.lbw.is-inert > .lbw-box { padding: 10px 16px; background: transparent; box-shadow: none; }
+.lbw.is-inert .lbw-head { margin: 0; }
+.lbw.is-inert .lbw-title { font: 600 14px/20px var(--lbw-font); color: var(--lbw-muted); }
+/* a tracker's "eta": { "big": true }: the ETA as a large title */
+.kit-trk-eta.is-big { font: 700 var(--lbw-title-xl, 28px)/1.15 var(--lbw-display); letter-spacing: -.015em; font-variant-numeric: tabular-nums; margin: 2px 0 12px; }
+.kit-trk-eta.is-big .kit-ico { width: 22px; height: 22px; }

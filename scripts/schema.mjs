@@ -22,11 +22,12 @@ export function tables() {
   vm.runInContext(read('kit/setup.js'), ctx);
   vm.runInContext(read('kit/setup-check.js'), ctx);
   const I = window.LBW.kit.setup._, k = I.keys, words = (s) => s.split(' ');
-  const KEYS = Object.fromEntries(Object.entries(k.KEYS).map(([t, s]) => [t, words(s).concat('flow', 'screen', 'step')]));
+  // every type also takes "flow" and "actionRows" (and v0.13's "screen" and "step", ignored with a warning); the focus types take "focus"
+  const KEYS = Object.fromEntries(Object.entries(k.KEYS).map(([t, s]) => [t, words(s).concat('flow', 'actionRows', 'screen', 'step', k.FOCUS.includes(t) ? ['focus'] : [])]));
   const types = [...window.LBW.kit.setup.types];
   const a = Object.keys(KEYS).sort().join(), b = [...types].sort().join();
   if (a !== b) throw new Error(`the checker's types (${a}) are not setup()'s (${b})`);
-  return { TOP: [...k.TOP], KEYS, ITEM: JSON.parse(JSON.stringify(k.ITEM)), NEED: JSON.parse(JSON.stringify(k.NEED)),
+  return { TOP: [...k.TOP], KEYS, FOCUS: [...k.FOCUS], ITEM: JSON.parse(JSON.stringify(k.ITEM)), NEED: JSON.parse(JSON.stringify(k.NEED)),
     ICONS: [...I.icons], TONES: [...I.tones], PTYPES: [...I.PTYPES], DIRECTIONS: Object.keys(I.mapDir || {}), types: Object.keys(KEYS) };
 }
 
@@ -152,8 +153,16 @@ function common(t) {
     text: text('The body text.'), big: text('A big line (a phone number, an address).'), sub: text('A subtitle.'), disclaimer: text('A disclaimer under the card.'), lead: text('A line above the slides.'),
     allowDup: any('true: draw it even when the same widget is already in the message.', 'boolean'),
     params: ref('params'), money: ref('money'), flow: ref('flow'),
-    screen: bool('Screen mode: false keeps this widget from becoming the screen (it shows as a normal card on the current one).'),
-    step: { description: 'Screen mode: the step this widget is, an id of "screen.header.steps" (a tag\'s step= wins).', type: ['string', 'null'], pattern: '^[a-z][a-z0-9_]*$' },
+    screen: { description: 'Removed in v0.14 (screen mode): ignored, with a warning from the checker.', deprecated: true },
+    step: { description: 'Removed in v0.14 (screen mode): ignored, with a warning from the checker. A focus moment names its step in "focus".', deprecated: true },
+    actionRows: bool('true: the buttons as full-width rows while the widget is narrow (480 px or less); every focus moment does it.'),
+    focus: { description: 'A focus moment: at this point of the conversation the widget is a focused task, drawn inside the widget (no card chrome, the column\'s width, its own title, the step, the primary action docked while it is taller than the chat). true, or { "title", "steps", "step", "after" }.',
+      anyOf: [{ type: ['boolean', 'null'] }, strict('The moment.', {
+        title: text('Its title, one line (60 characters at most); else the widget\'s own.'),
+        steps: { description: '2–8 steps [id, label] for "Step 2 of 4 · Label": the id a lower-case word, the label 30 characters at most.', anyOf: [{ type: 'array', minItems: 2, maxItems: 8,
+          items: { type: 'array', minItems: 2, maxItems: 2, ts: '[string, LbwText]' } }, ref('byLang'), { type: 'null' }] },
+        step: { description: 'The step this widget is, an id of "steps" (a tag\'s step=id from the same list wins).', type: ['string', 'null'], pattern: '^[a-z][a-z0-9_]*$' },
+        after: words(['receipt', 'keep'], 'Once sent: "receipt" (the default: it folds to its "Sent · …" line) or "keep" (it stays open).') })] },
     links: ref('links'), buttons: ref('links'), buttonsWithSummary: ref('links'), actions: ref('links'),
     reply: ref('reply'), param: param('The tag key that names the item ("id" by default): lower-case.'),
     item: any('A single item (no id in the tag).'), items: any('The items.'),
@@ -230,7 +239,7 @@ function own(t) {
       states: { description: 'A delay at a step ("at") or an end ("end": true).', anyOf: [{ type: 'array', items: strict('A state.', tstate, ['key', 'text']) }, ref('byLang'), { type: 'null' }] },
       default: text('The step or state when the tag has none.'), param: param('The tag key of the current step ("estado").'),
       ref: strict('The order code: { "param": the tag key, "label" }.', { param: param('The tag key.'), label: text('Its label.') }, ['param']),
-      eta: strict('{ "day": a tag key, "time": a tag key, "text": "Lista {when}" }.', { day: param('The tag key of the day.'), time: param('The tag key of the time.'), text: text('With {when}.') }),
+      eta: strict('{ "day": a tag key, "time": a tag key, "text": "Lista {when}", "big": true }.', { day: param('The tag key of the day.'), time: param('The tag key of the time.'), text: text('With {when}.'), big: bool('true: the ETA as a large title (--lbw-title-xl).') }),
       live: { description: 'The key of a data message that updates it (a lower-case word).', anyOf: [{ type: ['string', 'null'], pattern: '^[a-z][a-z0-9_]{0,39}$' }, ref('byLang')] } },
     rating: { kind: words(['thumbs', 'stars', 'scale'], 'thumbs, stars (the default) or scale.'), min: int('The lowest value of a scale.'), max: int('The highest value (stars 3–10, a scale up to min + 10).'),
       labels: list('[no, yes] for thumbs, [low end, high end] for a scale.'), bands: list('[[top value, name], …] for {band}.'),
@@ -307,17 +316,7 @@ export function buildSchema(version, repo = 'pausanchez/lbw-kit') {
     maxPerMessage: any('Widgets drawn per message at most (3).', 'number'), links: list('The allow-list: https origins ending in "/", "tel:", "mailto:".'),
     labels: any('Your own widgets\' words, by language.', 'Record<string, Record<string, string>>'), quietMs: any('ms of quiet before a reply is drawn.', 'number'), maxWaitMs: any('ms to wait at most.', 'number'),
     reveal: bool('false: don\'t scroll the chat to the start of a tall reply.'), motion: bool('false: no animations in this bot.'),
-    screen: strict('Screen mode: the chat as an app, one screen at a time. The newest widget is the screen, the messages before its turn fold behind "View conversation", a header shows the steps and a bar mirrors the primary action.', {
-      on: bool('true: screen mode is on.'),
-      header: strict('The app header: a title and the steps.', {
-        title: text('The header\'s title, one line.'),
-        steps: { description: '2–8 steps, [id, label]: the id is a lower-case word (a tag\'s step=id or step=2, or a widget\'s "step").', anyOf: [{ type: 'array', minItems: 2, maxItems: 8,
-          items: { type: 'array', minItems: 2, maxItems: 2, ts: '[string, LbwText]' } }, ref('byLang'), { type: 'null' }] },
-        progress: bool('true: a bar and "Step 2 of 4" instead of the steps by name.') }),
-      bar: { description: 'true (the default): the primary action mirrored in a bottom bar while it is ready and out of view; "always": whenever it is ready, as a docked footer; false: no bar.', anyOf: [{ type: ['boolean', 'null'] }, { enum: ['always'] }] },
-      history: words(['collapse', 'keep'], '"collapse" (earlier messages fold behind "View conversation", the default) or "keep" (they stay).'),
-      bleed: bool('true: the current screen drops its card and bubble, fills the column, its short text reads as a heading and its buttons as full-width rows.'),
-      hideHost: bool('true: Landbot\'s own chat header hides while screen mode runs (the screen header\'s title carries the brand: header.title, else the hidden header\'s title).') }, ['on']),
+    screen: { description: 'Removed in v0.14 (screen mode): ignored, with a warning from the checker. A widget\'s "focus" is the focused task now.', deprecated: true },
     photos: obj('Photo sets: { "name": { "base": "https://…/", "sizes": [["folder/", 495], …], "ratio": [4, 3] } }.', null, { names: '^[A-Za-z_][A-Za-z0-9_]*$',
       values: { type: 'object', properties: { base: { description: 'An https address ending in "/", under "links".', type: 'string' }, sizes: { description: '[[folder, width], …], smallest first.', type: 'array', minItems: 1 },
         ratio: any('[width, height], such as [4, 3].', '[number, number] | LbwByLang') }, required: ['base', 'sizes'], additionalProperties: false } }),

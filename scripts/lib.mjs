@@ -17,16 +17,20 @@ function checker() {
   return window.LBW.kit.setup;
 }
 export function checkConfig(config) {
-  return [...checker().check(config)];
+  return [...checker()._check(config)].filter((e) => !e.warning).map((e) => e.message);
+}
+// v0.14 · what the checker only warns about (a key that was removed and is ignored): never a failure
+export function checkWarnings(config) {
+  return [...checker()._check(config)].filter((e) => e.warning).map((e) => e.message);
 }
 
-// the same problems for an agent: [{ widget, path, message, fix }]. `path` is where in the config the problem is,
+// the same problems for an agent: [{ widget, path, message, fix }] (a warning adds warning: true). `path` is where in the config the problem is,
 // as far as the sentence names it ("widgets.x.items.y.kiker"; the widget, or null for the config, when it doesn't); `fix` is
 // the checker's "did you mean" for a misspelt key, or null.
 export function checkConfigDetailed(config) {
   return [...checker()._check(config)].map((e) => {
     const m = /Did you mean "([^"]+)"\?$/.exec(e.message);
-    return { widget: e.widget == null ? null : e.widget, path: pathOf(config, e), message: e.message, fix: m ? `did you mean "${m[1]}"?` : null };
+    return { widget: e.widget == null ? null : e.widget, path: pathOf(config, e), message: e.message, fix: m ? `did you mean "${m[1]}"?` : null, ...(e.warning ? { warning: true } : {}) };
   });
 }
 

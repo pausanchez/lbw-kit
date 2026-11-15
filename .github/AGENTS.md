@@ -7,10 +7,12 @@ You are building interactive widgets that appear inside a Landbot AI agent's mes
 The AI agent ends its message with a tag, `[[prefix:name key=value lang=xx]]`. The bot's Custom JS (`runtime/lbw.js` + your widgets) finds the tag in the chat's DOM, removes it, validates every value against closed lists, and draws a widget from **your** data (code, a public API, or Landbot fields). Widget buttons can post a message **as the visitor** (the agent answers it) and write **Landbot fields** with that message. Flow messages can carry tags too, with `@{field}` values that Landbot fills in.
 
 ## Principles
-The agent chooses, the code tells; widgets live **inside the conversation** (the chat stays a chat); one checked config per bot; one place that knows Landbot (`runtime/host-v4.js`); proven with a visitor on a phone, not only with assertions. Every feature answers the questions in [PRINCIPLES.md](https://github.com/pausanchez/lbw-kit/blob/main/.github/PRINCIPLES.md). **Screen mode (`"screen"`) is experimental: don't use it in client bots.**
+The agent chooses, the code tells; widgets live **inside the conversation** (the chat stays a chat); one checked config per bot; one place that knows Landbot (`runtime/host-v4.js`); proven with a visitor on a phone, not only with assertions. Every feature answers the questions in [PRINCIPLES.md](https://github.com/pausanchez/lbw-kit/blob/main/.github/PRINCIPLES.md). Screen mode (`"screen"`, v0.13) was removed in v0.14: the checker warns and ignores it.
 
 ## The short path: the library and a JSON config
 The runtime, the kit and their CSS are one versioned library, `lbw-kit`, loaded by URL. A bot's widgets are one JSON object, `LBW.kit.setup({…})`, with the kit's 20 types. **Start from an example**: copy `kit/example/config.json` or `kit/example-lead/config.json`, change the data, and run `npm run check:config -- config.json` until it prints no problem. Then `npm run bot -- config.json --out build` writes the bot's Custom JS and CSS from it. Write JavaScript only for what the JSON can't say.
+
+Since v0.14 a form, calendar, slots, calc, review, compare or confirm may be a **focus moment** (`"focus": { "steps": [["plan", "Plan"], ["dates", "Dates"]], "step": "dates" }`): at that point of the conversation it is drawn as a focused task inside its own widget (its title, "Step 2 of 3", its primary action docked), folds to a receipt once sent, and an older copy goes inert when it is drawn again.
 
 Since v0.10 (the WOW layer) widgets move behind one gate (a visible tab, no reduced motion, `"motion": false` turns it off), live data says "● En directo" and highlights what changed, form/calc/review/slots are compact by default (`"density": "comfy"` for the old layout), and `calendar`, `map` and `tracker` are types.
 
@@ -26,7 +28,8 @@ Since v0.10 (the WOW layer) widgets move behind one gate (a visible tab, no redu
 9. **If a widget can show it, don't leave the agent.** Coming back from the flow failed twice: a re-entered agent block went dead, and a fresh agent answered the last message again (two cards). Use exits only for what the flow must do (validated questions, conditions, integrations, handover), and don't come back.
 10. **Dates are computed in code, as UTC day numbers** (`p.day`, `LBW.day`), with "today" where the client is (`LBW.day.today('Europe/Madrid')`). The model never adds days.
 11. **Instructions are code: test one case per rule.** Rule order matters: language first, then routing rules that override a widget's trigger ("BEFORE ANY OTHER RULE"), with the trigger words in every language. Refusals: "one sentence and NO tag at all".
-12. **Publishing needs the bot owner's explicit yes, every time.** Use fake test data. Don't submit forms or accept consent banners on the client's live site.
+12. **Focus moments only where a task needs one** (several inputs, review & confirm, a configurator), never for a normal answer or a single choice. If the visitor asks something mid-moment, the agent answers and ends with the moment's tag again.
+13. **Publishing needs the bot owner's explicit yes, every time.** Use fake test data. Don't submit forms or accept consent banners on the client's live site.
 
 ## The runtime in 20 lines
 ```js

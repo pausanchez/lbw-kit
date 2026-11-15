@@ -391,39 +391,30 @@ export interface Kit {
   cards: KitMaker; table: KitMaker; form: KitMaker; contact: KitMaker; chips: KitMaker; carousel: KitMaker; calc: KitMaker; slots: KitMaker;
   confirm: KitMaker; review: KitMaker; chart: KitMaker; stats: KitMaker; people: KitMaker; consent: KitMaker; compare: KitMaker; season: KitMaker;
   rating: KitMaker; calendar: KitMaker; map: KitMaker; tracker: KitMaker;
+  /** v0.14 · focus moments. */
+  focus: KitFocus;
 }
 
 /** @experimental A kit maker: registers a widget from an options object. */
 export type KitMaker = (cfg: any, ...rest: any[]) => any;
 
-/** Screen mode (runtime/screen.js): the current screen, or `null` while there is none or screen mode is off. */
-export interface ScreenState {
-  /** The current step's id (from the tag's `step=`, else the widget's `"step"`, else the last one), or `null`. */
-  step: string | null;
-  /** Its place in `screen.header.steps` (0-based), or -1. */
-  index: number;
-  /** The steps the visitor completed (was on, then moved forward from), in the steps' order. */
-  done: string[];
-  /** How many steps there are. */
-  of: number;
-  /** The tag name of the screen's last widget (the one the bar follows). */
-  widget: string | null;
-  /** Every widget of the screen's message, in order. */
-  widgets: string[];
-  /** `true` while the earlier messages are shown ("View conversation"). */
-  open: boolean;
-  /** How many earlier messages are folded. */
-  past: number;
+/** v0.14 · a focus moment: `true`, or the moment's title, its steps and which one this widget is (a JSON widget's `"focus"`). */
+export interface FocusMoment {
+  /** Its title, one line; else the widget's own. */
+  title?: string;
+  /** 2–8 `[id, label]` for "Step 2 of 4 · Label". */
+  steps?: Array<[string, string]>;
+  /** The step this widget is, an id of `steps`; a tag's `step=` from the same list wins. */
+  step?: string;
+  /** Once it sends: `"receipt"` (the default, it folds to its "Sent · …" line) or `"keep"` (it stays open). */
+  after?: 'receipt' | 'keep';
 }
 
-/** Screen mode: the chat as an app, one screen at a time. `LBW.kit.setup` starts it from the config's `"screen"`. */
-export interface ScreenApi {
-  /** Turns it on by hand (no kit config): `true` when on. A wrong config, or a chat whose DOM isn't the expected one, stays a normal chat. */
-  start(config: NonNullable<LbwConfig['screen']>, opts?: { lang?: string; widgets?: Record<string, { screen?: boolean; step?: string }> }): boolean;
-  /** The current screen. */
-  state(): ScreenState | null;
-  /** Shows (`true`) or folds again (`false`) the earlier messages; returns the new state, or `false` when off. Open: the visitor is taken to the first earlier message (focused); folded: the screen goes back where it was. */
-  history(open: boolean): boolean;
+/** v0.14 · `LBW.kit.focus(widget, focus, params, name?)`: makes a widget you return a focus moment (call it before returning it; `name` only names it in the log). */
+export interface KitFocus {
+  (widget: HTMLElement, focus: true | FocusMoment, params?: Params, name?: string): HTMLElement;
+  /** The kit types whose JSON takes `"focus"`. */
+  readonly types: string[];
 }
 
 export interface Api {
@@ -472,10 +463,6 @@ export interface Api {
   motion(): boolean;
   /** Says one short line in the chat's polite live region (v0.9.5). */
   announce(text: string, lang: string, key?: string): unknown;
-  /** Screen mode (runtime/screen.js): inert until a config's `"screen": { "on": true }` or `start()`. */
-  screen: ScreenApi;
-  /** v0.13.0.1: ends the reveal of the newest reply (lbw.js holds it in view for 2.5 s) as if the visitor had scrolled. */
-  unhold(): void;
   /** The kit. Present only when `kit/kit.js` is loaded. */
   kit: Kit;
   /** @experimental In the source's `LBW`, not in the docs: logs to `window.__lbwDropped`. */
@@ -499,6 +486,8 @@ declare global {
     __lbwStored?: unknown[];
     /** The config's errors from `setup()`. */
     __kitSetupErrors?: string[];
+    /** v0.14: what setup() only warned about (a removed key it ignored, as v0.13's "screen"). */
+    __kitSetupWarnings?: string[];
     /** Dev mode's warnings (`?kitdev=1`). */
     __kitWarnings?: string[];
     /** Set in tests: pins today (`'D/M/YYYY'`). */
